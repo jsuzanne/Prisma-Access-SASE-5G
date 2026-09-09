@@ -72,10 +72,10 @@ class ConfigUpdateModel(BaseModel):
 
 
 class ConfigTestModel(BaseModel):
-    client_id: str
-    client_secret: str
-    tsg_id: str
-    api_base_url: str = "https://api.sase.paloaltonetworks.com"
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    tsg_id: Optional[str] = None
+    api_base_url: Optional[str] = "https://api.sase.paloaltonetworks.com"
 
 
 class CreateUEModel(BaseModel):
@@ -208,11 +208,18 @@ def update_app_config(payload: ConfigUpdateModel):
 @app.post("/api/config/test")
 def test_app_config(payload: ConfigTestModel):
     """Test OAuth2 credentials and connectivity against PANW endpoints."""
+    current_cfg = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+    
+    effective_secret = payload.client_secret.strip() if (payload.client_secret and payload.client_secret.strip()) else current_cfg.client_secret
+    effective_client_id = payload.client_id.strip() if (payload.client_id and payload.client_id.strip()) else current_cfg.client_id
+    effective_tsg_id = payload.tsg_id.strip() if (payload.tsg_id and payload.tsg_id.strip()) else current_cfg.tsg_id
+    effective_api_base = payload.api_base_url or current_cfg.api_base_url or "https://api.sase.paloaltonetworks.com"
+
     test_cfg = Config(
-        client_id=payload.client_id,
-        client_secret=payload.client_secret,
-        tsg_id=payload.tsg_id,
-        api_base_url=payload.api_base_url,
+        client_id=effective_client_id,
+        client_secret=effective_secret,
+        tsg_id=effective_tsg_id,
+        api_base_url=effective_api_base,
     )
     try:
         auth = PANWAuthManager(test_cfg)
@@ -220,7 +227,7 @@ def test_app_config(payload: ConfigTestModel):
         
         # Test basic hierarchy query
         client = Prisma5GClient(test_cfg)
-        tenants = client.list_tenants(payload.tsg_id)
+        tenants = client.list_tenants(effective_tsg_id)
 
         return {
             "success": True,
