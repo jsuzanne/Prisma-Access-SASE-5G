@@ -86,6 +86,31 @@ class CreateUEModel(BaseModel):
     session_ip: Optional[str] = None  # If provided, auto-registers 5G session
 
 
+class UpdateUEModel(BaseModel):
+    imsi: Optional[str] = None
+    imei: Optional[str] = None
+    apn: Optional[str] = None
+    tsg_id: Optional[str] = None
+    group_id: Optional[str] = None  # target group id, or "" / "none" to unassign
+
+
+class CreateGroupModel(BaseModel):
+    group_name: str
+    tsg_id: Optional[str] = None
+    identity_ids: Optional[List[str]] = None
+
+
+class UpdateGroupModel(BaseModel):
+    group_name: Optional[str] = None
+    identity_ids: Optional[List[str]] = None
+    tsg_id: Optional[str] = None
+
+
+class AssignGroupModel(BaseModel):
+    group_id: Optional[str] = None
+    tsg_id: Optional[str] = None
+
+
 class RegisterSessionModel(BaseModel):
     imsi: str
     imei: str
@@ -350,6 +375,70 @@ def create_ue(payload: CreateUEModel):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
+@app.put("/api/ues/{identity_id}")
+def update_ue(identity_id: str, payload: UpdateUEModel):
+    """Update SIM card hardware mapping details (IMSI, IMEI, APN) and/or group assignment."""
+    try:
+        client = get_current_client()
+        
+        # 1. Update basic SIM metadata if any is provided
+        update_res = None
+        if payload.imsi or payload.imei or payload.apn:
+            update_res = client.update_tenant_ue(
+                identity_id=identity_id,
+                imsi=payload.imsi,
+                imei=payload.imei,
+                apn=payload.apn,
+                tsg_id=payload.tsg_id,
+            )
+
+        # 2. Update group assignment if group_id field is specified
+        group_res = None
+        if payload.group_id is not None:
+            target_gid = payload.group_id.strip()
+            if target_gid.lower() in ("none", "", "null"):
+                target_gid = None
+            group_res = client.assign_ue_to_group(
+                ue_identity_id=identity_id,
+                target_group_id=target_gid,
+                tsg_id=payload.tsg_id,
+            )
+
+        return {
+            "success": True,
+            "identity_id": identity_id,
+            "data": update_res,
+            "group_assignment": group_res,
+            "message": f"SIM {identity_id} updated successfully",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.put("/api/ues/{identity_id}/group")
+def assign_ue_group(identity_id: str, payload: AssignGroupModel):
+    """Assign or move a SIM card to a specific subscriber user group."""
+    try:
+        client = get_current_client()
+        target_gid = payload.group_id.strip() if payload.group_id else None
+        if target_gid and target_gid.lower() in ("none", "null", ""):
+            target_gid = None
+
+        res = client.assign_ue_to_group(
+            ue_identity_id=identity_id,
+            target_group_id=target_gid,
+            tsg_id=payload.tsg_id,
+        )
+        return {
+            "success": True,
+            "identity_id": identity_id,
+            "data": res,
+            "message": f"SIM {identity_id} group membership updated",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
 @app.delete("/api/ues/{identity_id}")
 def delete_ue(identity_id: str):
     """Safely delete a SIM card mapping by identity ID."""
@@ -387,6 +476,7 @@ def list_groups(tsg_id: Optional[str] = None):
                 "tsg_id": g.tsg_id,
                 "tenant_name": g.tenant_name,
                 "user_count": g.user_count,
+                "identity_ids": g.identity_ids or [],
             })
         return {
             "success": True,
@@ -395,6 +485,75 @@ def list_groups(tsg_id: Optional[str] = None):
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+@app.post("/api/groups")
+def create_group(payload: CreateGroupModel):
+    """Create a new 5G subscriber identity group in Strata Cloud Manager."""
+    try:
+        client = get_current_client()
+        resp = client.create_user_group(
+            group_name=payload.group_name,
+            tsg_id=payload.tsg_id,
+            identity_ids=payload.identity_ids or [],
+        )
+        return {
+            "success": True,
+            "data": resp,
+            "message": f"Group '{payload.group_name}' created successfully",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.get("/api/groups/{group_id}")
+def get_group(group_id: str):
+    """Get details and member identity IDs for a specific 5G user group."""
+    try:
+        client = get_current_client()
+        resp = client.get_user_group(group_id)
+        return {
+            "success": True,
+            "data": resp,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.put("/api/groups/{group_id}")
+def update_group(group_id: str, payload: UpdateGroupModel):
+    """Update a 5G user group's name and/or member identity list."""
+    try:
+        client = get_current_client()
+        resp = client.update_user_group(
+            group_id=group_id,
+            group_name=payload.group_name,
+            identity_ids=payload.identity_ids,
+            tsg_id=payload.tsg_id,
+        )
+        return {
+            "success": True,
+            "data": resp,
+            "message": f"Group '{group_id}' updated successfully",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.delete("/api/groups/{group_id}")
+def delete_group(group_id: str):
+    """Delete a 5G subscriber user group from Strata Cloud Manager."""
+    try:
+        client = get_current_client()
+        resp = client.delete_user_group(group_id)
+        return {
+            "success": True,
+            "group_id": group_id,
+            "data": resp,
+            "message": f"Group '{group_id}' deleted successfully",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
 
 
 # -----------------------------------------------------------------------------

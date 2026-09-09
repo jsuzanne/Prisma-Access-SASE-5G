@@ -435,6 +435,167 @@ class Prisma5GClient:
 
         return {"models": all_models}
 
+    def get_user_group(self, group_id: str) -> Dict[str, Any]:
+        """Get details and member identity IDs for a specific 5G user group.
+        
+        API: GET /mt/manage/5g/userGroup/{group_id}
+        """
+        resp = self._request("GET", f"/mt/manage/5g/userGroup/{group_id}")
+        if resp.status_code != 200:
+            raise RuntimeError(
+                f"Failed to fetch user group '{group_id}' [HTTP {resp.status_code}]: {resp.text}"
+            )
+        return resp.json()
+
+    def create_user_group(
+        self,
+        group_name: str,
+        tsg_id: Optional[str] = None,
+        identity_ids: Optional[List[str]] = None,
+    ) -> Dict[str, Any]:
+        """Create a new 5G subscriber identity group in Strata Cloud Manager.
+        
+        API: POST /mt/manage/5g/userGroup
+        """
+        target_tsg = str(tsg_id or self.config.tsg_id)
+        if not target_tsg:
+            raise ValueError("tsg_id must be provided or configured in .env (PANW_TSG_ID)")
+
+        payload = {
+            "group_name": group_name,
+            "tsg_id": target_tsg,
+            "identity_id": identity_ids or [],
+        }
+
+        resp = self._request("POST", "/mt/manage/5g/userGroup", json_data=payload)
+        if resp.status_code not in (200, 201):
+            raise RuntimeError(
+                f"Failed to create user group '{group_name}' [HTTP {resp.status_code}]: {resp.text}"
+            )
+        try:
+            return resp.json()
+        except Exception:
+            return {"status": "success", "group_name": group_name}
+
+    def update_user_group(
+        self,
+        group_id: str,
+        group_name: Optional[str] = None,
+        identity_ids: Optional[List[str]] = None,
+        tsg_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Update a user group's name and/or member identity list.
+        
+        API: PUT /mt/manage/5g/userGroup/{group_id}
+        """
+        target_tsg = str(tsg_id or self.config.tsg_id)
+
+        # If group_name or identity_ids is not provided, fetch current group details
+        if group_name is None or identity_ids is None:
+            curr = self.get_user_group(group_id)
+            data_arr = curr.get("data", [])
+            curr_obj = data_arr[0] if data_arr and isinstance(data_arr, list) else curr.get("data", {})
+            if group_name is None:
+                group_name = curr_obj.get("group_name") or curr_obj.get("name", "")
+            if identity_ids is None:
+                identity_ids = curr_obj.get("identity_id") or []
+            if not target_tsg and curr_obj.get("tsg_id"):
+                target_tsg = curr_obj.get("tsg_id")
+
+        payload = {
+            "group_name": group_name,
+            "tsg_id": str(target_tsg),
+            "identity_id": identity_ids if identity_ids is not None else [],
+        }
+
+        resp = self._request("PUT", f"/mt/manage/5g/userGroup/{group_id}", json_data=payload)
+        if resp.status_code not in (200, 201, 204):
+            raise RuntimeError(
+                f"Failed to update user group '{group_id}' [HTTP {resp.status_code}]: {resp.text}"
+            )
+        try:
+            return resp.json()
+        except Exception:
+            return {"status": "success", "group_id": group_id}
+
+    def delete_user_group(self, group_id: str) -> Dict[str, Any]:
+        """Delete a 5G subscriber user group from Strata Cloud Manager.
+        
+        API: DELETE /mt/manage/5g/userGroup/{group_id}
+        """
+        resp = self._request("DELETE", f"/mt/manage/5g/userGroup/{group_id}")
+        if resp.status_code not in (200, 204):
+            raise RuntimeError(
+                f"Failed to delete user group '{group_id}' [HTTP {resp.status_code}]: {resp.text}"
+            )
+        try:
+            return resp.json()
+        except Exception:
+            return {"status": "success", "group_id": group_id}
+
+    def assign_ue_to_group(
+        self,
+        ue_identity_id: str,
+        target_group_id: Optional[str] = None,
+        tsg_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Atomically assign a SIM / UE identity to a target security group.
+        
+        Removes the UE from any other groups it currently belongs to in the TSG,
+        and adds it to the target group if specified.
+        """
+        groups_resp = self.list_user_groups(tsg_id=tsg_id)
+        all_groups = groups_resp.get("models", [])
+        
+        results = []
+        for g in all_groups:
+            gid = g.group_id
+            if not gid:
+                continue
+            
+            # Fetch current member list for group
+            try:
+                g_detail = self.get_user_group(gid)
+                d_arr = g_detail.get("data", [])
+                g_data = d_arr[0] if d_arr and isinstance(d_arr, list) else g_detail.get("data", {})
+                current_members = list(g_data.get("identity_id") or [])
+                g_name = g_data.get("group_name") or g.name
+                g_tsg = g_data.get("tsg_id") or g.tsg_id
+            except Exception:
+                current_members = list(g.identity_ids or [])
+                g_name = g.name
+                g_tsg = g.tsg_id
+
+            if gid == target_group_id:
+                # Must be in this group
+                if ue_identity_id not in current_members:
+                    current_members.append(ue_identity_id)
+                    res = self.update_user_group(
+                        group_id=gid,
+                        group_name=g_name,
+                        identity_ids=current_members,
+                        tsg_id=g_tsg,
+                    )
+                    results.append({"group_id": gid, "action": "added", "result": res})
+            else:
+                # Must NOT be in this group
+                if ue_identity_id in current_members:
+                    current_members = [i for i in current_members if i != ue_identity_id]
+                    res = self.update_user_group(
+                        group_id=gid,
+                        group_name=g_name,
+                        identity_ids=current_members,
+                        tsg_id=g_tsg,
+                    )
+                    results.append({"group_id": gid, "action": "removed", "result": res})
+
+        return {
+            "status": "success",
+            "identity_id": ue_identity_id,
+            "target_group_id": target_group_id,
+            "changes": results,
+        }
+
     # --------------------------------------------------------------------------
     # 4. 5G Interconnect & Monitoring Metrics
     # --------------------------------------------------------------------------

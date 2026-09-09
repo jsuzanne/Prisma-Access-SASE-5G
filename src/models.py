@@ -102,13 +102,19 @@ class UserGroup:
     tsg_id: Optional[str] = None
     user_count: Optional[int] = None
     tenant_name: Optional[str] = None
+    identity_ids: List[str] = field(default_factory=list)
 
     @classmethod
     def from_api_dict(cls, data: Dict[str, Any]) -> "UserGroup":
+        identities = data.get("identity_id") or data.get("identityIds") or []
+        count = data.get("user_count")
+        if count is None and isinstance(identities, list):
+            count = len(identities)
         return cls(
             group_id=data.get("id") or data.get("group_id"),
             name=data.get("name") or data.get("group_name"),
             description=data.get("description"),
             tsg_id=data.get("tsg_id"),
-            user_count=data.get("user_count"),
+            user_count=count,
+            identity_ids=identities if isinstance(identities, list) else [],
         )

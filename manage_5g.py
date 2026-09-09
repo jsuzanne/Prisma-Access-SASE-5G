@@ -76,6 +76,7 @@ def build_parser() -> argparse.ArgumentParser:
     update_p.add_argument("--imei", help="Updated IMEI number")
     update_p.add_argument("--apn", help="Updated APN name")
     update_p.add_argument("--tsg-id", help="Updated TSG ID")
+    update_p.add_argument("--group-id", help="Assign to subscriber group ID (or 'none' to unassign)")
 
     # 5. delete
     del_p = subparsers.add_parser("delete", help="Delete a registered SIM card / Tenant UE mapping")
@@ -111,12 +112,35 @@ def build_parser() -> argparse.ArgumentParser:
     grp_p.add_argument("--group-id", help="Filter by specific Group ID")
     grp_p.add_argument("--json", action="store_true", help="Output raw JSON")
 
-    # 10. summary (SCM Dashboard KPI Stats)
+    # 10. group-create
+    gc_p = subparsers.add_parser("group-create", help="Create a new 5G Subscriber Identity Group")
+    gc_p.add_argument("--name", required=True, help="Group name (e.g. 'VIP-Sensors')")
+    gc_p.add_argument("--tsg-id", help="Target TSG ID")
+    gc_p.add_argument("--identities", nargs="*", help="Optional initial UE Identity IDs")
+    gc_p.add_argument("--json", action="store_true", help="Output raw JSON")
+
+    # 11. group-get
+    gg_p = subparsers.add_parser("group-get", help="Get details and member IDs for a User Group")
+    gg_p.add_argument("id", help="Group ID")
+    gg_p.add_argument("--json", action="store_true", help="Output raw JSON")
+
+    # 12. group-delete
+    gd_p = subparsers.add_parser("group-delete", help="Delete a 5G Subscriber User Group")
+    gd_p.add_argument("id", help="Group ID to delete")
+
+    # 13. assign-group
+    ag_p = subparsers.add_parser("assign-group", help="Assign a SIM / UE to a Subscriber User Group")
+    ag_p.add_argument("--ue-id", required=True, help="UE Identity ID")
+    ag_p.add_argument("--group-id", help="Target Group ID (or 'none' to unassign)")
+    ag_p.add_argument("--group-name", help="Target Group Name (e.g. 'Permissive', 'Restrictive')")
+    ag_p.add_argument("--tsg-id", help="TSG ID")
+
+    # 14. summary (SCM Dashboard KPI Stats)
     sum_p = subparsers.add_parser("summary", help="Show 5G SASE Summary Monitoring KPIs (matching Strata Cloud Manager)")
     sum_p.add_argument("--tsg-id", help="Override TSG ID")
     sum_p.add_argument("--json", action="store_true", help="Output raw JSON")
 
-    # 11. interconnect
+    # 15. interconnect
     ic_p = subparsers.add_parser("interconnect", help="List regional 5G Interconnects, Bandwidth, and VLAN attachments")
     ic_p.add_argument("--tsg-id", help="Override TSG ID")
     ic_p.add_argument("--json", action="store_true", help="Output raw JSON")
@@ -272,6 +296,16 @@ def handle_update(client: Prisma5GClient, args: argparse.Namespace):
     console.print(f"[bold green]✓ Successfully updated UE {args.id}![/bold green]")
     console.print_json(json.dumps(res))
 
+    # If group-id is provided, also update group membership
+    if getattr(args, "group_id", None) is not None:
+        gid = args.group_id.strip() if args.group_id else None
+        if gid and gid.lower() in ("none", "null", ""):
+            gid = None
+        with console.status(f"[bold green]Updating group assignment to '{gid}'..."):
+            g_res = client.assign_ue_to_group(ue_identity_id=args.id, target_group_id=gid, tsg_id=args.tsg_id)
+        console.print(f"[bold green]✓ Group assignment updated![/bold green]")
+        console.print_json(json.dumps(g_res))
+
 
 def handle_delete(client: Prisma5GClient, args: argparse.Namespace):
     with console.status(f"[bold red]Deleting Tenant UE {args.id}..."):
@@ -324,6 +358,10 @@ def handle_groups(client: Prisma5GClient, args: argparse.Namespace):
         res = client.list_user_groups(tsg_id=args.tsg_id, group_id=args.group_id)
 
     models = res.get("models", [])
+    if args.json:
+        console.print_json(json.dumps([{"group_id": g.group_id, "name": g.name, "user_count": g.user_count, "tsg_id": g.tsg_id, "tenant_name": g.tenant_name} for g in models]))
+        return
+
     table = Table(title=f"5G Subscriber Groups (Count: {len(models)})")
     table.add_column("Tenant", style="bold blue")
     table.add_column("Group Name", style="bold green")
@@ -341,6 +379,59 @@ def handle_groups(client: Prisma5GClient, args: argparse.Namespace):
         )
 
     console.print(table)
+
+
+def handle_group_create(client: Prisma5GClient, args: argparse.Namespace):
+    with console.status(f"[bold green]Creating subscriber group '{args.name}'..."):
+        res = client.create_user_group(
+            group_name=args.name,
+            tsg_id=args.tsg_id,
+            identity_ids=args.identities or [],
+        )
+    console.print(f"[bold green]✓ Successfully created Subscriber Group '{args.name}'![/bold green]")
+    console.print_json(json.dumps(res))
+
+
+def handle_group_get(client: Prisma5GClient, args: argparse.Namespace):
+    with console.status(f"[bold green]Fetching group details for '{args.id}'..."):
+        res = client.get_user_group(args.id)
+    if args.json:
+        console.print_json(json.dumps(res))
+    else:
+        console.print(Panel(json.dumps(res, indent=2), title=f"Group Details: {args.id}", expand=False))
+
+
+def handle_group_delete(client: Prisma5GClient, args: argparse.Namespace):
+    with console.status(f"[bold red]Deleting subscriber group '{args.id}'..."):
+        res = client.delete_user_group(args.id)
+    console.print(f"[bold green]✓ Successfully deleted Subscriber Group '{args.id}'![/bold green]")
+    console.print_json(json.dumps(res))
+
+
+def handle_assign_group(client: Prisma5GClient, args: argparse.Namespace):
+    target_gid = args.group_id
+    if not target_gid and args.group_name:
+        # Search by group name
+        groups = client.list_user_groups(tsg_id=args.tsg_id).get("models", [])
+        for g in groups:
+            if g.name and g.name.lower() == args.group_name.lower():
+                target_gid = g.group_id
+                break
+        if not target_gid:
+            console.print(f"[bold red]Error:[/bold red] Could not find group named '{args.group_name}'")
+            sys.exit(1)
+
+    if target_gid and target_gid.lower() in ("none", "null", ""):
+        target_gid = None
+
+    with console.status(f"[bold green]Assigning UE '{args.ue_id}' to group '{target_gid or 'None'}'..."):
+        res = client.assign_ue_to_group(
+            ue_identity_id=args.ue_id,
+            target_group_id=target_gid,
+            tsg_id=args.tsg_id,
+        )
+    console.print(f"[bold green]✓ UE Group assignment updated successfully![/bold green]")
+    console.print_json(json.dumps(res))
 
 
 def handle_summary(client: Prisma5GClient, args: argparse.Namespace):
@@ -428,6 +519,10 @@ def main():
             "session-register": handle_session_register,
             "session-terminate": handle_session_terminate,
             "groups": handle_groups,
+            "group-create": handle_group_create,
+            "group-get": handle_group_get,
+            "group-delete": handle_group_delete,
+            "assign-group": handle_assign_group,
             "summary": handle_summary,
             "interconnect": handle_interconnect,
         }

@@ -109,6 +109,76 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["status_code"], 202)
 
+    @patch("app.Prisma5GClient.update_tenant_ue")
+    @patch("app.Prisma5GClient.assign_ue_to_group")
+    def test_update_ue_endpoint(self, mock_assign, mock_update):
+        mock_update.return_value = {"status": "success"}
+        mock_assign.return_value = {"status": "success", "identity_id": "uuid-1", "target_group_id": "grp-1"}
+        payload = {
+            "imsi": "901370001420683",
+            "imei": "000000000000000",
+            "apn": "sase",
+            "group_id": "grp-1",
+            "tsg_id": "1291887562",
+        }
+        response = client.put("/api/ues/uuid-1", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["identity_id"], "uuid-1")
+
+    @patch("app.Prisma5GClient.assign_ue_to_group")
+    def test_assign_ue_group_endpoint(self, mock_assign):
+        mock_assign.return_value = {"status": "success", "identity_id": "uuid-1", "target_group_id": "grp-1"}
+        payload = {"group_id": "grp-1", "tsg_id": "1291887562"}
+        response = client.put("/api/ues/uuid-1/group", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+
+    @patch("app.Prisma5GClient.create_user_group")
+    def test_create_group_endpoint(self, mock_create_grp):
+        mock_create_grp.return_value = {"data": {"id": "new-grp-id", "group_name": "VIP-Sensors"}}
+        payload = {
+            "group_name": "VIP-Sensors",
+            "tsg_id": "1291887562",
+            "identity_ids": ["uuid-1"],
+        }
+        response = client.post("/api/groups", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+
+    @patch("app.Prisma5GClient.get_user_group")
+    def test_get_group_endpoint(self, mock_get_grp):
+        mock_get_grp.return_value = {
+            "data": [{"group_name": "Restrictive", "identity_id": ["uuid-1", "uuid-2"], "tsg_id": "1291887562"}]
+        }
+        response = client.get("/api/groups/6c73c05b-9977-4bed-a61c-30edc47a49f8")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+
+    @patch("app.Prisma5GClient.update_user_group")
+    def test_update_group_endpoint(self, mock_upd_grp):
+        mock_upd_grp.return_value = {"status": "success"}
+        payload = {
+            "group_name": "Restrictive-Updated",
+            "identity_ids": ["uuid-1"],
+        }
+        response = client.put("/api/groups/6c73c05b-9977-4bed-a61c-30edc47a49f8", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+
+    @patch("app.Prisma5GClient.delete_user_group")
+    def test_delete_group_endpoint(self, mock_del_grp):
+        mock_del_grp.return_value = {"status": "success"}
+        response = client.delete("/api/groups/custom-grp-id")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+
     def test_serve_index_html(self):
         response = client.get("/")
         self.assertEqual(response.status_code, 200)
