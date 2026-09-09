@@ -110,6 +110,9 @@
                     <button onclick="switchTab('tab-lifecycle')" id="nav-tab-lifecycle" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition">
                         <i data-lucide="play-circle" class="w-4 h-4 text-purple-400"></i> Lifecycle Runner
                     </button>
+                    <button onclick="switchTab('tab-matrix')" id="nav-tab-matrix" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition">
+                        <i data-lucide="compass" class="w-4 h-4 text-orange-400"></i> SCM & CLI Guide
+                    </button>
                     <button onclick="switchTab('tab-settings')" id="nav-tab-settings" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition">
                         <i data-lucide="settings" class="w-4 h-4 text-blue-400"></i> Settings & Credentials
                     </button>
@@ -174,7 +177,10 @@
                         <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
                         <input type="text" id="search-sims" oninput="filterSIMs()" placeholder="Search by IMSI, IMEI, or APN..." class="w-full pl-10 pr-4 py-2 bg-gray-900/60 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition">
                     </div>
-                    <div class="flex items-center gap-2 text-xs text-gray-400 w-full sm:w-auto justify-between sm:justify-end">
+                    <div class="flex items-center gap-3 text-xs text-gray-400 w-full sm:w-auto justify-between sm:justify-end">
+                        <button onclick="switchTab('tab-matrix')" class="px-3 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-[11px] text-orange-300 font-medium flex items-center gap-1.5 transition" title="Compare Web UI, CLI & Strata Cloud Manager">
+                            <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM & CLI Equivalent
+                        </button>
                         <span id="sim-count-badge">Loading inventory...</span>
                     </div>
                 </div>
@@ -306,6 +312,9 @@
                         <h3 class="text-sm font-bold text-white">Subscriber User Groups & Security Profiles</h3>
                         <p class="text-xs text-gray-400">Security policies bound directly to 5G subscriber identities</p>
                     </div>
+                    <button onclick="switchTab('tab-matrix')" class="px-3.5 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-xs text-orange-300 font-medium flex items-center gap-1.5 transition" title="Where to see Groups & Policies in Strata Cloud Manager">
+                        <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM Objects & Policies
+                    </button>
                 </div>
 
                 <div id="groups-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -328,9 +337,14 @@
                             Executes Auth → Inventory Query → Create Test SIM (<span class="text-cyan-400 font-mono">sasetest</span>) → Control Plane Verification → Session IP Registration → Session Termination → Delete SIM → Clean Verification.
                         </p>
                     </div>
-                    <button onclick="runLifecycleTest()" id="btn-run-lifecycle" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg glow-cyan flex items-center gap-2 transition flex-shrink-0">
-                        <i data-lucide="play" class="w-4 h-4"></i> Run Full Test Suite
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <button onclick="switchTab('tab-matrix')" class="px-4 py-2.5 rounded-xl glass-panel hover:border-orange-500/40 text-xs font-medium text-orange-300 flex items-center gap-1.5 transition" title="View SCM Navigation & CLI equivalents">
+                            <i data-lucide="compass" class="w-4 h-4 text-orange-400"></i> SCM & CLI Matrix
+                        </button>
+                        <button onclick="runLifecycleTest()" id="btn-run-lifecycle" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-medium text-xs shadow-lg glow-cyan flex items-center gap-2 transition flex-shrink-0">
+                            <i data-lucide="play" class="w-4 h-4"></i> Run Full Test Suite
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Progress & Steps Grid -->
@@ -387,6 +401,372 @@
                             <div class="text-gray-500">// Ready to start automated lifecycle test suite. Click 'Run Full Test Suite'.</div>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- TAB: SCM & CLI 3-Pillars Lifecycle Guide -->
+            <div id="tab-matrix" class="tab-content hidden space-y-6">
+                <!-- Header Card -->
+                <div class="glass-panel rounded-2xl p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border border-orange-500/20">
+                    <div class="space-y-1">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-500/10 text-orange-400 border border-orange-500/30">
+                                3-Pillars Matrix
+                            </span>
+                            <span class="text-xs text-gray-400 font-mono">Web UI • CLI • Strata Cloud Manager (SCM)</span>
+                        </div>
+                        <h3 class="text-base font-bold text-white flex items-center gap-2">
+                            <i data-lucide="compass" class="w-5 h-5 text-orange-400"></i>
+                            Prisma Access 5G Subscriber Lifecycle Guide
+                        </h3>
+                        <p class="text-xs text-gray-300 max-w-3xl">
+                            Compare how every 5G subscriber provisioning and telemetry step maps across the <strong class="text-cyan-400">Web Portal</strong>, the <strong class="text-purple-400">CLI & REST API</strong>, and official <strong class="text-orange-400">Palo Alto Networks Strata Cloud Manager (SCM)</strong>.
+                        </p>
+                    </div>
+                    <a href="https://strata.paloaltonetworks.com" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold flex items-center gap-2 transition flex-shrink-0">
+                        <i data-lucide="external-link" class="w-4 h-4"></i> Open Strata Portal
+                    </a>
+                </div>
+
+                <!-- Step Cards Matrix -->
+                <div class="space-y-6">
+
+                    <!-- STEP 1 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-cyan-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-bold text-xs font-mono">1</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Discover Organization Hierarchy & Subscriber Groups</h4>
+                                    <p class="text-xs text-gray-400">Inspect TSG scoping and Zero-Trust policy user groups (<span class="text-emerald-400">Permissive</span> vs <span class="text-purple-400">Restrictive</span>)</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Discovery</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    Go to the <strong class="text-white">Groups & Policies</strong> tab to view available security groups and active SIM counts. Top banner displays current active TSG hierarchy.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py tenants<br>
+                                    python manage_5g.py groups
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoints: <code class="text-purple-300">GET /mt/manage/5g/tsgs</code> & <code class="text-purple-300">GET /mt/manage/5g/subscriber-groups</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Top Bar → Tenant Hierarchy<br>
+                                    Configuration → Mobile Security → Subscriber Groups (or Objects → User Groups)
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Inspect group members, DNS Security profiles, and URL Filtering attachments.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 2 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-cyan-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-bold text-xs font-mono">2</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Provision SIM Card / User Equipment (UE)</h4>
+                                    <p class="text-xs text-gray-400">Register SIM hardware identity (<span class="font-mono text-cyan-400">IMSI</span> / <span class="font-mono text-cyan-400">IMEI</span>) and bind to APN <span class="font-mono text-cyan-400">sasetest</span></p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">Control Plane</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    Click <strong class="text-white">"Add Test SIM"</strong> button in the top banner, generate or input IMSI/IMEI, select APN <code class="text-cyan-300">sasetest</code>, and click <strong class="text-white">"Create SIM"</strong>.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py add \<br>
+                                    &nbsp;&nbsp;--imsi 208950123456789 \<br>
+                                    &nbsp;&nbsp;--imei 860123123456789 \<br>
+                                    &nbsp;&nbsp;--apn sasetest
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoint: <code class="text-purple-300">POST /mt/manage/5g/ues</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Configuration → Mobile Security → 5G Subscribers (UE)
+                                </div>
+                                <p class="text-gray-400 text-[10px]">The SIM card appears instantly in the tenant subscriber inventory table with associated APN mapping.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-cyan-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 flex items-center justify-center font-bold text-xs font-mono">3</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Verify Provisioned Subscriber in SASE Control Plane</h4>
+                                    <p class="text-xs text-gray-400">Confirm indexing across Prisma Access tenant database and policy assignments</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">Control Plane</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    In the <strong class="text-white">SIM Inventory</strong> tab, search or filter by IMSI. The record displays its IMSI, IMEI, APN, and assigned security badge (<span class="text-purple-300">Permissive</span> vs <span class="text-purple-300">Restrictive</span>).
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py list<br>
+                                    python manage_5g.py get &lt;IDENTITY_ID&gt;
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoint: <code class="text-purple-300">GET /mt/manage/5g/ues/{id}</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Configuration → Mobile Security → Tenant UEs
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Filter by IMSI or IMEI to inspect the exact provisioned record and tenant scope.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 4 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-amber-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-amber-500/20 text-amber-400 border border-amber-500/40 flex items-center justify-center font-bold text-xs font-mono">4</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">5G Session Start & IP Telemetry Injection</h4>
+                                    <p class="text-xs text-gray-400">Carrier 5G Core assigns IP (<span class="font-mono text-amber-400">10.56.0.195</span> in <span class="font-mono text-amber-400">europe-west9</span>) and binds Zero-Trust user identity</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-amber-500/10 text-amber-400 border border-amber-500/20">Data Plane Telemetry</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    In the <strong class="text-white">5G Sessions</strong> tab, fill IMSI, IMEI, APN, allocated IPv4 (<code class="text-amber-300">10.56.0.195</code>), and click <strong class="text-white">"Attach 5G Session"</strong>. Real-time confirmation log prints in console.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py session-register \<br>
+                                    &nbsp;&nbsp;--imsi 208950123456789 \<br>
+                                    &nbsp;&nbsp;--imei 860123123456789 \<br>
+                                    &nbsp;&nbsp;--apn sasetest \<br>
+                                    &nbsp;&nbsp;--ipv4 10.56.0.195
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoint: <code class="text-purple-300">POST /mt/manage/5g/register/ue</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Activity → Traffic Logs / User Activity
+                                </div>
+                                <p class="text-gray-400 text-[10px]">All network traffic originating from <code class="text-orange-300">10.56.0.195</code> is dynamically tagged with <strong class="text-white">Source User: IMSI 208950...</strong> without any client/agent on the device.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 5 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-red-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center font-bold text-xs font-mono">5</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">Agentless Threat Inspection & Zero-Trust URL Filtering</h4>
+                                    <p class="text-xs text-gray-400">Real-time user plane security policy enforcement (<span class="font-mono text-red-400">wicar.org</span> test block)</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-red-500/10 text-red-400 border border-red-500/20">Security Enforcement</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI / Endpoint -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="tablet" class="w-4 h-4"></i> 1. Connected Device (Endpoint)
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    Device attached to 5G APN browses to test URL (e.g. <code class="text-red-300">wicar.org</code>). The browser instantly receives the Palo Alto Networks <strong class="text-white">Zero-Trust Block Page</strong> directly injected by the 5G Core.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Automated Test Suite
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python test_lifecycle.py
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Verifies end-to-end policy execution, session state, and tenant clean-up.</p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="shield-alert" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Activity → Threat Logs & URL Filtering Logs
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Log details display: <strong class="text-white">Source IP</strong>: 10.56.0.195 • <strong class="text-white">Source User</strong>: IMSI 208950... • <strong class="text-white">Action</strong>: block-url • <strong class="text-white">Rule</strong>: Block-High-Risk-IoT.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 6 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-purple-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/40 flex items-center justify-center font-bold text-xs font-mono">6</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">5G Session Terminate / Deregister</h4>
+                                    <p class="text-xs text-gray-400">Release IP-to-IMSI binding upon cell handover, airplane mode, or disconnection</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">Data Plane Release</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    In the <strong class="text-white">5G Sessions</strong> tab, submit session termination or trigger deregister in the Lifecycle Runner pipeline.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py session-terminate \<br>
+                                    &nbsp;&nbsp;--imsi 208950123456789 \<br>
+                                    &nbsp;&nbsp;--imei 860123123456789 \<br>
+                                    &nbsp;&nbsp;--apn sasetest \<br>
+                                    &nbsp;&nbsp;--ipv4 10.56.0.195
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoint: <code class="text-purple-300">POST /mt/manage/5g/deregister/ue</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Activity → Session Monitor
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Active IP session mapping is aged out gracefully; subsequent traffic is no longer associated with the IMSI lease.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 7 -->
+                    <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10 hover:border-red-500/30 transition">
+                        <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                            <div class="flex items-center space-x-3">
+                                <span class="w-7 h-7 rounded-xl bg-red-500/20 text-red-400 border border-red-500/40 flex items-center justify-center font-bold text-xs font-mono">7</span>
+                                <div>
+                                    <h4 class="text-sm font-bold text-white">SIM Deprovisioning & Decommissioning</h4>
+                                    <p class="text-xs text-gray-400">Purge SIM identity from tenant inventory upon contract termination or return</p>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-mono bg-red-500/10 text-red-400 border border-red-500/20">Decommission</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+                            <!-- Web UI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-cyan-500/20 space-y-2">
+                                <div class="font-bold text-cyan-400 flex items-center gap-1.5">
+                                    <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
+                                </div>
+                                <p class="text-gray-300 text-[11px] leading-relaxed">
+                                    In the <strong class="text-white">SIM Inventory</strong> tab, click the <strong class="text-red-400">"Delete"</strong> button next to the test SIM card.
+                                </p>
+                            </div>
+                            <!-- CLI -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-purple-500/20 space-y-2">
+                                <div class="font-bold text-purple-400 flex items-center gap-1.5">
+                                    <i data-lucide="terminal" class="w-4 h-4"></i> 2. Python CLI & API
+                                </div>
+                                <div class="bg-gray-950 p-2 rounded-lg font-mono text-[10px] text-gray-300 border border-white/5">
+                                    python manage_5g.py delete &lt;IDENTITY_ID&gt;
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Endpoint: <code class="text-purple-300">DELETE /mt/manage/5g/ues/{id}</code></p>
+                            </div>
+                            <!-- SCM -->
+                            <div class="p-4 rounded-xl bg-gray-900/60 border border-orange-500/20 space-y-2">
+                                <div class="font-bold text-orange-400 flex items-center gap-1.5">
+                                    <i data-lucide="cloud" class="w-4 h-4"></i> 3. Strata Cloud Manager (SCM)
+                                </div>
+                                <div class="p-2 rounded-lg bg-orange-950/20 border border-orange-500/20 text-[11px] text-orange-200 font-mono">
+                                    Configuration → Mobile Security → 5G Subscribers (UE)
+                                </div>
+                                <p class="text-gray-400 text-[10px]">Record is permanently purged from tenant database, preventing any future traffic association.</p>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
 

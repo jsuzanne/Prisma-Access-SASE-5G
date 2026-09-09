@@ -15,7 +15,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - **Automated Lifecycle Runner**: Interactive 8-step test suite with live visual pipeline and execution terminal log.
 - **Agentless Zero-Trust Security**: No VPN agent or client required on IoT/mobile endpoints. Security policy enforcement is directly embedded into the 5G Core user plane.
 - **Docker Containerized**: Production-ready container based on `python:3.11-slim`, running with `docker compose up --build`.
-- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing to Docker Hub.
+- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing to Docker Hub (`jsuzanne/prisma-5g-sase:latest`).
 
 ---
 
@@ -77,129 +77,96 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 
 ---
 
-## 📖 Complete Walkthrough: How to Provision a 5G Subscriber (SIM / UE)
+## 📖 Complete Provisioning Walkthrough: Web UI vs CLI vs Strata Cloud Manager (SCM)
 
 Provisioning a 5G subscriber into Palo Alto Networks Prisma Access 5G SASE consists of two essential phases:
 1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) to a specific Tenant Service Group (TSG).
 2. **User Plane / Session Enrichment**: Injecting real-time IP allocation telemetry when the SIM connects to the 5G Core network, binding Zero-Trust security policies instantly.
 
+Below is the step-by-step lifecycle breakdown across the **Web UI**, the **CLI**, and **Strata Cloud Manager (SCM)**:
+
 ---
 
 ### Step 1: Discover Tenants and Security Groups
 
-Before provisioning, inspect your organization's hierarchy and available subscriber security profiles (e.g. `Permissive`, `Restrictive`).
+Inspect your organization's hierarchy and available subscriber security profiles (e.g. `Permissive`, `Restrictive`).
 
-- **Web UI**: Open **"Groups & Policies"** tab to view available groups and member counts.
-- **CLI**:
-  ```bash
-  python3 manage_5g.py tenants
-  python3 manage_5g.py groups
-  ```
-- **Python SDK**:
-  ```python
-  client = Prisma5GClient(load_config())
-  tenants = client.list_tenants()
-  groups = client.list_user_groups()
-  ```
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | Navigate to the **"Groups & Policies"** tab to view all subscriber groups and their member counts. |
+| 💻 **CLI** | Run `python3 manage_5g.py tenants` to view TSGs, and `python3 manage_5g.py groups` to view subscriber groups. |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Top Navigation** $\to$ Select Tenant / TSG Hierarchy.<br>**Configuration** $\to$ **Mobile Security** $\to$ **Subscriber Groups** (or **Objects** $\to$ **User Groups**). |
 
 ---
 
 ### Step 2: Provision a SIM Card / UE (Control Plane)
 
-Register the SIM card hardware identifiers and assign it to an APN (default `sasetest`) and target Tenant.
+Register the SIM card hardware identifiers and assign it to an APN (default `sasetest`) and target Tenant Service Group.
 
-- **Web UI**: Click **"Add Test SIM"** in the top right banner, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**.
-- **CLI**:
-  ```bash
-  python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest
-  ```
-- **Python SDK**:
-  ```python
-  res = client.create_tenant_ue(
-      imsi="208950123456789",
-      imei="860123123456789",
-      apn="sasetest"
-  )
-  identity_id = res["data"]["id"]
-  print(f"Created UE Identity ID: {identity_id}")
-  ```
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | Click **"Add Test SIM"** in the top right banner, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**. |
+| 💻 **CLI** | `python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Subscribers / User Equipment (UE)**.<br>The newly provisioned SIM appears with its assigned IMSI, IMEI, and APN. |
 
 ---
 
 ### Step 3: Verify Provisioning in SASE Control Plane
 
-Verify that the subscriber identity is registered and indexed across Prisma SASE management plane.
+Confirm that the subscriber identity is active and indexed across the management plane.
 
-- **Web UI**: The new SIM appears immediately in the **"SIM Inventory"** table.
-- **CLI**:
-  ```bash
-  python3 manage_5g.py get <IDENTITY_ID>
-  # Or list all SIMs
-  python3 manage_5g.py list
-  ```
-- **Python SDK**:
-  ```python
-  ue = client.get_tenant_ue(identity_id)
-  print(f"Verified IMSI {ue.get('imsi')} is mapped to TSG {ue.get('tsg_id')}")
-  ```
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | Open the **"SIM Inventory"** tab. The new SIM is listed with its IMSI, IMEI, APN, and associated group badge. |
+| 💻 **CLI** | Run `python3 manage_5g.py get <IDENTITY_ID>` or list all registered UEs with `python3 manage_5g.py list`. |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **Tenant UEs**.<br>Filter by IMSI or IMEI to inspect the provisioned record. |
 
 ---
 
 ### Step 4: Activate 5G Session Telemetry (IP Allocation / Data Plane)
 
-When the IoT device or mobile iPad powers on and attaches to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma Access SASE via the REST telemetry endpoint to apply Zero-Trust inspection.
+When the IoT device or mobile tablet connects to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma Access SASE via the REST telemetry endpoint to bind security policies in real time without any device agent or VPN client.
 
-- **Web UI**: In **"SIM Inventory"**, click **"Connect 5G"** next to the SIM (or go to **"5G Sessions"** tab).
-- **CLI**:
-  ```bash
-  python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
-  ```
-- **Python SDK**:
-  ```python
-  session = UESession(
-      imsi="208950123456789",
-      imei="860123123456789",
-      apn="sasetest",
-      ip_type="IPv4",
-      ipv4_addr="10.56.0.195"
-  )
-  resp = client.register_ue_session(session)
-  print(f"Session Telemetry Accepted: HTTP {resp.get('status_code')}")
-  ```
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"Connect 5G"** next to the SIM (or use the form in the **"5G Sessions"** tab). |
+| 💻 **CLI** | `python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Activity / Monitor** $\to$ **User Activity** (or **Traffic Logs**).<br>Traffic from IP `10.56.0.195` is automatically correlated with the subscriber IMSI, applying the security rule associated with its Subscriber Group (`Permissive` vs `Restrictive`). |
 
 ---
 
-### Step 5: Terminate / Disconnect 5G Session
+### Step 5: Threat Inspection & Policy Enforcement in SCM
 
-When the subscriber disconnects or changes IP, a deregistration event is emitted.
+When a device in the `Restrictive` group attempts to access malicious or unauthorized content (e.g. `wicar.org` or streaming services):
 
-- **Web UI**: Go to **"5G Sessions"** tab and emit a deregister event.
-- **CLI**:
-  ```bash
-  python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
-  ```
-- **Python SDK**:
-  ```python
-  term_resp = client.deregister_ue_session(session)
-  print(f"Session Terminated: HTTP {term_resp.get('status_code')}")
-  ```
+| Component | Observation & Behavior |
+| :--- | :--- |
+| 📱 **Connected Device** | The browser receives the Palo Alto Networks **Zero-Trust Block Page** directly from the 5G Core user plane without requiring any local endpoint agent. |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Activity** $\to$ **Threat Logs** & **URL Filtering Logs**.<br>Log entry displays: **Source User**: `IMSI 208950...`, **Source IP**: `10.56.0.195`, **URL**: `wicar.org`, **Action**: `block-url`, **Rule**: `Block-High-Risk-IoT`. |
 
 ---
 
-### Step 6: Deprovision / Delete SIM Card
+### Step 6: Terminate / Disconnect 5G Session
+
+When the subscriber disconnects or changes cell/IP, a deregistration event is emitted.
+
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | In the **"5G Sessions"** tab, send a session termination event. |
+| 💻 **CLI** | `python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Activity** $\to$ **Session Monitor**.<br>The active IP session mapping is gracefully aged out and unlinked from the IMSI. |
+
+---
+
+### Step 7: Deprovision / Delete SIM Card
 
 To decommission or remove a SIM from the tenant:
 
-- **Web UI**: In **"SIM Inventory"**, click **"Delete"** next to the test SIM.
-- **CLI**:
-  ```bash
-  python3 manage_5g.py delete <IDENTITY_ID>
-  ```
-- **Python SDK**:
-  ```python
-  client.delete_tenant_ue(identity_id)
-  print(f"Deleted SIM {identity_id}")
-  ```
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"Delete"** next to the test SIM. |
+| 💻 **CLI** | `python3 manage_5g.py delete <IDENTITY_ID>` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Subscribers**.<br>The record is purged from the tenant's active SIM database. |
 
 ---
 
