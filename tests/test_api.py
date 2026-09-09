@@ -172,7 +172,9 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertTrue(data["success"])
 
     @patch("app.Prisma5GClient.delete_user_group")
-    def test_delete_group_endpoint(self, mock_del_grp):
+    @patch("app.Prisma5GClient.get_user_group")
+    def test_delete_group_endpoint(self, mock_get_grp, mock_del_grp):
+        mock_get_grp.return_value = {"data": [{"group_name": "CustomGroup", "identity_id": []}]}
         mock_del_grp.return_value = {"status": "success"}
         response = client.delete("/api/groups/custom-grp-id")
         self.assertEqual(response.status_code, 200)
@@ -192,7 +194,18 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Prisma Access 5G SASE", response.text)
 
-    def test_metrics_summary_endpoint(self):
+    @patch("app.Prisma5GClient.get_monitoring_summary")
+    def test_metrics_summary_endpoint(self, mock_summary):
+        mock_summary.return_value = {
+            "total_5g_tenants": 2,
+            "total_bandwidth_mbps": 100,
+            "total_configured_users": 200,
+            "interconnects_count": 1,
+            "interconnects_up": 1,
+            "interconnects_down": 0,
+            "compute_region": "europe-west9",
+            "interconnect_items": [],
+        }
         response = client.get("/api/metrics/summary")
         self.assertEqual(response.status_code, 200)
         data = response.json()
