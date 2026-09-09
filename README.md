@@ -1,6 +1,6 @@
 # Prisma Access 5G SASE Management & Lifecycle Portal
 
-Web Application, REST API, CLI, and Python toolkit for Palo Alto Networks **Prisma Access 5G SASE** (Strata Cloud Manager & Transatel 5G Core Integration).
+Web Application, REST API, CLI, and Python toolkit for Palo Alto Networks **Prisma Access 5G SASE** (Strata Cloud Manager & Telecom 5G Core Integration).
 
 Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry enrichment, subscriber user groups, and automated end-to-end testing.
 
@@ -15,7 +15,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - **In-App Settings**: Dynamic credentials management interface allowing updating and live testing of `.env` configuration.
 - **Agentless Zero-Trust Security**: No VPN agent or client required on IoT/mobile endpoints. Security policy enforcement is directly embedded into the 5G Core user plane.
 - **Docker Containerized**: Production-ready container based on `python:3.11-slim`, running with `docker compose up --build`.
-- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation.
+- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing.
 
 ---
 
@@ -55,9 +55,9 @@ pip install -r requirements.txt
 ### 2. Configure Credentials (`.env`)
 
 ```ini
-PANW_CLIENT_ID=5g-ue-registration@1965438697.iam.panserviceaccount.com
+PANW_CLIENT_ID=your-service-account-client-id
 PANW_CLIENT_SECRET=your-secret-here
-PANW_TSG_ID=1965438697
+PANW_TSG_ID=your-root-tsg-id
 PANW_API_BASE_URL=https://api.sase.paloaltonetworks.com
 PANW_AUTH_URL=https://auth.apps.paloaltonetworks.com/am/oauth2/access_token
 DEFAULT_APN=sasetest
@@ -82,10 +82,10 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 python3 manage_5g.py list
 
 # Add test SIM card with APN sasetest
-python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --tenant "Transatel demo"
+python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest
 
 # Add SIM card AND immediately activate real-time 5G session with IP:
-python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --tenant "Transatel demo" --ip 10.56.0.195
+python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ip 10.56.0.195
 
 # Register 5G session telemetry
 python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
@@ -141,9 +141,9 @@ FastAPI provides automatic interactive Swagger documentation at **[http://localh
 
 ## 🔒 Security & Privacy
 
-- Credentials in `.env` and `readme.txt` are strictly ignored by `.gitignore` and `.dockerignore`.
+- Credentials in `.env` are strictly ignored by `.gitignore` and `.dockerignore`.
 - Secrets are masked in the UI and never exposed in client-side responses.
-- The web application protects existing production SIM cards in the `Transatel demo` tenant.
+- The web application protects existing production SIM cards in configured tenant service groups.
 
 ---
 
