@@ -114,6 +114,23 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("Prisma Access 5G SASE", response.text)
 
+    def test_metrics_summary_endpoint(self):
+        response = client.get("/api/metrics/summary")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("total_5g_tenants", data["data"])
+        self.assertIn("total_bandwidth_mbps", data["data"])
+        self.assertIn("interconnects_count", data["data"])
+
+    def test_metrics_throughput_endpoint(self):
+        response = client.get("/api/metrics/throughput?time_range=24h&region=europe-west9")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(data["region"], "europe-west9")
+        self.assertTrue(len(data["points"]) > 0)
+
 
 if __name__ == "__main__":
     unittest.main()

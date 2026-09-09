@@ -111,6 +111,16 @@ def build_parser() -> argparse.ArgumentParser:
     grp_p.add_argument("--group-id", help="Filter by specific Group ID")
     grp_p.add_argument("--json", action="store_true", help="Output raw JSON")
 
+    # 10. summary (SCM Dashboard KPI Stats)
+    sum_p = subparsers.add_parser("summary", help="Show 5G SASE Summary Monitoring KPIs (matching Strata Cloud Manager)")
+    sum_p.add_argument("--tsg-id", help="Override TSG ID")
+    sum_p.add_argument("--json", action="store_true", help="Output raw JSON")
+
+    # 11. interconnect
+    ic_p = subparsers.add_parser("interconnect", help="List regional 5G Interconnects, Bandwidth, and VLAN attachments")
+    ic_p.add_argument("--tsg-id", help="Override TSG ID")
+    ic_p.add_argument("--json", action="store_true", help="Output raw JSON")
+
     return parser
 
 
@@ -333,6 +343,63 @@ def handle_groups(client: Prisma5GClient, args: argparse.Namespace):
     console.print(table)
 
 
+def handle_summary(client: Prisma5GClient, args: argparse.Namespace):
+    with console.status("[bold green]Querying 5G SASE Summary & Interconnects..."):
+        summary = client.get_monitoring_summary(args.tsg_id)
+
+    if args.json:
+        console.print_json(data=summary)
+        return
+
+    # SCM-Style KPI Panels
+    kpi_table = Table(show_header=True, header_style="bold cyan", title="5G SASE Summary (Strata Cloud Manager)")
+    kpi_table.add_column("Total 5G Tenants", justify="center", style="bold green")
+    kpi_table.add_column("Total Bandwidth (Mbps)", justify="center", style="bold magenta")
+    kpi_table.add_column("Configured Users", justify="center", style="bold yellow")
+    kpi_table.add_column("5G Interconnects", justify="center", style="bold cyan")
+    kpi_table.add_column("Compute Region", justify="center", style="white")
+
+    ic_status = f"{summary['interconnects_count']} ([green]{summary['interconnects_up']} Up[/green] / [red]{summary['interconnects_down']} Down[/red])"
+    kpi_table.add_row(
+        str(summary["total_5g_tenants"]),
+        str(summary["total_bandwidth_mbps"]),
+        str(summary["total_configured_users"]),
+        ic_status,
+        str(summary["compute_region"]),
+    )
+    console.print(kpi_table)
+
+
+def handle_interconnect(client: Prisma5GClient, args: argparse.Namespace):
+    with console.status("[bold green]Querying 5G Interconnect details..."):
+        items = client.get_interconnect_details(args.tsg_id)
+
+    if args.json:
+        console.print_json(data=items)
+        return
+
+    table = Table(title=f"5G Regional Interconnects (Count: {len(items)})")
+    table.add_column("Compute Region", style="bold cyan")
+    table.add_column("Bandwidth", style="magenta")
+    table.add_column("Status", style="bold green")
+    table.add_column("VLAN Attachments", justify="center")
+    table.add_column("VLAN Up", style="green", justify="center")
+    table.add_column("VLAN Down", style="red", justify="center")
+
+    for ic in items:
+        status_entry = ic.get("vlanAttachmentStatusEntry", {})
+        table.add_row(
+            str(ic.get("computeRegion", "N/A")),
+            f"{ic.get('bandwidth', 0)} Mbps",
+            str(ic.get("status", "N/A")),
+            str(ic.get("vlanAttachmentCount", 0)),
+            str(status_entry.get("up", 0)),
+            str(status_entry.get("down", 0)),
+        )
+
+    console.print(table)
+
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -361,6 +428,8 @@ def main():
             "session-register": handle_session_register,
             "session-terminate": handle_session_terminate,
             "groups": handle_groups,
+            "summary": handle_summary,
+            "interconnect": handle_interconnect,
         }
 
         handler = handlers.get(args.command)

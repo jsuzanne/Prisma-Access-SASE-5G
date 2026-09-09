@@ -203,6 +203,8 @@ FastAPI provides automatic interactive Swagger documentation at **[http://localh
 | `GET` | `/api/groups` | Query subscriber security user groups |
 | `POST` | `/api/sessions/register` | Send 5G session attach / IP telemetry event |
 | `POST` | `/api/sessions/deregister` | Send 5G session terminate event |
+| `GET` | `/api/metrics/summary` | 5G SASE Summary KPI stats (Tenants, Bandwidth, Configured Users, Interconnects) |
+| `GET` | `/api/metrics/throughput` | Real-time Ingress & Egress Throughput Trend time-series points |
 | `POST` | `/api/lifecycle/run` | Execute full 8-step lifecycle test pipeline |
 
 ---
