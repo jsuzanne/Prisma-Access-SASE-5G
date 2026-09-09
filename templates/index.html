@@ -1015,6 +1015,11 @@
                 activeBtn.classList.add('bg-white/10', 'text-white');
                 activeBtn.classList.remove('text-gray-400');
             }
+
+            if (tabId === 'tab-settings') {
+                loadSettingsData();
+            }
+
             lucide.createIcons();
         }
 
