@@ -179,6 +179,14 @@ class TestAppEndpoints(unittest.TestCase):
         data = response.json()
         self.assertTrue(data["success"])
 
+    def test_delete_protected_group_endpoint(self):
+        # Restrictive
+        response = client.delete("/api/groups/6c73c05b-9977-4bed-a61c-30edc47a49f8")
+        self.assertEqual(response.status_code, 403)
+        # Permissive
+        response_perm = client.delete("/api/groups/f7edf2ca-75ba-49b6-b02f-ab76516fb1d9")
+        self.assertEqual(response_perm.status_code, 403)
+
     def test_serve_index_html(self):
         response = client.get("/")
         self.assertEqual(response.status_code, 200)

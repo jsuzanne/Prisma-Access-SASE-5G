@@ -401,7 +401,28 @@ def handle_group_get(client: Prisma5GClient, args: argparse.Namespace):
         console.print(Panel(json.dumps(res, indent=2), title=f"Group Details: {args.id}", expand=False))
 
 
+PROTECTED_SYSTEM_GROUPS = {
+    "6c73c05b-9977-4bed-a61c-30edc47a49f8",  # Restrictive
+    "f7edf2ca-75ba-49b6-b02f-ab76516fb1d9",  # Permissive
+}
+PROTECTED_SYSTEM_GROUP_NAMES = {"restrictive", "permissive"}
+
+
 def handle_group_delete(client: Prisma5GClient, args: argparse.Namespace):
+    if str(args.id) in PROTECTED_SYSTEM_GROUPS:
+        console.print("[bold red]Action Denied:[/bold red] 'Restrictive' and 'Permissive' are protected system groups and cannot be deleted.")
+        sys.exit(1)
+    try:
+        g_info = client.get_user_group(args.id)
+        d_arr = g_info.get("data", [])
+        g_obj = d_arr[0] if d_arr and isinstance(d_arr, list) else g_info.get("data", {})
+        g_name = (g_obj.get("group_name") or g_obj.get("name") or "").lower()
+        if g_name in PROTECTED_SYSTEM_GROUP_NAMES:
+            console.print(f"[bold red]Action Denied:[/bold red] System group '{g_name}' is protected and cannot be deleted.")
+            sys.exit(1)
+    except Exception:
+        pass
+
     with console.status(f"[bold red]Deleting subscriber group '{args.id}'..."):
         res = client.delete_user_group(args.id)
     console.print(f"[bold green]✓ Successfully deleted Subscriber Group '{args.id}'![/bold green]")
