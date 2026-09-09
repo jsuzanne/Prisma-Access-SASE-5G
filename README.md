@@ -2,20 +2,32 @@
 
 Web Application, REST API, CLI, and Python toolkit for Palo Alto Networks **Prisma Access 5G SASE** (Strata Cloud Manager & Telecom 5G Core Integration).
 
-Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry enrichment, subscriber user groups, and automated end-to-end testing.
+Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry enrichment, subscriber user groups, monitoring KPI metrics, and automated end-to-end testing.
 
 ---
 
 ## 🌟 Key Features
 
-- **Modern Web Interface & REST API (FastAPI)**:
-  - **Full SIM Lifecycle**: Real-time inventory table of SIM cards, tenant hierarchy mapping, and group policy badges (`Permissive`, `Restrictive`).
-  - **In-App Settings & Credentials**: Complete Settings tab & modal to view, edit, and test `.env` credentials in real time with security masking.
-  - **5G Session Controller**: Real-time IP telemetry injection (`POST /mt/manage/5g/register/ue`) and termination (`POST /mt/manage/5g/deregister/ue`).
-  - **Automated Lifecycle Runner**: Interactive 8-step test suite with live visual pipeline and execution terminal log.
-- **Agentless Zero-Trust Security**: No VPN agent or client required on IoT/mobile endpoints. Security policy enforcement is directly embedded into the 5G Core user plane.
-- **Docker Containerized**: Production-ready container based on `python:3.11-slim`, running with `docker compose up --build`.
-- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing to Docker Hub (`jsuzanne/prisma-5g-sase:latest`).
+- **5G SASE Summary Dashboard (Strata Cloud Manager Alignment)**:
+  - **4 Top KPI Cards**: Total 5G Tenants, Total Bandwidth (Mbps), Total Configured Users, and 5G Network Interconnects (VLAN attachments Up/Down).
+  - **Throughput Trend Chart**: Real-time dual-curve time-series monitoring with Ingress (Purple) and Egress (Cyan) bandwidth metrics over 1 hour, 24 hours, or 7 days with interactive hover tooltips.
+- **SIM Cards & 5G Identities Management**:
+  - **SCM-Style SIM Inventory**: Real-time table displaying IMSI, IMEI, APN, Tenant, Subscriber Groups, and Action buttons.
+  - **Edit 5G Identity Side Drawer / Modal**: Change IMSI, IMEI, APN, and assign/move SIMs between subscriber security groups (`Permissive`, `Restrictive`, or custom groups).
+- **5G Identity Groups Management & Zero-Trust Policies**:
+  - **Create New Subscriber Groups**: Create custom policy groups (e.g. `VIP-Sensors`, `Field-Workers`, `Finance-eSIMs`) directly via `POST /mt/manage/5g/userGroup`.
+  - **System Group Safeguards**: Built-in system groups (`Restrictive` and `Permissive`) are strictly protected with immutable locks against accidental deletion.
+- **5G Session Telemetry (Control & User Plane Correlation)**:
+  - Real-time IP allocation telemetry injection (`POST /mt/manage/5g/register/ue`) and graceful session termination (`POST /mt/manage/5g/deregister/ue`).
+  - Correlates mobile IP with IMSI/IMEI identifiers for instant Zero-Trust policy enforcement without endpoint agents.
+- **In-App Settings & Credentials Manager**:
+  - Manage service account credentials (`PANW_CLIENT_ID`, `PANW_CLIENT_SECRET`, `PANW_TSG_ID`, `DEFAULT_APN`) directly from the Web UI with security masking and a live connection test button.
+- **3-Pillars Guide (SCM & CLI Matrix)**:
+  - Interactive reference mapping every lifecycle action across **Web UI**, **CLI commands**, and **Strata Cloud Manager navigation paths**.
+- **Automated Lifecycle Runner**:
+  - Interactive 8-step pipeline with live terminal log for end-to-end testing.
+- **Production-Ready & CI/CD**:
+  - Containerized with Docker (`jsuzanne/prisma-5g-sase:latest`), verified with 25 unit tests on GitHub Actions.
 
 ---
 
@@ -28,7 +40,7 @@ The fastest way to run the portal:
 git clone git@github.com:jsuzanne/Prisma-Access-SASE-5G.git
 cd Prisma-Access-SASE-5G
 
-# 2. Start with Docker (Image pulled directly from Docker Hub)
+# 2. Run with Docker (pulled from Docker Hub)
 docker run -d -p 8000:8000 --name prisma-5g-sase jsuzanne/prisma-5g-sase:latest
 ```
 
@@ -80,50 +92,62 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 ## 📖 Complete Provisioning Walkthrough: Web UI vs CLI vs Strata Cloud Manager (SCM)
 
 Provisioning a 5G subscriber into Palo Alto Networks Prisma Access 5G SASE consists of two essential phases:
-1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) to a specific Tenant Service Group (TSG).
+1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) and assigning security groups.
 2. **User Plane / Session Enrichment**: Injecting real-time IP allocation telemetry when the SIM connects to the 5G Core network, binding Zero-Trust security policies instantly.
 
 Below is the step-by-step lifecycle breakdown across the **Web UI**, the **CLI**, and **Strata Cloud Manager (SCM)**:
 
 ---
 
-### Step 1: Discover Tenants and Security Groups
+### Step 1: Monitor 5G SASE Health & Interconnects
 
-Inspect your organization's hierarchy and available subscriber security profiles (e.g. `Permissive`, `Restrictive`).
+Inspect the global health of your 5G SASE tenant, allocated bandwidth, and VLAN attachments.
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |
-| 🌐 **Web UI** | Navigate to the **"Groups & Policies"** tab to view all subscriber groups and their member counts. |
-| 💻 **CLI** | Run `python3 manage_5g.py tenants` to view TSGs, and `python3 manage_5g.py groups` to view subscriber groups. |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Top Navigation** $\to$ Select Tenant / TSG Hierarchy.<br>**Configuration** $\to$ **Mobile Security** $\to$ **Subscriber Groups** (or **Objects** $\to$ **User Groups**). |
+| 🌐 **Web UI** | Navigate to the **"5G SASE Summary"** tab to view the 4 KPI cards and Ingress/Egress Throughput trends. |
+| 💻 **CLI** | `python3 manage_5g.py summary` and `python3 manage_5g.py interconnect` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Dashboard** $\to$ **5G SASE Summary**.<br>Displays regional interconnects, active compute region (e.g. `europe-west9`), and VLAN health. |
 
 ---
 
-### Step 2: Provision a SIM Card / UE (Control Plane)
+### Step 2: Manage 5G Identity Groups (Security Policies)
+
+Inspect or create subscriber security groups that hold Zero-Trust policy profiles (e.g. `Restrictive`, `Permissive`, `VIP-Sensors`).
+
+| Method | How to Perform / Where to View |
+| :--- | :--- |
+| 🌐 **Web UI** | In the **"Groups & Policies"** tab, click **"+ Add Group"** to define a new policy group. Existing system groups (`Restrictive`, `Permissive`) are protected against accidental deletion. |
+| 💻 **CLI** | `python3 manage_5g.py groups`<br>`python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 1291887562` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Objects** $\to$ **5G Identities Groups** (or **Mobile Security** $\to$ **Subscriber Groups**).<br>Click **+ Add** to define group rules. |
+
+---
+
+### Step 3: Provision a SIM Card / UE (Control Plane)
 
 Register the SIM card hardware identifiers and assign it to an APN (default `sasetest`) and target Tenant Service Group.
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |
-| 🌐 **Web UI** | Click **"Add Test SIM"** in the top right banner, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**. |
+| 🌐 **Web UI** | Click **"Add New SIM"** in the banner or **SIM Inventory** tab, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**. |
 | 💻 **CLI** | `python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Subscribers / User Equipment (UE)**.<br>The newly provisioned SIM appears with its assigned IMSI, IMEI, and APN. |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Identities (UE)**.<br>Click **+ Add New** to enter IMSI, IMEI, and APN. |
 
 ---
 
-### Step 3: Verify Provisioning in SASE Control Plane
+### Step 4: Edit SIM & Assign Subscriber Group
 
-Confirm that the subscriber identity is active and indexed across the management plane.
+Assign or move the SIM card to a specific security policy group (`Permissive`, `Restrictive`, etc.).
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |
-| 🌐 **Web UI** | Open the **"SIM Inventory"** tab. The new SIM is listed with its IMSI, IMEI, APN, and associated group badge. |
-| 💻 **CLI** | Run `python3 manage_5g.py get <IDENTITY_ID>` or list all registered UEs with `python3 manage_5g.py list`. |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **Tenant UEs**.<br>Filter by IMSI or IMEI to inspect the provisioned record. |
+| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click the **Edit ✏️** button on any SIM row (or click its group badge). In the **Edit 5G Identity** drawer, choose the desired **Subscriber Group** and click **Save**. |
+| 💻 **CLI** | `python3 manage_5g.py assign-group --ue-id "<IDENTITY_ID>" --group-name "Permissive"`<br>`python3 manage_5g.py update "<IDENTITY_ID>" --apn "sase" --group-id "<GROUP_ID>"` |
+| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **5G Identities** $\to$ Click the pencil icon on the subscriber $\to$ In **Edit 5G Identity**, update the group assignment $\to$ Click **Save**. |
 
 ---
 
-### Step 4: Activate 5G Session Telemetry (IP Allocation / Data Plane)
+### Step 5: Activate 5G Session Telemetry (IP Allocation / Data Plane)
 
 When the IoT device or mobile tablet connects to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma Access SASE via the REST telemetry endpoint to bind security policies in real time without any device agent or VPN client.
 
@@ -135,7 +159,7 @@ When the IoT device or mobile tablet connects to the 5G Core network, the carrie
 
 ---
 
-### Step 5: Threat Inspection & Policy Enforcement in SCM
+### Step 6: Threat Inspection & Policy Enforcement in SCM
 
 When a device in the `Restrictive` group attempts to access malicious or unauthorized content (e.g. `wicar.org` or streaming services):
 
@@ -146,7 +170,7 @@ When a device in the `Restrictive` group attempts to access malicious or unautho
 
 ---
 
-### Step 6: Terminate / Disconnect 5G Session
+### Step 7: Terminate / Disconnect 5G Session
 
 When the subscriber disconnects or changes cell/IP, a deregistration event is emitted.
 
@@ -158,7 +182,7 @@ When the subscriber disconnects or changes cell/IP, a deregistration event is em
 
 ---
 
-### Step 7: Deprovision / Delete SIM Card
+### Step 8: Deprovision / Delete SIM Card
 
 To decommission or remove a SIM from the tenant:
 
@@ -170,25 +194,55 @@ To decommission or remove a SIM from the tenant:
 
 ---
 
-## 🧪 Automated Lifecycle Test Suite
-
-Run the full end-to-end automated verification script:
+## 🛠️ Complete CLI Command Reference (`manage_5g.py`)
 
 ```bash
-python3 test_lifecycle.py
+# Tenants & Hierarchy
+python3 manage_5g.py tenants
+
+# SIM / UE Inventory
+python3 manage_5g.py list
+python3 manage_5g.py get <IDENTITY_ID>
+python3 manage_5g.py add --imsi <IMSI> --imei <IMEI> --apn sasetest
+python3 manage_5g.py update <IDENTITY_ID> --apn sase --group-id <GROUP_ID>
+python3 manage_5g.py delete <IDENTITY_ID>
+python3 manage_5g.py bulk-delete <ID_1> <ID_2>
+
+# 5G Subscriber Groups
+python3 manage_5g.py groups
+python3 manage_5g.py group-get <GROUP_ID>
+python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 1291887562
+python3 manage_5g.py assign-group --ue-id <IDENTITY_ID> --group-name "Permissive"
+python3 manage_5g.py group-delete <CUSTOM_GROUP_ID>
+
+# 5G Real-time Session Telemetry
+python3 manage_5g.py session-register --imsi <IMSI> --imei <IMEI> --apn sasetest --ipv4 10.56.0.195
+python3 manage_5g.py session-terminate --imsi <IMSI> --imei <IMEI> --apn sasetest --ipv4 10.56.0.195
+
+# SCM Monitoring KPIs & Interconnects
+python3 manage_5g.py summary
+python3 manage_5g.py interconnect
 ```
 
-Or run Python unit tests:
+---
+
+## 🧪 Automated Testing & Verification
+
+Run the test suite covering all REST endpoints, authentication, SIM CRUD, group creation, group assignment, and system protections:
 
 ```bash
-python3 -m unittest discover tests
+# Run unit tests (25 passing tests)
+./.venv/bin/python -m unittest discover tests
+
+# Run end-to-end automated lifecycle script
+python3 test_lifecycle.py
 ```
 
 ---
 
 ## 📡 REST API Documentation
 
-FastAPI provides automatic interactive Swagger documentation at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
+Interactive Swagger documentation is available at **[http://localhost:8000/docs](http://localhost:8000/docs)**.
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
@@ -199,8 +253,14 @@ FastAPI provides automatic interactive Swagger documentation at **[http://localh
 | `GET` | `/api/tenants` | List tenant hierarchy (Root MSP and child TSGs) |
 | `GET` | `/api/ues` | List registered SIM cards with group policies |
 | `POST` | `/api/ues` | Register new SIM card (optional session IP attach) |
+| `PUT` | `/api/ues/{id}` | Update SIM metadata and group assignment |
+| `PUT` | `/api/ues/{id}/group` | Assign SIM to a specific subscriber group |
 | `DELETE` | `/api/ues/{id}` | Safely delete a SIM card mapping |
 | `GET` | `/api/groups` | Query subscriber security user groups |
+| `POST` | `/api/groups` | Create a new 5G subscriber identity group |
+| `GET` | `/api/groups/{id}` | Get group details and member identity list |
+| `PUT` | `/api/groups/{id}` | Update group name or member list |
+| `DELETE` | `/api/groups/{id}` | Delete a subscriber group (system groups protected) |
 | `POST` | `/api/sessions/register` | Send 5G session attach / IP telemetry event |
 | `POST` | `/api/sessions/deregister` | Send 5G session terminate event |
 | `GET` | `/api/metrics/summary` | 5G SASE Summary KPI stats (Tenants, Bandwidth, Configured Users, Interconnects) |
@@ -209,11 +269,11 @@ FastAPI provides automatic interactive Swagger documentation at **[http://localh
 
 ---
 
-## 🔒 Security & Privacy
+## 🔒 Security & Protection Policies
 
-- Credentials in `.env` are strictly ignored by `.gitignore` and `.dockerignore`.
-- Secrets are masked in the UI and never exposed in client-side responses.
-- The web application protects existing production SIM cards in configured tenant service groups.
+- **Protected System Groups**: The built-in security profiles (`Restrictive` and `Permissive`) are locked against accidental deletion via the UI, API, and CLI.
+- **Credential Privacy**: `.env` is ignored by `.gitignore` and `.dockerignore`. Client secrets are masked in the UI and never exposed in client-side responses.
+- **Production Safety**: Existing production SIMs and configurations are preserved. Test creations default to the isolated APN `sasetest`.
 
 ---
 
