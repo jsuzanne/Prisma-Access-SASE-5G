@@ -1,0 +1,21 @@
+# Secrets and environment
+.env
+*.env
+readme.txt
+
+# Git and OS
+.git/
+.gitignore
+.DS_Store
+.vscode/
+.idea/
+
+# Python caches and virtualenvs
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+venv/
+*.egg-info/
+.pytest_cache/
