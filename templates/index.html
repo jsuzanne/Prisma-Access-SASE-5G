@@ -110,19 +110,23 @@
                     <button onclick="switchTab('tab-lifecycle')" id="nav-tab-lifecycle" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition">
                         <i data-lucide="play-circle" class="w-4 h-4 text-purple-400"></i> Lifecycle Runner
                     </button>
+                    <button onclick="switchTab('tab-settings')" id="nav-tab-settings" class="tab-btn px-3.5 py-1.5 rounded-lg text-xs font-medium text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 transition">
+                        <i data-lucide="settings" class="w-4 h-4 text-blue-400"></i> Settings & Credentials
+                    </button>
                 </nav>
 
                 <!-- Status & Action Buttons -->
                 <div class="flex items-center space-x-3">
                     <!-- Connection Pill -->
-                    <div id="status-pill" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+                    <div id="status-pill" class="flex items-center space-x-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium cursor-pointer" onclick="switchTab('tab-settings')">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                         <span id="status-text">Connected</span>
                     </div>
 
                     <!-- Settings Button -->
-                    <button onclick="openSettingsModal()" class="p-2 rounded-xl glass-panel hover:border-cyan-500/40 text-gray-300 hover:text-cyan-400 transition" title="API Credentials & Settings">
-                        <i data-lucide="settings" class="w-4 h-4"></i>
+                    <button onclick="switchTab('tab-settings')" class="px-3 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-gray-300 hover:text-cyan-400 transition flex items-center gap-1.5 text-xs font-medium" title="API Credentials & Settings">
+                        <i data-lucide="settings" class="w-4 h-4 text-cyan-400"></i>
+                        <span>Settings</span>
                     </button>
                 </div>
             </div>
@@ -381,6 +385,99 @@
                         </div>
                         <div id="lifecycle-terminal" class="flex-1 bg-gray-950 rounded-xl p-4 font-mono text-xs text-gray-300 overflow-y-auto custom-scrollbar border border-white/5 h-[340px] space-y-1">
                             <div class="text-gray-500">// Ready to start automated lifecycle test suite. Click 'Run Full Test Suite'.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: Settings & Credentials (.env) -->
+            <div id="tab-settings" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Settings Form -->
+                    <div class="glass-panel rounded-2xl p-6 lg:col-span-2 space-y-5 border border-white/10">
+                        <div class="flex items-center space-x-3 pb-3 border-b border-white/10">
+                            <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
+                                <i data-lucide="key" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">API Credentials & Environment Configuration</h3>
+                                <p class="text-xs text-gray-400">Configure your Palo Alto Networks Strata Cloud Manager service account & endpoints</p>
+                            </div>
+                        </div>
+
+                        <form id="main-settings-form" onsubmit="handleMainSettingsSave(event)" class="space-y-4 text-xs">
+                            <div>
+                                <label class="block text-gray-300 mb-1 font-semibold">Service Account Client ID <span class="text-red-400">*</span></label>
+                                <input type="text" id="tab-settings-client-id" required placeholder="5g-ue-registration@1965438697.iam.panserviceaccount.com" class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-white font-mono focus:border-blue-400 focus:outline-none transition">
+                                <p class="text-[11px] text-gray-500 mt-1">Found in Strata Cloud Manager under Identity & Access Management.</p>
+                            </div>
+
+                            <div>
+                                <label class="block text-gray-300 mb-1 font-semibold">Client Secret <span class="text-red-400">*</span></label>
+                                <input type="password" id="tab-settings-client-secret" placeholder="Enter new secret or leave blank to keep current" class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-white font-mono focus:border-blue-400 focus:outline-none transition">
+                                <p id="tab-settings-secret-status" class="text-[11px] text-emerald-400 mt-1">✓ Secret is configured and encrypted in local .env</p>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold">Tenant Service Group (TSG) ID <span class="text-red-400">*</span></label>
+                                    <input type="text" id="tab-settings-tsg-id" required placeholder="1965438697" class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-white font-mono focus:border-blue-400 focus:outline-none transition">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold">Default Test APN <span class="text-red-400">*</span></label>
+                                    <input type="text" id="tab-settings-apn" value="sasetest" required class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none transition">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold">API Base URL</label>
+                                    <input type="text" id="tab-settings-api-base" value="https://api.sase.paloaltonetworks.com" required class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-gray-300 font-mono focus:border-blue-400 focus:outline-none transition">
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold">Default IP Allocation Type</label>
+                                    <input type="text" id="tab-settings-ip-type" value="IPv4" required class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-white/10 rounded-xl text-gray-300 font-mono focus:border-blue-400 focus:outline-none transition">
+                                </div>
+                            </div>
+
+                            <!-- Test Result Status Banner -->
+                            <div id="tab-settings-test-result" class="hidden p-3.5 rounded-xl text-xs font-mono"></div>
+
+                            <div class="flex items-center justify-between pt-4 border-t border-white/10">
+                                <button type="button" onclick="testMainSettingsCredentials()" id="btn-tab-test-settings" class="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-200 text-xs font-medium flex items-center gap-2 transition">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i> Test Connection Live
+                                </button>
+                                <button type="submit" id="btn-tab-save-settings" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg glow-cyan flex items-center gap-2 transition">
+                                    <i data-lucide="save" class="w-4 h-4"></i> Save Configuration (.env)
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Side Guide & Architecture Panel -->
+                    <div class="space-y-6 lg:col-span-1">
+                        <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="help-circle" class="w-4 h-4 text-cyan-400"></i> Credentials Setup
+                            </h4>
+                            <div class="space-y-3 text-xs text-gray-300 leading-relaxed font-sans">
+                                <p>To connect to Palo Alto Networks 5G SASE APIs, you need a Service Account generated from the **Cloud Services Portal (CSP)** or **Strata Cloud Manager**.</p>
+                                <div class="p-3 bg-gray-950 rounded-xl border border-white/5 space-y-1.5 font-mono text-[11px]">
+                                    <div class="text-cyan-400 font-semibold">// Required Permissions</div>
+                                    <div class="text-gray-400">• Manage 5G Services</div>
+                                    <div class="text-gray-400">• Tenant Service Groups Read</div>
+                                </div>
+                                <p class="text-[11px] text-gray-400">When you click **Save Configuration**, settings are written directly to your local <code class="text-cyan-400 font-mono">.env</code> file without exposing them publicly.</p>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-2xl p-6 space-y-3 border border-white/10">
+                            <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                <i data-lucide="shield" class="w-4 h-4 text-emerald-400"></i> Agentless 5G Security
+                            </h4>
+                            <p class="text-xs text-gray-300 leading-relaxed">
+                                Prisma Access 5G operates without installing any agent or VPN profile on subscriber equipment. The core network correlation applies security policies in real time based on IMSI / IP allocation telemetry.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -954,35 +1051,153 @@
             }
         }
 
-        // Settings Modal Functions
-        async function openSettingsModal() {
+        // Settings (Tab & Modal) Functions
+        async function loadSettingsData() {
             try {
                 const res = await fetch('/api/config');
                 const cfg = await res.json();
-                document.getElementById('settings-client-id').value = cfg.client_id || '';
-                document.getElementById('settings-tsg-id').value = cfg.tsg_id || '';
-                document.getElementById('settings-apn').value = cfg.default_apn || 'sasetest';
-                document.getElementById('settings-api-base').value = cfg.api_base_url || 'https://api.sase.paloaltonetworks.com';
                 
-                const secretStatus = document.getElementById('settings-secret-status');
-                if (cfg.has_secret) {
-                    secretStatus.innerText = "✓ Secret is stored securely in .env (" + (cfg.secret_masked || '••••') + ")";
-                    secretStatus.className = "text-[10px] text-emerald-400 mt-1";
-                } else {
-                    secretStatus.innerText = "⚠ No secret found. Please enter client secret.";
-                    secretStatus.className = "text-[10px] text-amber-400 mt-1";
+                // Tab fields
+                const tabClient = document.getElementById('tab-settings-client-id');
+                const tabTsg = document.getElementById('tab-settings-tsg-id');
+                const tabApn = document.getElementById('tab-settings-apn');
+                const tabBase = document.getElementById('tab-settings-api-base');
+                const tabIp = document.getElementById('tab-settings-ip-type');
+                const tabSecretStatus = document.getElementById('tab-settings-secret-status');
+
+                if (tabClient) tabClient.value = cfg.client_id || '';
+                if (tabTsg) tabTsg.value = cfg.tsg_id || '';
+                if (tabApn) tabApn.value = cfg.default_apn || 'sasetest';
+                if (tabBase) tabBase.value = cfg.api_base_url || 'https://api.sase.paloaltonetworks.com';
+                if (tabIp) tabIp.value = cfg.default_ip_type || 'IPv4';
+
+                if (tabSecretStatus) {
+                    if (cfg.has_secret) {
+                        tabSecretStatus.innerText = "✓ Secret is stored securely in .env (" + (cfg.secret_masked || '••••') + ")";
+                        tabSecretStatus.className = "text-[11px] text-emerald-400 mt-1";
+                    } else {
+                        tabSecretStatus.innerText = "⚠ No client secret found. Please enter your secret.";
+                        tabSecretStatus.className = "text-[11px] text-amber-400 mt-1";
+                    }
                 }
 
-                document.getElementById('settings-test-result').classList.add('hidden');
-                document.getElementById('modal-settings').classList.remove('hidden');
-                lucide.createIcons();
+                // Modal fields
+                const mClient = document.getElementById('settings-client-id');
+                const mTsg = document.getElementById('settings-tsg-id');
+                const mApn = document.getElementById('settings-apn');
+                const mBase = document.getElementById('settings-api-base');
+                const mSecretStatus = document.getElementById('settings-secret-status');
+
+                if (mClient) mClient.value = cfg.client_id || '';
+                if (mTsg) mTsg.value = cfg.tsg_id || '';
+                if (mApn) mApn.value = cfg.default_apn || 'sasetest';
+                if (mBase) mBase.value = cfg.api_base_url || 'https://api.sase.paloaltonetworks.com';
+
+                if (mSecretStatus) {
+                    if (cfg.has_secret) {
+                        mSecretStatus.innerText = "✓ Secret is stored securely in .env (" + (cfg.secret_masked || '••••') + ")";
+                        mSecretStatus.className = "text-[10px] text-emerald-400 mt-1";
+                    } else {
+                        mSecretStatus.innerText = "⚠ No secret found. Please enter client secret.";
+                        mSecretStatus.className = "text-[10px] text-amber-400 mt-1";
+                    }
+                }
             } catch (e) {
-                showToast("Error", "Failed to load settings: " + e.message, true);
+                console.error("Failed to load settings data", e);
             }
+        }
+
+        async function openSettingsModal() {
+            await loadSettingsData();
+            document.getElementById('settings-test-result').classList.add('hidden');
+            document.getElementById('modal-settings').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function closeSettingsModal() {
             document.getElementById('modal-settings').classList.add('hidden');
+        }
+
+        async function handleMainSettingsSave(e) {
+            e.preventDefault();
+            const btn = document.getElementById('btn-tab-save-settings');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Saving...';
+            lucide.createIcons();
+
+            const client_id = document.getElementById('tab-settings-client-id').value;
+            const client_secret = document.getElementById('tab-settings-client-secret').value;
+            const tsg_id = document.getElementById('tab-settings-tsg-id').value;
+            const default_apn = document.getElementById('tab-settings-apn').value;
+            const api_base_url = document.getElementById('tab-settings-api-base').value;
+            const default_ip_type = document.getElementById('tab-settings-ip-type').value;
+
+            try {
+                const res = await fetch('/api/config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        client_id,
+                        client_secret: client_secret ? client_secret : null,
+                        tsg_id,
+                        default_apn,
+                        api_base_url,
+                        default_ip_type
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast("Configuration Saved", "Updated .env successfully");
+                    document.getElementById('tab-settings-client-secret').value = '';
+                    await refreshAll();
+                } else {
+                    showToast("Save Error", data.detail || "Error saving config", true);
+                }
+            } catch (err) {
+                showToast("Network Error", err.message, true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Configuration (.env)';
+                lucide.createIcons();
+            }
+        }
+
+        async function testMainSettingsCredentials() {
+            const btn = document.getElementById('btn-tab-test-settings');
+            const resultBox = document.getElementById('tab-settings-test-result');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Testing Connection...';
+            lucide.createIcons();
+
+            const client_id = document.getElementById('tab-settings-client-id').value;
+            const client_secret = document.getElementById('tab-settings-client-secret').value;
+            const tsg_id = document.getElementById('tab-settings-tsg-id').value;
+            const api_base_url = document.getElementById('tab-settings-api-base').value;
+
+            try {
+                const res = await fetch('/api/config/test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ client_id, client_secret, tsg_id, api_base_url })
+                });
+                const data = await res.json();
+                resultBox.classList.remove('hidden');
+                if (data.success) {
+                    resultBox.className = "p-3.5 rounded-xl text-xs font-mono bg-emerald-950/90 border border-emerald-500/40 text-emerald-300";
+                    resultBox.innerHTML = `✓ Connection Verified! Token prefix: ${data.token_preview}. Discovered ${data.tenants_count} Tenants.`;
+                } else {
+                    resultBox.className = "p-3.5 rounded-xl text-xs font-mono bg-red-950/90 border border-red-500/40 text-red-300";
+                    resultBox.innerHTML = `✗ Connection Failed: ${data.error || 'Authentication error'}`;
+                }
+            } catch (err) {
+                resultBox.classList.remove('hidden');
+                resultBox.className = "p-3.5 rounded-xl text-xs font-mono bg-red-950/90 border border-red-500/40 text-red-300";
+                resultBox.innerHTML = `✗ Network Error: ${err.message}`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i> Test Connection Live';
+                lucide.createIcons();
+            }
         }
 
         async function handleSettingsSave(e) {
@@ -1057,7 +1272,7 @@
         }
 
         async function refreshAll() {
-            await Promise.all([fetchStatus(), fetchTenants(), fetchSIMs(), fetchGroups()]);
+            await Promise.all([fetchStatus(), fetchTenants(), fetchSIMs(), fetchGroups(), loadSettingsData()]);
         }
 
         // Initialize on load

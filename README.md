@@ -10,12 +10,12 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 - **Modern Web Interface & REST API (FastAPI)**:
   - **Full SIM Lifecycle**: Real-time inventory table of SIM cards, tenant hierarchy mapping, and group policy badges (`Permissive`, `Restrictive`).
+  - **In-App Settings & Credentials**: Complete Settings tab & modal to view, edit, and test `.env` credentials in real time with security masking.
   - **5G Session Controller**: Real-time IP telemetry injection (`POST /mt/manage/5g/register/ue`) and termination (`POST /mt/manage/5g/deregister/ue`).
   - **Automated Lifecycle Runner**: Interactive 8-step test suite with live visual pipeline and execution terminal log.
-  - **In-App Settings**: Dynamic credentials management interface allowing updating and live testing of `.env` configuration.
 - **Agentless Zero-Trust Security**: No VPN agent or client required on IoT/mobile endpoints. Security policy enforcement is directly embedded into the 5G Core user plane.
 - **Docker Containerized**: Production-ready container based on `python:3.11-slim`, running with `docker compose up --build`.
-- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing.
+- **CI/CD Built-in**: GitHub Actions workflow (`.github/workflows/ci.yml`) for automated unit tests and Docker image validation & publishing to Docker Hub.
 
 ---
 
@@ -28,10 +28,12 @@ The fastest way to run the portal:
 git clone git@github.com:jsuzanne/Prisma-Access-SASE-5G.git
 cd Prisma-Access-SASE-5G
 
-# 2. Copy and configure your environment (optional if configured via Web UI Settings)
-cp .env.example .env
+# 2. Start with Docker (Image pulled directly from Docker Hub)
+docker run -d -p 8000:8000 --name prisma-5g-sase jsuzanne/prisma-5g-sase:latest
+```
 
-# 3. Start with Docker Compose
+Or build locally with Docker Compose:
+```bash
 docker compose up --build
 ```
 
@@ -52,19 +54,19 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 2. Configure Credentials (`.env`)
+### 2. Configure Credentials (`.env` or via Web UI)
+
+You can configure credentials directly in the Web UI (**Settings & Credentials** tab), or create `.env`:
 
 ```ini
-PANW_CLIENT_ID=your-service-account-client-id
+PANW_CLIENT_ID=5g-ue-registration@1965438697.iam.panserviceaccount.com
 PANW_CLIENT_SECRET=your-secret-here
-PANW_TSG_ID=your-root-tsg-id
+PANW_TSG_ID=1965438697
 PANW_API_BASE_URL=https://api.sase.paloaltonetworks.com
 PANW_AUTH_URL=https://auth.apps.paloaltonetworks.com/am/oauth2/access_token
 DEFAULT_APN=sasetest
 DEFAULT_IP_TYPE=IPv4
 ```
-
-*(You can also configure these settings directly in the Web UI via the Settings modal).*
 
 ### 3. Launch Web Application
 
@@ -75,30 +77,129 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 
 ---
 
-## 🛠 CLI Usage (`manage_5g.py`)
+## 📖 Complete Walkthrough: How to Provision a 5G Subscriber (SIM / UE)
 
-```bash
-# List registered SIM cards
-python3 manage_5g.py list
+Provisioning a 5G subscriber into Palo Alto Networks Prisma Access 5G SASE consists of two essential phases:
+1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) to a specific Tenant Service Group (TSG).
+2. **User Plane / Session Enrichment**: Injecting real-time IP allocation telemetry when the SIM connects to the 5G Core network, binding Zero-Trust security policies instantly.
 
-# Add test SIM card with APN sasetest
-python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest
+---
 
-# Add SIM card AND immediately activate real-time 5G session with IP:
-python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ip 10.56.0.195
+### Step 1: Discover Tenants and Security Groups
 
-# Register 5G session telemetry
-python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
+Before provisioning, inspect your organization's hierarchy and available subscriber security profiles (e.g. `Permissive`, `Restrictive`).
 
-# Terminate 5G session
-python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest
+- **Web UI**: Open **"Groups & Policies"** tab to view available groups and member counts.
+- **CLI**:
+  ```bash
+  python3 manage_5g.py tenants
+  python3 manage_5g.py groups
+  ```
+- **Python SDK**:
+  ```python
+  client = Prisma5GClient(load_config())
+  tenants = client.list_tenants()
+  groups = client.list_user_groups()
+  ```
 
-# Delete SIM card mapping
-python3 manage_5g.py delete <IDENTITY_ID>
+---
 
-# List subscriber user groups
-python3 manage_5g.py groups
-```
+### Step 2: Provision a SIM Card / UE (Control Plane)
+
+Register the SIM card hardware identifiers and assign it to an APN (default `sasetest`) and target Tenant.
+
+- **Web UI**: Click **"Add Test SIM"** in the top right banner, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**.
+- **CLI**:
+  ```bash
+  python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest
+  ```
+- **Python SDK**:
+  ```python
+  res = client.create_tenant_ue(
+      imsi="208950123456789",
+      imei="860123123456789",
+      apn="sasetest"
+  )
+  identity_id = res["data"]["id"]
+  print(f"Created UE Identity ID: {identity_id}")
+  ```
+
+---
+
+### Step 3: Verify Provisioning in SASE Control Plane
+
+Verify that the subscriber identity is registered and indexed across Prisma SASE management plane.
+
+- **Web UI**: The new SIM appears immediately in the **"SIM Inventory"** table.
+- **CLI**:
+  ```bash
+  python3 manage_5g.py get <IDENTITY_ID>
+  # Or list all SIMs
+  python3 manage_5g.py list
+  ```
+- **Python SDK**:
+  ```python
+  ue = client.get_tenant_ue(identity_id)
+  print(f"Verified IMSI {ue.get('imsi')} is mapped to TSG {ue.get('tsg_id')}")
+  ```
+
+---
+
+### Step 4: Activate 5G Session Telemetry (IP Allocation / Data Plane)
+
+When the IoT device or mobile iPad powers on and attaches to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma Access SASE via the REST telemetry endpoint to apply Zero-Trust inspection.
+
+- **Web UI**: In **"SIM Inventory"**, click **"Connect 5G"** next to the SIM (or go to **"5G Sessions"** tab).
+- **CLI**:
+  ```bash
+  python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
+  ```
+- **Python SDK**:
+  ```python
+  session = UESession(
+      imsi="208950123456789",
+      imei="860123123456789",
+      apn="sasetest",
+      ip_type="IPv4",
+      ipv4_addr="10.56.0.195"
+  )
+  resp = client.register_ue_session(session)
+  print(f"Session Telemetry Accepted: HTTP {resp.get('status_code')}")
+  ```
+
+---
+
+### Step 5: Terminate / Disconnect 5G Session
+
+When the subscriber disconnects or changes IP, a deregistration event is emitted.
+
+- **Web UI**: Go to **"5G Sessions"** tab and emit a deregister event.
+- **CLI**:
+  ```bash
+  python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.195
+  ```
+- **Python SDK**:
+  ```python
+  term_resp = client.deregister_ue_session(session)
+  print(f"Session Terminated: HTTP {term_resp.get('status_code')}")
+  ```
+
+---
+
+### Step 6: Deprovision / Delete SIM Card
+
+To decommission or remove a SIM from the tenant:
+
+- **Web UI**: In **"SIM Inventory"**, click **"Delete"** next to the test SIM.
+- **CLI**:
+  ```bash
+  python3 manage_5g.py delete <IDENTITY_ID>
+  ```
+- **Python SDK**:
+  ```python
+  client.delete_tenant_ue(identity_id)
+  print(f"Deleted SIM {identity_id}")
+  ```
 
 ---
 
@@ -110,7 +211,7 @@ Run the full end-to-end automated verification script:
 python3 test_lifecycle.py
 ```
 
-Or run unit tests:
+Or run Python unit tests:
 
 ```bash
 python3 -m unittest discover tests
