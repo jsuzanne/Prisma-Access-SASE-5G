@@ -503,7 +503,7 @@
 
                         <div class="flex items-center gap-2.5 self-end md:self-auto">
                             <span id="summary-ue-count-badge" class="px-2.5 py-1 rounded-lg bg-white/5 text-[11px] font-mono text-gray-400">Loading...</span>
-                            <button onclick="loadSummaryMetrics()" class="p-2 rounded-xl glass-panel hover:bg-white/10 text-gray-300 hover:text-white transition" title="Refresh Mappings">
+                            <button onclick="refreshUEMappings(this)" class="p-2 rounded-xl glass-panel hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer" title="Refresh Mappings">
                                 <i data-lucide="rotate-cw" class="w-4 h-4"></i>
                             </button>
                             <button onclick="switchTab('tab-sims')" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition">
@@ -2994,9 +2994,8 @@
 
         async function loadSummaryMetrics() {
             try {
-                if (!allSIMs || allSIMs.length === 0) {
-                    await fetchSIMs();
-                }
+                // Fetch fresh SIMs from backend
+                await fetchSIMs();
                 const res = await fetch('/api/metrics/summary');
                 const result = await res.json();
                 if (result.success && result.data) {
@@ -3013,6 +3012,23 @@
                 }
             } catch (err) {
                 console.error("Failed to load summary metrics", err);
+            }
+        }
+
+        async function refreshUEMappings(btn) {
+            const icon = btn ? btn.querySelector('i, svg') : null;
+            if (icon) icon.classList.add('animate-spin');
+            try {
+                await fetchSIMs();
+                await loadSummaryMetrics();
+                showToast("Mappings Refreshed", `Loaded ${allSIMs.length} SIM / IP mapping(s) from Strata Cloud Manager`);
+            } catch (err) {
+                showToast("Refresh Error", err.message, "error");
+            } finally {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('animate-spin');
+                    lucide.createIcons();
+                }, 500);
             }
         }
 
@@ -3672,17 +3688,31 @@
                 .replace(/'/g, '&#039;');
         }
 
-        async function refreshAll() {
-            await Promise.all([
-                fetchStatus(),
-                fetchTenants(),
-                fetchSIMs(),
-                fetchGroups(),
-                loadSettingsData(),
-                loadSummaryMetrics(),
-                loadThroughputChart(),
-                fetchDebuggerLogs()
-            ]);
+        async function refreshAll(btn) {
+            const icon = btn ? btn.querySelector('i, svg') : null;
+            if (icon) icon.classList.add('animate-spin');
+            try {
+                await Promise.all([
+                    fetchStatus(),
+                    fetchTenants(),
+                    fetchSIMs(),
+                    fetchGroups(),
+                    loadSettingsData(),
+                    loadSummaryMetrics(),
+                    loadThroughputChart(),
+                    fetchDebuggerLogs()
+                ]);
+                if (btn) {
+                    showToast("Data Synchronized", "Refreshed live telemetry and inventory from Strata Cloud Manager");
+                }
+            } catch (err) {
+                if (btn) showToast("Refresh Error", err.message, "error");
+            } finally {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('animate-spin');
+                    lucide.createIcons();
+                }, 500);
+            }
         }
 
         // Initialize on load
