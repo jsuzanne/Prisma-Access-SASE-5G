@@ -26,6 +26,8 @@ COPY static/ /app/static/
 COPY app.py /app/app.py
 COPY manage_5g.py /app/manage_5g.py
 COPY test_lifecycle.py /app/test_lifecycle.py
+COPY CHANGELOG.md /app/CHANGELOG.md
+COPY VERSION /app/VERSION
 COPY .env.example /app/.env.example
 
 # Expose port

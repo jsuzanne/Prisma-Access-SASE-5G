@@ -234,6 +234,21 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertEqual(data["region"], "europe-west9")
         self.assertTrue(len(data["points"]) > 0)
 
+    def test_version_endpoint(self):
+        response = client.get("/api/version")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("version", data)
+        self.assertIn("commit", data)
+        self.assertIn("base_version", data)
+
+    def test_changelog_endpoint(self):
+        response = client.get("/api/changelog")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn("content", data)
+        self.assertIn("# Changelog", data["content"])
+
 
 if __name__ == "__main__":
     unittest.main()

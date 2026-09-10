@@ -160,9 +160,11 @@
                             <i data-lucide="radio" class="w-3.5 h-3.5"></i>
                         </div>
                         <div>
-                            <h1 class="text-xs sm:text-sm font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent flex items-center gap-1">
+                            <h1 class="text-xs sm:text-sm font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent flex items-center gap-1.5">
                                 Prisma SASE 5G
                                 <span class="px-1.5 py-0.2 text-[9px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full font-mono">5G Core</span>
+                                <span class="text-gray-500 text-[10px] select-none">•</span>
+                                <span id="header-version-badge" onclick="openChangelogModal()" class="text-[10px] font-mono font-medium text-gray-400 hover:text-cyan-400 transition cursor-pointer select-none" title="Application Version (Click to view Changelog)">v2.0.39</span>
                             </h1>
                         </div>
                     </div>
@@ -1503,6 +1505,33 @@
                                 Prisma SASE 5G operates without installing any agent or VPN profile on subscriber equipment. The core network correlation applies security policies in real time based on IMSI / IP allocation telemetry.
                             </p>
                         </div>
+
+                        <!-- System & Version Card -->
+                        <div class="glass-panel rounded-2xl p-6 space-y-3 border border-white/10">
+                            <div class="flex items-center justify-between pb-2 border-b border-white/10">
+                                <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                                    <i data-lucide="info" class="w-4 h-4 text-cyan-400"></i> System & Version
+                                </h4>
+                                <span id="settings-version-badge" class="px-2 py-0.5 rounded-full text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v2.0.39</span>
+                            </div>
+                            <div class="space-y-2 text-xs">
+                                <div class="flex items-center justify-between text-gray-400">
+                                    <span>Application Version</span>
+                                    <span id="settings-version-text" class="text-white font-mono font-medium">2.0.39</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-400">
+                                    <span>Git Commit SHA</span>
+                                    <span id="settings-commit-text" class="text-cyan-400 font-mono">4dfff66</span>
+                                </div>
+                                <div class="flex items-center justify-between text-gray-400">
+                                    <span>Platform</span>
+                                    <span class="text-gray-300 font-mono">FastAPI / Python 3.11</span>
+                                </div>
+                            </div>
+                            <button type="button" onclick="openChangelogModal()" class="w-full mt-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition">
+                                <i data-lucide="file-text" class="w-3.5 h-3.5 text-cyan-400"></i> View Complete Changelog
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1515,9 +1544,50 @@
                     <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
                     <span>Palo Alto Networks Prisma SASE 5G Integration Portal</span>
                 </div>
-                <div class="font-mono text-gray-500 text-[11px]">Port 8000 • FastAPI Real-Time Engine</div>
+                <div class="font-mono text-gray-500 text-[11px] flex items-center gap-2">
+                    <span>Port 8000 • FastAPI Real-Time Engine</span>
+                    <span class="text-gray-600 select-none">•</span>
+                    <button type="button" onclick="openChangelogModal()" id="footer-version-label" class="hover:text-cyan-400 text-gray-400 transition" title="View Version & Changelog">v2.0.39</button>
+                </div>
             </div>
         </footer>
+    </div>
+
+    <!-- MODAL: Changelog & Release Notes -->
+    <div id="modal-changelog" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl max-w-2xl w-full p-6 space-y-4 border border-cyan-500/30 glow-cyan max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10 shrink-0">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                        <i data-lucide="file-text" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                            Release Notes & Changelog
+                            <span id="changelog-modal-version-badge" class="px-2 py-0.2 rounded-full text-[10px] font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">v2.0.39</span>
+                        </h3>
+                        <p class="text-[11px] text-gray-400">Chronological history of features, enhancements, and fixes</p>
+                    </div>
+                </div>
+                <button onclick="closeChangelogModal()" class="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <!-- Changelog Markdown Content Container -->
+            <div id="changelog-content-area" class="flex-1 overflow-y-auto space-y-4 pr-2 text-xs text-gray-300 font-sans leading-relaxed custom-scrollbar">
+                <div class="flex items-center justify-center py-12 text-gray-400">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-cyan-400 mr-2"></i> Loading changelog...
+                </div>
+            </div>
+
+            <div class="pt-3 border-t border-white/10 flex items-center justify-between shrink-0 text-xs">
+                <span class="text-gray-400 font-mono text-[11px]">Prisma SASE 5G • Strata Cloud Manager</span>
+                <button type="button" onclick="closeChangelogModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold transition">
+                    Close
+                </button>
+            </div>
+        </div>
     </div>
 
     <!-- MODAL 1: Add SIM Modal (Enriched SIDO Presets & Manual) -->
@@ -2346,7 +2416,7 @@
             }
         }
 
-        // Fetch System Status
+        // Fetch System Status & Version
         async function fetchStatus() {
             try {
                 const res = await fetch('/api/status');
@@ -2366,9 +2436,73 @@
                 if (data.default_apn) {
                     document.getElementById('default-apn-badge').innerText = data.default_apn;
                 }
+                if (data.version_info || data.version) {
+                    updateVersionUi(data.version_info || { version: data.version });
+                }
             } catch (e) {
                 console.error("Status fetch failed", e);
             }
+        }
+
+        function updateVersionUi(versionData) {
+            if (!versionData) return;
+            const vStr = versionData.version || "2.0.39";
+            const vDisplay = `v${vStr}`;
+            const headerBadge = document.getElementById('header-version-badge');
+            if (headerBadge) headerBadge.innerText = vDisplay;
+            const footerBadge = document.getElementById('footer-version-label');
+            if (footerBadge) footerBadge.innerText = vDisplay;
+            const settingsBadge = document.getElementById('settings-version-badge');
+            if (settingsBadge) settingsBadge.innerText = vDisplay;
+            const settingsText = document.getElementById('settings-version-text');
+            if (settingsText) settingsText.innerText = vStr;
+            const modalBadge = document.getElementById('changelog-modal-version-badge');
+            if (modalBadge) modalBadge.innerText = vDisplay;
+            const commitText = document.getElementById('settings-commit-text');
+            if (commitText && versionData.commit) {
+                commitText.innerText = versionData.commit;
+            }
+        }
+
+        async function openChangelogModal() {
+            const modal = document.getElementById('modal-changelog');
+            const content = document.getElementById('changelog-content-area');
+            if (!modal || !content) return;
+            
+            modal.classList.remove('hidden');
+            content.innerHTML = `
+                <div class="flex items-center justify-center py-12 text-gray-400">
+                    <i data-lucide="loader-2" class="w-5 h-5 animate-spin text-cyan-400 mr-2"></i> Loading changelog...
+                </div>
+            `;
+            lucide.createIcons();
+
+            try {
+                const res = await fetch('/api/changelog');
+                const data = await res.json();
+                const raw = data.content || '';
+                
+                // Parse markdown into clean HTML
+                let html = raw
+                    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+                    .replace(/^# (.*$)/gim, '<h1 class="text-base font-bold text-white mb-2">$1</h1>')
+                    .replace(/^## \[(.*?)\] - (.*$)/gim, '<div class="mt-4 pt-3 border-t border-white/10"><div class="flex items-center justify-between"><span class="px-2.5 py-0.5 rounded-lg bg-cyan-500/10 text-cyan-400 font-mono font-bold text-xs border border-cyan-500/20">v$1</span><span class="text-[11px] text-gray-400">$2</span></div></div>')
+                    .replace(/^### (.*$)/gim, '<h3 class="text-xs font-bold text-gray-200 mt-2.5 mb-1 flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>$1</h3>')
+                    .replace(/^\s*-\s*\*\*(.*?)\*\*(.*$)/gim, '<li class="ml-3 my-1 list-disc text-gray-300"><strong class="text-white">$1</strong>$2</li>')
+                    .replace(/^\s*-\s*(.*$)/gim, '<li class="ml-3 my-1 list-disc text-gray-300">$1</li>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong class="text-white font-medium">$1</strong>')
+                    .replace(/`([^`]+)`/g, '<code class="px-1 py-0.5 rounded bg-gray-900 text-cyan-300 font-mono text-[11px]">$1</code>');
+
+                content.innerHTML = html;
+                lucide.createIcons();
+            } catch (err) {
+                content.innerHTML = `<div class="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400">Failed to load changelog: ${err.message}</div>`;
+            }
+        }
+
+        function closeChangelogModal() {
+            const modal = document.getElementById('modal-changelog');
+            if (modal) modal.classList.add('hidden');
         }
 
         // State variables for Vertical Presets & View Modes

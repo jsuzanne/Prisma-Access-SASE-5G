@@ -46,16 +46,19 @@ from src.presets import (
     generate_fleet_devices,
     enrich_existing_imsis,
 )
+from src.version import get_version_info
 
 # Project base and config directories
 BASE_DIR = Path(__file__).resolve().parent
 CONFIG_DIR = get_config_dir()
 ENV_PATH = CONFIG_DIR / ".env"
 
+_current_version_info = get_version_info()
+
 app = FastAPI(
     title="Prisma SASE 5G Manager",
     description="Full Lifecycle Management & Demo Portal for Palo Alto Networks Prisma SASE 5G",
-    version="1.0.0",
+    version=_current_version_info["version"],
 )
 
 # Enable CORS for local dev
@@ -215,9 +218,25 @@ ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
 }
 
 
+@app.get("/api/version")
+def get_app_version():
+    """Get current application version and git build metadata."""
+    return get_version_info()
+
+
+@app.get("/api/changelog")
+def get_changelog():
+    """Retrieve application changelog markdown."""
+    changelog_file = BASE_DIR / "CHANGELOG.md"
+    if changelog_file.exists():
+        return {"content": changelog_file.read_text(encoding="utf-8")}
+    return {"content": "# Changelog\n\nNo changelog available."}
+
+
 @app.get("/api/status")
 def get_system_status():
-    """Get system health, authentication state, and connected TSG info."""
+    """Get system health, authentication state, connected TSG info, and version."""
+    v_info = get_version_info()
     try:
         config = load_config()
         has_creds = bool(config.client_id and config.client_secret and config.tsg_id)
@@ -242,12 +261,16 @@ def get_system_status():
             "api_base_url": config.api_base_url,
             "default_apn": config.default_apn,
             "default_ip_type": config.default_ip_type,
+            "version": v_info["version"],
+            "version_info": v_info,
         }
     except Exception as exc:
         return {
             "status": "error",
             "authenticated": False,
             "auth_error": str(exc),
+            "version": v_info["version"],
+            "version_info": v_info,
         }
 
 
