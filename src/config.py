@@ -96,7 +96,6 @@ def load_config(config_source: Optional[Union[str, Path]] = None) -> Config:
     if config_source:
         p = Path(config_source)
         if p.is_dir():
-            # Check for config.json or .env inside the provided directory
             json_file = p / "config.json"
             env_file = p / ".env"
             if json_file.exists():
@@ -114,15 +113,20 @@ def load_config(config_source: Optional[Union[str, Path]] = None) -> Config:
         elif p.exists():
             load_dotenv(dotenv_path=str(p), override=True)
     else:
-        # Check standard config directory (e.g. ./config or /app/config)
         cfg_dir = get_config_dir()
         json_file = cfg_dir / "config.json"
         env_file = cfg_dir / ".env"
+        base_json = BASE_DIR / "config" / "config.json"
         base_env = BASE_DIR / ".env"
 
         if json_file.exists():
             try:
                 json_data = json.loads(json_file.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+        elif base_json.exists():
+            try:
+                json_data = json.loads(base_json.read_text(encoding="utf-8"))
             except Exception:
                 pass
         elif env_file.exists():
@@ -132,16 +136,25 @@ def load_config(config_source: Optional[Union[str, Path]] = None) -> Config:
         else:
             load_dotenv(override=True)
 
-    # Merge: Process environment variables override or fallback to JSON values
+    # When JSON data exists from a saved config.json file, use its values
+    client_id = json_data.get("client_id") or json_data.get("PANW_CLIENT_ID") or os.getenv("PANW_CLIENT_ID") or None
+    client_secret = json_data.get("client_secret") or json_data.get("PANW_CLIENT_SECRET") or os.getenv("PANW_CLIENT_SECRET") or None
+    tsg_id = json_data.get("tsg_id") or json_data.get("PANW_TSG_ID") or os.getenv("PANW_TSG_ID") or None
+    auth_token = json_data.get("auth_token") or json_data.get("PANW_AUTH_TOKEN") or os.getenv("PANW_AUTH_TOKEN") or None
+    api_base_url = json_data.get("api_base_url") or json_data.get("PANW_API_BASE_URL") or os.getenv("PANW_API_BASE_URL") or "https://api.sase.paloaltonetworks.com"
+    auth_url = json_data.get("auth_url") or json_data.get("PANW_AUTH_URL") or os.getenv("PANW_AUTH_URL") or "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token"
+    default_apn = json_data.get("default_apn") or json_data.get("DEFAULT_APN") or os.getenv("DEFAULT_APN") or "sasetest"
+    default_ip_type = json_data.get("default_ip_type") or json_data.get("DEFAULT_IP_TYPE") or os.getenv("DEFAULT_IP_TYPE") or "IPv4"
+
     config = Config(
-        client_id=os.getenv("PANW_CLIENT_ID") or json_data.get("client_id") or json_data.get("PANW_CLIENT_ID") or None,
-        client_secret=os.getenv("PANW_CLIENT_SECRET") or json_data.get("client_secret") or json_data.get("PANW_CLIENT_SECRET") or None,
-        tsg_id=os.getenv("PANW_TSG_ID") or json_data.get("tsg_id") or json_data.get("PANW_TSG_ID") or None,
-        auth_token=os.getenv("PANW_AUTH_TOKEN") or json_data.get("auth_token") or json_data.get("PANW_AUTH_TOKEN") or None,
-        api_base_url=(os.getenv("PANW_API_BASE_URL") or json_data.get("api_base_url") or json_data.get("PANW_API_BASE_URL") or "https://api.sase.paloaltonetworks.com").rstrip("/"),
-        auth_url=os.getenv("PANW_AUTH_URL") or json_data.get("auth_url") or json_data.get("PANW_AUTH_URL") or "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token",
-        default_apn=os.getenv("DEFAULT_APN") or json_data.get("default_apn") or json_data.get("DEFAULT_APN") or "sasetest",
-        default_ip_type=os.getenv("DEFAULT_IP_TYPE") or json_data.get("default_ip_type") or json_data.get("DEFAULT_IP_TYPE") or "IPv4",
+        client_id=client_id,
+        client_secret=client_secret,
+        tsg_id=tsg_id,
+        auth_token=auth_token,
+        api_base_url=api_base_url.rstrip("/"),
+        auth_url=auth_url,
+        default_apn=default_apn,
+        default_ip_type=default_ip_type,
     )
     return config
 
@@ -156,6 +169,7 @@ def save_config(
     This ensures that when a Docker volume is mounted to /app/config (or ./config),
     all credentials and settings survive container recreation and upgrades.
     """
+    is_custom_target = target_dir is not None
     cfg_dir = get_config_dir(target_dir)
     cfg_dir.mkdir(parents=True, exist_ok=True)
 
@@ -193,26 +207,27 @@ def save_config(
     env_content = "\n".join(lines)
     env_path.write_text(env_content, encoding="utf-8")
 
-    # Also save to root .env if running locally and root is different from cfg_dir
-    root_env = BASE_DIR / ".env"
-    if save_env_backup and root_env.resolve() != env_path.resolve():
+    # Only save to project root .env if saving to standard project config dir
+    if save_env_backup and not is_custom_target:
+        root_env = BASE_DIR / ".env"
         try:
             root_env.write_text(env_content, encoding="utf-8")
         except Exception:
             pass
 
-    # 3. Synchronize current process environment variables
-    for k, v in {
-        "PANW_CLIENT_ID": cleaned_json["client_id"],
-        "PANW_CLIENT_SECRET": cleaned_json["client_secret"],
-        "PANW_TSG_ID": cleaned_json["tsg_id"],
-        "PANW_API_BASE_URL": cleaned_json["api_base_url"],
-        "PANW_AUTH_URL": cleaned_json["auth_url"],
-        "DEFAULT_APN": cleaned_json["default_apn"],
-        "DEFAULT_IP_TYPE": cleaned_json["default_ip_type"],
-    }.items():
-        if v:
-            os.environ[k] = str(v)
+    # 3. Synchronize current process environment variables if not isolated target
+    if not is_custom_target:
+        for k, v in {
+            "PANW_CLIENT_ID": cleaned_json["client_id"],
+            "PANW_CLIENT_SECRET": cleaned_json["client_secret"],
+            "PANW_TSG_ID": cleaned_json["tsg_id"],
+            "PANW_API_BASE_URL": cleaned_json["api_base_url"],
+            "PANW_AUTH_URL": cleaned_json["auth_url"],
+            "DEFAULT_APN": cleaned_json["default_apn"],
+            "DEFAULT_IP_TYPE": cleaned_json["default_ip_type"],
+        }.items():
+            if v:
+                os.environ[k] = str(v)
 
     return {
         "success": True,

@@ -234,7 +234,7 @@
                         <span id="status-text" class="hidden sm:inline">Online</span>
                     </div>
 
-                    <button onclick="refreshAll()" class="p-1 rounded-lg glass-panel hover:bg-white/10 text-gray-300 hover:text-cyan-400 transition" title="Refresh Live Data">
+                    <button onclick="refreshAll(this)" class="p-1 rounded-lg glass-panel hover:bg-white/10 text-gray-300 hover:text-cyan-400 transition" title="Refresh Live Data">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                     </button>
                 </div>
@@ -275,7 +275,7 @@
                         <div class="text-xs text-gray-400">Default Test APN</div>
                         <div id="default-apn-badge" class="text-xs font-mono text-cyan-400 font-bold">sasetest</div>
                     </div>
-                    <button onclick="refreshAll()" class="px-3 py-1.5 rounded-xl glass-panel hover:bg-white/10 text-xs font-medium text-gray-300 flex items-center gap-1.5 transition">
+                    <button onclick="refreshAll(this)" class="px-3 py-1.5 rounded-xl glass-panel hover:bg-white/10 text-xs font-medium text-gray-300 flex items-center gap-1.5 transition">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
                     </button>
                     <button onclick="openAddSimModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs shadow-lg glow-cyan flex items-center gap-2 transition">
@@ -592,6 +592,9 @@
                     </div>
                     <div class="flex items-center gap-2.5 text-xs text-gray-400 w-full sm:w-auto justify-between sm:justify-end">
                         <span id="sim-count-badge" class="px-2.5 py-1 rounded-lg bg-white/5 text-[11px] font-mono text-gray-300">Loading...</span>
+                        <button onclick="refreshSIMInventory(this)" class="p-2 rounded-xl glass-panel hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer" title="Refresh SIM Inventory">
+                            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                        </button>
                         <button onclick="switchTab('tab-matrix')" class="px-3 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-[11px] text-orange-300 font-medium flex items-center gap-1.5 transition" title="Compare Web UI, CLI & Strata Cloud Manager">
                             <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM Guide
                         </button>
@@ -3020,6 +3023,22 @@
             }
         }
 
+        async function refreshSIMInventory(btn) {
+            const icon = btn ? btn.querySelector('i, svg') : null;
+            if (icon) icon.classList.add('animate-spin');
+            try {
+                await fetchSIMs();
+                showToast("SIM Inventory Refreshed", `Loaded ${allSIMs.length} SIM card(s) from Strata Cloud Manager`);
+            } catch (err) {
+                showToast("Refresh Error", err.message, "error");
+            } finally {
+                setTimeout(() => {
+                    if (icon) icon.classList.remove('animate-spin');
+                    lucide.createIcons();
+                }, 500);
+            }
+        }
+
         async function refreshUEMappings(btn) {
             const icon = btn ? btn.querySelector('i, svg') : null;
             if (icon) icon.classList.add('animate-spin');
@@ -3707,11 +3726,9 @@
                     loadThroughputChart(),
                     fetchDebuggerLogs()
                 ]);
-                if (btn) {
-                    showToast("Data Synchronized", "Refreshed live telemetry and inventory from Strata Cloud Manager");
-                }
+                showToast("Data Synchronized", `Refreshed live telemetry and inventory (${allSIMs.length} SIMs) from Strata Cloud Manager`);
             } catch (err) {
-                if (btn) showToast("Refresh Error", err.message, "error");
+                showToast("Refresh Error", err.message, "error");
             } finally {
                 setTimeout(() => {
                     if (icon) icon.classList.remove('animate-spin');

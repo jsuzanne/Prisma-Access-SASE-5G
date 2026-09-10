@@ -147,14 +147,28 @@ class DeregisterSessionModel(BaseModel):
 
 # Active 5G subscriber session state tracking (IMSI -> Session IP telemetry)
 ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
-    # Pre-seed active demo mapping matching live SCM telemetry
+    # Active demo mappings matching live Strata Cloud Manager 5G telemetry
+    "901370007299137": {
+        "ipv4_addr": "10.56.0.201",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
     "901370007299147": {
         "ipv4_addr": "10.56.0.200",
         "apn": "sase",
         "status": "Active",
         "region": "europe-west9",
         "tenant_status": "Yes",
-    }
+    },
+    "901370007299136": {
+        "ipv4_addr": "10.56.0.199",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
 }
 
 
@@ -339,7 +353,7 @@ def list_ues(tsg_id: Optional[str] = None):
             ipv4 = m.ipv4_addr or (sess_info["ipv4_addr"] if sess_info else None)
             status = m.status if (m.ipv4_addr and m.status) else (sess_info["status"] if sess_info else ("Active" if ipv4 else "Inactive"))
             region = m.region or (sess_info["region"] if sess_info else ("europe-west9" if status == "Active" else None))
-            tenant_status = m.tenant_status or (sess_info["tenant_status"] if sess_info else ("Yes" if status == "Active" else "No"))
+            tenant_status = "Yes" if status == "Active" else (m.tenant_status or "No")
 
             res_data.append({
                 "identity_id": m.identity_id,
