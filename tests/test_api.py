@@ -62,6 +62,10 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(len(data["data"]), 1)
         self.assertEqual(data["data"][0]["apn"], "sasetest")
+        self.assertIn("ipv4_addr", data["data"][0])
+        self.assertIn("status", data["data"][0])
+        self.assertIn("region", data["data"][0])
+        self.assertIn("tenant_status", data["data"][0])
 
     @patch("app.Prisma5GClient.create_tenant_ue")
     def test_create_ue_endpoint(self, mock_create):

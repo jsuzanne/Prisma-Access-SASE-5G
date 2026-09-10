@@ -51,10 +51,18 @@ class TestConfigAndModels(unittest.TestCase):
             "imei": "987654321098765",
             "apn": "test.apn",
             "tsg_id": "1001",
+            "ipv4_addr": "10.56.0.200",
+            "status": "Active",
+            "region": "europe-west9",
+            "tenant_status": "Yes",
         }
         parsed = TenantUEMapping.from_api_dict(api_data)
         self.assertEqual(parsed.identity_id, "uuid-123")
         self.assertEqual(parsed.imsi, "123456789012345")
+        self.assertEqual(parsed.ipv4_addr, "10.56.0.200")
+        self.assertEqual(parsed.status, "Active")
+        self.assertEqual(parsed.region, "europe-west9")
+        self.assertEqual(parsed.tenant_status, "Yes")
 
     def test_ue_session_model(self):
         sess = UESession(

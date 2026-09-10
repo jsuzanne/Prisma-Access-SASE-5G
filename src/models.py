@@ -16,6 +16,11 @@ class TenantUEMapping:
     identity_id: Optional[str] = None
     groups: List[Dict[str, Any]] = field(default_factory=list)
     tenant_name: Optional[str] = None
+    ipv4_addr: Optional[str] = None
+    ipv6_addr: Optional[str] = None
+    status: Optional[str] = "Inactive"  # "Active" | "Inactive"
+    region: Optional[str] = None       # e.g. "europe-west9"
+    tenant_status: Optional[str] = "No"  # "Yes" | "No"
     create_time: Optional[int] = None
     update_time: Optional[int] = None
 
@@ -35,6 +40,26 @@ class TenantUEMapping:
     @classmethod
     def from_api_dict(cls, data: Dict[str, Any]) -> "TenantUEMapping":
         """Create an instance from an API JSON response object."""
+        # Detect IP addresses if returned by SCM or session correlation
+        ipv4 = data.get("ipv4_addr") or data.get("ipv4Addr") or data.get("ip_address") or data.get("ip")
+        ipv6 = data.get("ipv6_addr") or data.get("ipv6Addr")
+        
+        raw_status = data.get("status")
+        if raw_status:
+            status = "Active" if str(raw_status).lower() in ("active", "true", "up", "1") else "Inactive"
+        else:
+            status = "Active" if (ipv4 or ipv6) else "Inactive"
+
+        region = data.get("region") or data.get("compute_region") or data.get("computeRegion")
+        if not region and status == "Active":
+            region = "europe-west9"
+
+        tenant_status = data.get("tenant_status") or data.get("tenantStatus")
+        if tenant_status is None:
+            tenant_status = "Yes" if status == "Active" else "No"
+        elif isinstance(tenant_status, bool):
+            tenant_status = "Yes" if tenant_status else "No"
+
         return cls(
             imsi=str(data.get("imsi", "")),
             imei=str(data.get("imei", "")),
@@ -42,8 +67,14 @@ class TenantUEMapping:
             tsg_id=data.get("tsg_id"),
             root_tsg_id=data.get("root_tsg_id"),
             identity_id=data.get("identity_id") or data.get("id"),
-            groups=data.get("group", []),
-            create_time=data.get("create_time"),
+            groups=data.get("group", []) or data.get("groups", []),
+            tenant_name=data.get("tenant_name"),
+            ipv4_addr=ipv4,
+            ipv6_addr=ipv6,
+            status=status,
+            region=region,
+            tenant_status=str(tenant_status),
+            create_time=data.get("create_time") or data.get("time_added"),
             update_time=data.get("update_time"),
         )
 
