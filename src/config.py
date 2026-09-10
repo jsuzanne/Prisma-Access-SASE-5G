@@ -1,4 +1,4 @@
-"""Configuration loader and validator for Prisma Access 5G SASE."""
+"""Configuration loader and validator for Prisma SASE 5G."""
 
 import os
 from dataclasses import dataclass

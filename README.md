@@ -1,6 +1,6 @@
-# Prisma Access 5G SASE Management & Lifecycle Portal
+# Prisma SASE 5G Management & Lifecycle Portal
 
-Web Application, REST API, CLI, and Python toolkit for Palo Alto Networks **Prisma Access 5G SASE** (Strata Cloud Manager & Telecom 5G Core Integration).
+Web Application, REST API, CLI, and Python toolkit for Palo Alto Networks **Prisma SASE 5G** (Strata Cloud Manager & Telecom 5G Core Integration).
 
 Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry enrichment, subscriber user groups, monitoring KPI metrics, and automated end-to-end testing.
 
@@ -91,7 +91,7 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 
 ## 📖 Complete Provisioning Walkthrough: Web UI vs CLI vs Strata Cloud Manager (SCM)
 
-Provisioning a 5G subscriber into Palo Alto Networks Prisma Access 5G SASE consists of two essential phases:
+Provisioning a 5G subscriber into Palo Alto Networks Prisma SASE 5G consists of two essential phases:
 1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) and assigning security groups.
 2. **User Plane / Session Enrichment**: Injecting real-time IP allocation telemetry when the SIM connects to the 5G Core network, binding Zero-Trust security policies instantly.
 
@@ -149,7 +149,7 @@ Assign or move the SIM card to a specific security policy group (`Permissive`, `
 
 ### Step 5: Activate 5G Session Telemetry (IP Allocation / Data Plane)
 
-When the IoT device or mobile tablet connects to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma Access SASE via the REST telemetry endpoint to bind security policies in real time without any device agent or VPN client.
+When the IoT device or mobile tablet connects to the 5G Core network, the carrier/telecom network assigns an IP address (e.g., `10.56.0.195`). The 5G Core automatically notifies Prisma SASE 5G via the REST telemetry endpoint to bind security policies in real time without any device agent or VPN client.
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |

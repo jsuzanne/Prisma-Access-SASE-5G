@@ -1,4 +1,4 @@
-"""Unit tests for Prisma Access 5G SASE client with mocked HTTP responses."""
+"""Unit tests for Prisma SASE 5G client with mocked HTTP responses."""
 
 import unittest
 from unittest.mock import patch, MagicMock

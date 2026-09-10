@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prisma Access 5G SASE Management CLI Tool.
+"""Prisma SASE 5G Management CLI Tool.
 
 CLI utility to inspect, create, update, and delete SIM cards (UE) and real-time subscriber sessions.
 """
@@ -24,10 +24,10 @@ def print_rich_help():
     console.print()
     console.print(
         Panel.fit(
-            "[bold white]Prisma Access 5G SASE[/bold white] [bold cyan]Command-Line Interface (CLI)[/bold cyan]\n"
+            "[bold white]Prisma SASE 5G[/bold white] [bold cyan]Command-Line Interface (CLI)[/bold cyan]\n"
             "[dim]Palo Alto Networks Strata Cloud Manager & Carrier Core Automation[/dim]",
             border_style="cyan",
-            title="[bold orange3]5G SASE Manager[/bold orange3]",
+            title="[bold orange3]Prisma SASE 5G Manager[/bold orange3]",
             subtitle="[dim]--help guide[/dim]",
         )
     )
@@ -103,7 +103,7 @@ def print_rich_help():
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Prisma Access 5G SASE CLI Manager - Palo Alto Networks & Carrier Automation",
+        description="Prisma SASE 5G CLI Manager - Palo Alto Networks & Carrier Automation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=False,
     )

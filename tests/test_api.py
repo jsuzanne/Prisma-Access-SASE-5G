@@ -192,7 +192,7 @@ class TestAppEndpoints(unittest.TestCase):
     def test_serve_index_html(self):
         response = client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn("Prisma Access 5G SASE", response.text)
+        self.assertIn("Prisma SASE 5G", response.text)
 
     @patch("app.Prisma5GClient.get_monitoring_summary")
     def test_metrics_summary_endpoint(self, mock_summary):

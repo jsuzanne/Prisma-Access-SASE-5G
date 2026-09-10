@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prisma Access 5G SASE End-to-End Lifecycle Test Script.
+"""Prisma SASE 5G End-to-End Lifecycle Test Script.
 
 Executes a complete lifecycle test:
 1. Load configuration and authenticate.
@@ -28,7 +28,7 @@ console = Console()
 
 def run_lifecycle_test(env_file=None):
     console.print(Panel.fit(
-        "[bold cyan]Prisma Access 5G SASE - End-to-End Lifecycle Test[/bold cyan]\n"
+        "[bold cyan]Prisma SASE 5G - End-to-End Lifecycle Test[/bold cyan]\n"
         "[dim]Testing Authentication -> Read Info -> Create UE -> Verify -> Session Event -> Delete -> Verify[/dim]",
         border_style="cyan"
     ))
@@ -193,7 +193,7 @@ def run_lifecycle_test(env_file=None):
         console.print(f"  [yellow]⚠ Final list check note:[/yellow] {exc}")
 
     console.print(Panel.fit(
-        "[bold green]✓ Complete Prisma Access 5G SASE lifecycle test executed successfully![/bold green]",
+        "[bold green]✓ Complete Prisma SASE 5G lifecycle test executed successfully![/bold green]",
         border_style="green"
     ))
 

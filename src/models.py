@@ -1,4 +1,4 @@
-"""Data models for Prisma Access 5G SASE resources."""
+"""Data models for Prisma SASE 5G resources."""
 
 from dataclasses import dataclass, field
 from typing import Optional, List, Dict, Any

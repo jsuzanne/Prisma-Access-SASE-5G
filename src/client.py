@@ -1,4 +1,4 @@
-"""Prisma Access 5G SASE API Client."""
+"""Prisma SASE 5G API Client."""
 
 import logging
 from typing import List, Dict, Any, Optional, Union
@@ -12,7 +12,7 @@ logger = logging.getLogger("Prisma5GClient")
 
 
 class Prisma5GClient:
-    """Client for interacting with Palo Alto Networks Prisma Access 5G SASE APIs.
+    """Client for interacting with Palo Alto Networks Prisma SASE 5G APIs.
     
     Provides methods for:
     - Tenant UE Info (SIM card / hardware mapping CRUD)

@@ -1,4 +1,4 @@
-"""FastAPI Web Application for Prisma Access 5G SASE Management & Lifecycle.
+"""FastAPI Web Application for Prisma SASE 5G Management & Lifecycle.
 
 Provides REST APIs and serves a responsive single-page web application for:
 - Viewing Tenant Hierarchy (Root MSP, Transatel demo, tenant-1)
@@ -32,8 +32,8 @@ BASE_DIR = Path(__file__).resolve().parent
 ENV_PATH = BASE_DIR / ".env"
 
 app = FastAPI(
-    title="Prisma Access 5G SASE Manager",
-    description="Full Lifecycle Management & Demo Portal for Palo Alto Networks Prisma Access 5G SASE",
+    title="Prisma SASE 5G Manager",
+    description="Full Lifecycle Management & Demo Portal for Palo Alto Networks Prisma SASE 5G",
     version="1.0.0",
 )
 
@@ -207,7 +207,7 @@ def update_app_config(payload: ConfigUpdateModel):
 
         # Build clean .env content
         lines = [
-            "# Palo Alto Networks Prisma Access 5G SASE Configuration",
+            "# Palo Alto Networks Prisma SASE 5G Configuration",
             f"PANW_CLIENT_ID={new_client_id or ''}",
             f"PANW_CLIENT_SECRET={new_secret or ''}",
             f"PANW_TSG_ID={new_tsg_id or ''}",

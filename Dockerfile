@@ -1,4 +1,4 @@
-# Single lightweight multi-arch Python 3.11 image for Prisma Access 5G SASE Manager
+# Single lightweight multi-arch Python 3.11 image for Prisma SASE 5G Manager
 FROM python:3.11-slim
 
 # Prevent Python from buffering stdout/stderr and generating .pyc
