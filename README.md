@@ -47,8 +47,7 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - path: .env
-        required: false
+      - .env
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
@@ -57,7 +56,10 @@ services:
 Then start the container:
 
 ```bash
-# Start in detached mode
+# 1. Ensure .env exists (empty or with credentials)
+touch .env
+
+# 2. Start container in detached mode
 docker compose up -d
 ```
 
@@ -68,7 +70,10 @@ docker compose up -d
 git clone git@github.com:jsuzanne/Prisma-SASE-5G.git
 cd Prisma-SASE-5G
 
-# 2. Start container with Docker Compose
+# 2. Ensure .env exists
+touch .env
+
+# 3. Start container with Docker Compose
 docker compose up -d
 ```
 
