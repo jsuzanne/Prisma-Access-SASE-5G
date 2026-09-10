@@ -7,9 +7,12 @@ services:
     container_name: prisma-sase-5g
     ports:
       - "8000:8000"
-    env_file:
-      - .env
     environment:
       - PYTHONUNBUFFERED=1
+      # Optional: Credentials can be configured directly in the Web UI Settings tab
+      # or passed here as environment variables:
+      # - PANW_CLIENT_ID=5g-service-account@...
+      # - PANW_CLIENT_SECRET=...
+      # - PANW_TSG_ID=...
     restart: unless-stopped
 
