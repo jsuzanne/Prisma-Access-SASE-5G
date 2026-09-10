@@ -43,6 +43,63 @@
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
+        /* Root responsive typography scaling for standard, 2K, 4K, and ultrawide screens */
+        html {
+            font-size: 16px;
+            -webkit-text-size-adjust: 100%;
+        }
+        @media (min-width: 1440px) {
+            html {
+                font-size: 17px;
+            }
+        }
+        @media (min-width: 1920px) {
+            html {
+                font-size: 18.5px;
+            }
+        }
+        @media (min-width: 2560px) {
+            html {
+                font-size: 20px;
+            }
+        }
+
+        /* User customizable zoom levels */
+        html[data-font-size="standard"] {
+            font-size: 15.5px !important;
+        }
+        @media (min-width: 1920px) {
+            html[data-font-size="standard"] {
+                font-size: 17px !important;
+            }
+        }
+        html[data-font-size="comfortable"] {
+            font-size: 17.5px !important;
+        }
+        @media (min-width: 1920px) {
+            html[data-font-size="comfortable"] {
+                font-size: 19px !important;
+            }
+        }
+        @media (min-width: 2560px) {
+            html[data-font-size="comfortable"] {
+                font-size: 20.5px !important;
+            }
+        }
+        html[data-font-size="large"] {
+            font-size: 19.5px !important;
+        }
+        @media (min-width: 1920px) {
+            html[data-font-size="large"] {
+                font-size: 21.5px !important;
+            }
+        }
+        @media (min-width: 2560px) {
+            html[data-font-size="large"] {
+                font-size: 23px !important;
+            }
+        }
+
         body {
             background: radial-gradient(circle at top right, #131d38 0%, #0b0f19 50%, #060911 100%);
             min-height: 100vh;
@@ -154,6 +211,12 @@
                         <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400 group-hover:animate-pulse"></i>
                         <span class="hidden md:inline">API Logs</span>
                         <span id="api-logs-badge-count" class="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono border border-cyan-500/30">0</span>
+                    </button>
+
+                    <!-- Quick Font Size / Zoom Toggle Button -->
+                    <button onclick="toggleHeaderFontSize()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-gray-300 hover:text-cyan-300 text-xs font-semibold transition" title="Toggle Font Size Scaling (Standard 100% / Comfortable 115% / Large 130%)">
+                        <i data-lucide="type" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span id="header-font-scale-label" class="font-mono text-xs">115%</span>
                     </button>
 
                     <!-- Clean SCM Online Pill -->
@@ -1142,6 +1205,48 @@
             <!-- TAB 5: Settings & Credentials (.env) & Branding Customization -->
             <div id="tab-settings" class="tab-content hidden space-y-6">
 
+                <!-- Display & Typography Scaling Card -->
+                <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10">
+                    <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+                                <i data-lucide="type" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-base font-bold text-white">Display & Typography Scaling</h3>
+                                <p class="text-xs text-gray-400">Adjust UI font size and element scaling for large monitors or presentations</p>
+                            </div>
+                        </div>
+                        <span id="current-zoom-badge" class="px-2.5 py-1 rounded-lg text-xs font-mono bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">Comfortable (115%)</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <button type="button" onclick="setFontSizeScale('standard')" id="font-scale-standard" class="p-3 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-left transition flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-semibold text-white">Standard (100%)</div>
+                                <div class="text-[11px] text-gray-400">Default 16px baseline</div>
+                            </div>
+                            <i data-lucide="circle" id="font-icon-standard" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+
+                        <button type="button" onclick="setFontSizeScale('comfortable')" id="font-scale-comfortable" class="p-3 rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-left transition flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-semibold text-white">Comfortable (115%)</div>
+                                <div class="text-[11px] text-cyan-300">Recommended for 2K / 2560px</div>
+                            </div>
+                            <i data-lucide="check" id="font-icon-comfortable" class="w-4 h-4 text-cyan-400"></i>
+                        </button>
+
+                        <button type="button" onclick="setFontSizeScale('large')" id="font-scale-large" class="p-3 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-left transition flex items-center justify-between">
+                            <div>
+                                <div class="text-xs font-semibold text-white">Large / Presentation (130%)</div>
+                                <div class="text-[11px] text-gray-400">4K screens & stage demos</div>
+                            </div>
+                            <i data-lucide="circle" id="font-icon-large" class="w-4 h-4 text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <!-- Carrier & MSSP Co-Branding Card -->
                 <div class="glass-panel rounded-2xl p-6 space-y-5 border border-white/10">
                     <div class="flex items-center justify-between pb-3 border-b border-white/10">
@@ -1853,6 +1958,69 @@
             localStorage.setItem('prisma_5g_brand', JSON.stringify(currentBrand));
             applyBrandToUI(currentBrand);
             showToast("Branding Applied", `Active carrier set to: ${name}`);
+        }
+
+        // Font Size / Typography Scaling Manager
+        let currentFontSize = localStorage.getItem('prisma_5g_font_scale') || 'comfortable';
+
+        function applyFontSize(scale) {
+            currentFontSize = scale;
+            localStorage.setItem('prisma_5g_font_scale', scale);
+            document.documentElement.setAttribute('data-font-size', scale);
+
+            // Update badges and radio icons
+            const badge = document.getElementById('current-zoom-badge');
+            if (badge) {
+                const labels = {
+                    'standard': 'Standard (100%)',
+                    'comfortable': 'Comfortable (115%)',
+                    'large': 'Large (130%)'
+                };
+                badge.innerText = labels[scale] || 'Comfortable (115%)';
+            }
+
+            const headerBtnLabel = document.getElementById('header-font-scale-label');
+            if (headerBtnLabel) {
+                const shortLabels = {
+                    'standard': '100%',
+                    'comfortable': '115%',
+                    'large': '130%'
+                };
+                headerBtnLabel.innerText = shortLabels[scale] || '115%';
+            }
+
+            // Update buttons styling in Settings
+            ['standard', 'comfortable', 'large'].forEach(opt => {
+                const btn = document.getElementById(`font-scale-${opt}`);
+                const icon = document.getElementById(`font-icon-${opt}`);
+                if (btn && icon) {
+                    if (opt === scale) {
+                        btn.className = "p-3 rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-left transition flex items-center justify-between";
+                        icon.setAttribute('data-lucide', 'check');
+                        icon.className = "w-4 h-4 text-cyan-400";
+                    } else {
+                        btn.className = "p-3 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-left transition flex items-center justify-between";
+                        icon.setAttribute('data-lucide', 'circle');
+                        icon.className = "w-4 h-4 text-gray-600";
+                    }
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function setFontSizeScale(scale) {
+            applyFontSize(scale);
+            showToast("Typography Adjusted", `Display scale set to: ${scale.toUpperCase()}`);
+        }
+
+        function toggleHeaderFontSize() {
+            const nextMap = {
+                'standard': 'comfortable',
+                'comfortable': 'large',
+                'large': 'standard'
+            };
+            const next = nextMap[currentFontSize] || 'comfortable';
+            setFontSizeScale(next);
         }
 
         function handleBrandFileUpload(event) {
@@ -3418,6 +3586,7 @@
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
+            applyFontSize(currentFontSize);
             applyBrandToUI(currentBrand);
             lucide.createIcons();
             refreshAll();
