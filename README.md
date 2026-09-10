@@ -65,8 +65,8 @@ docker compose up -d
 
 ```bash
 # 1. Clone repository
-git clone git@github.com:jsuzanne/Prisma-Access-SASE-5G.git
-cd Prisma-Access-SASE-5G
+git clone git@github.com:jsuzanne/Prisma-SASE-5G.git
+cd Prisma-SASE-5G
 
 # 2. Start container with Docker Compose
 docker compose up -d
