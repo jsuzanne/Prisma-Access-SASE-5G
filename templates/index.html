@@ -247,7 +247,16 @@
                             <span id="tsg-hierarchy-badge" class="px-2 py-0.5 text-[11px] font-mono rounded bg-white/5 text-gray-300">Root TSG</span>
                         </div>
                         <div class="text-sm font-semibold text-white flex items-center gap-2 mt-0.5">
-                            <span id="tenant-display-name">Loading hierarchy...</span>
+                            <span id="tenant-root-name" class="text-gray-200">SP-5G-POC2-Transatel</span>
+                            <span class="text-gray-500">→</span>
+                            <div class="relative inline-flex items-center">
+                                <select id="active-tenant-select" onchange="onActiveTenantChange()" class="appearance-none bg-blue-500/10 border border-blue-500/30 text-cyan-300 font-semibold text-xs rounded-lg px-2.5 py-1 pr-7 focus:outline-none hover:bg-blue-500/20 transition cursor-pointer">
+                                    <option value="all">All Child Tenants</option>
+                                    <option value="1291887562" selected>Transatel demo (1291887562)</option>
+                                    <option value="1632530514">tenant-1 (1632530514)</option>
+                                </select>
+                                <i data-lucide="chevron-down" class="w-3.5 h-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-cyan-400 pointer-events-none"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1807,6 +1816,49 @@
             document.getElementById('toast').classList.add('hidden');
         }
 
+        // Active Tenant State
+        let currentSelectedTenantId = localStorage.getItem('prisma_5g_active_tenant') || '1291887562'; // default to Transatel demo
+
+        function onActiveTenantChange() {
+            const selectEl = document.getElementById('active-tenant-select');
+            const val = selectEl ? selectEl.value : 'all';
+            currentSelectedTenantId = val;
+            localStorage.setItem('prisma_5g_active_tenant', val);
+
+            // Sync with UE Mappings tenant filter in 5G Summary
+            const ueTenantFilter = document.getElementById('summary-ue-tenant-filter');
+            if (ueTenantFilter) {
+                if (val === 'all') {
+                    ueTenantFilter.value = 'all';
+                } else {
+                    const matchedTenant = allTenants.find(t => t.id === val);
+                    if (matchedTenant) {
+                        ueTenantFilter.value = matchedTenant.display_name;
+                    }
+                }
+                filterSummaryUEMappings();
+            }
+
+            // Sync with Add SIM TSG dropdown
+            const addSimSelect = document.getElementById('add-sim-tsg');
+            if (addSimSelect && val !== 'all') {
+                addSimSelect.value = val;
+            }
+
+            // Also filter SIM Inventory table
+            filterSIMsByTenant(val);
+        }
+
+        function filterSIMsByTenant(tenantId) {
+            if (!allSIMs) return;
+            if (tenantId === 'all') {
+                renderSIMsTable(allSIMs);
+            } else {
+                const filtered = allSIMs.filter(s => s.tsg_id === tenantId || (s.tenant_name && s.tenant_name.toLowerCase().includes(tenantId.toLowerCase())));
+                renderSIMsTable(filtered.length > 0 ? filtered : allSIMs);
+            }
+        }
+
         // Fetch Tenants & Hierarchy
         async function fetchTenants() {
             try {
@@ -1819,20 +1871,42 @@
                 
                 if (rootTsg) {
                     document.getElementById('tsg-hierarchy-badge').innerText = "Root: " + rootTsg.id;
+                    const rootNameEl = document.getElementById('tenant-root-name');
+                    if (rootNameEl) rootNameEl.innerText = rootTsg.display_name;
                 }
                 
-                const displayEl = document.getElementById('tenant-display-name');
-                if (rootTsg && children.length > 0) {
-                    displayEl.innerHTML = `<span>${rootTsg.display_name}</span> <span class="text-gray-500">→</span> <span class="text-cyan-400">${children[0].display_name} (${children[0].id})</span>`;
-                } else if (rootTsg) {
-                    displayEl.innerText = rootTsg.display_name;
+                // Populate active tenant selector in top banner
+                const selectEl = document.getElementById('active-tenant-select');
+                if (selectEl && children.length > 0) {
+                    let html = `<option value="all" ${currentSelectedTenantId === 'all' ? 'selected' : ''}>All Child Tenants (${children.length})</option>`;
+                    children.forEach(c => {
+                        const isSelected = (currentSelectedTenantId === c.id || (currentSelectedTenantId === '1291887562' && c.id === '1291887562'));
+                        html += `<option value="${c.id}" ${isSelected ? 'selected' : ''}>${c.display_name} (${c.id})</option>`;
+                    });
+                    selectEl.innerHTML = html;
+                }
+
+                // Populate summary-ue-tenant-filter in 5G Summary tab
+                const summaryTenantFilter = document.getElementById('summary-ue-tenant-filter');
+                if (summaryTenantFilter) {
+                    let sHtml = `<option value="all" class="bg-gray-900 text-white">Tenants: ${rootTsg ? rootTsg.display_name : 'Root'} (All)</option>`;
+                    children.forEach(c => {
+                        const isSelected = (currentSelectedTenantId === c.id);
+                        sHtml += `<option value="${c.display_name}" ${isSelected ? 'selected' : ''} class="bg-gray-900 text-white">Tenants: ${c.display_name}</option>`;
+                    });
+                    summaryTenantFilter.innerHTML = sHtml;
                 }
 
                 // Populate Add SIM TSG dropdown
-                const selectEl = document.getElementById('add-sim-tsg');
-                if (selectEl) {
-                    selectEl.innerHTML = allTenants.map(t => `<option value="${t.id}">${t.display_name} (${t.id})</option>`).join('');
+                const addSimSelect = document.getElementById('add-sim-tsg');
+                if (addSimSelect) {
+                    addSimSelect.innerHTML = allTenants.map(t => {
+                        const isSel = (t.id === currentSelectedTenantId || (currentSelectedTenantId === 'all' && t.id === '1291887562'));
+                        return `<option value="${t.id}" ${isSel ? 'selected' : ''}>${t.display_name} (${t.id})</option>`;
+                    }).join('');
                 }
+
+                lucide.createIcons();
             } catch (e) {
                 console.error("Tenants fetch error", e);
             }
@@ -2070,6 +2144,7 @@
                 const data = await res.json();
                 allSIMs = data.data || [];
                 renderSIMsTable(allSIMs);
+                renderSummaryUEMappings(allSIMs);
             } catch (e) {
                 document.getElementById('sims-table-body').innerHTML = `
                     <tr><td colspan="5" class="px-6 py-6 text-center text-red-400">Failed to load SIM inventory: ${e.message}</td></tr>
@@ -2957,6 +3032,18 @@
             renderSummaryUETableRows(filtered);
         }
 
+        function formatTime(timestamp) {
+            if (!timestamp) return '2026-09-09 14:46:25';
+            try {
+                const d = typeof timestamp === 'number' ? new Date(timestamp > 1e12 ? timestamp : timestamp * 1000) : new Date(timestamp);
+                if (isNaN(d.getTime())) return '2026-09-09 14:46:25';
+                const pad = (n) => String(n).padStart(2, '0');
+                return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+            } catch (e) {
+                return '2026-09-09 14:46:25';
+            }
+        }
+
         function renderSummaryUEMappings(sims) {
             allSummarySIMs = sims || [];
             filterSummaryUEMappings();
@@ -2965,7 +3052,7 @@
         function renderSummaryUETableRows(sims) {
             const tbody = document.getElementById('summary-ue-table-body');
             const countBadge = document.getElementById('summary-ue-count-badge');
-            if (countBadge) countBadge.innerText = `${sims.length} mapping(s)`;
+            if (countBadge) countBadge.innerText = `${sims ? sims.length : 0} mapping(s)`;
             if (!tbody) return;
 
             if (!sims || sims.length === 0) {
@@ -3200,6 +3287,11 @@
                 activeBtn.classList.add('bg-white/10', 'text-white');
                 activeBtn.classList.remove('text-gray-400');
             }
+
+            if (subTabId === 'summary-sub-mappings') {
+                renderSummaryUEMappings(allSIMs);
+            }
+
             lucide.createIcons();
         }
 
