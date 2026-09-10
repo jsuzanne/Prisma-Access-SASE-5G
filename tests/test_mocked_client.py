@@ -207,6 +207,26 @@ class TestPrisma5GClient(unittest.TestCase):
         self.assertEqual(kwargs["url"], "https://stratacloudmanager.paloaltonetworks.com/mt/manage/5g/register/ue")
         self.assertEqual(kwargs["json"][0]["ipv4Addr"], "10.10.10.10")
 
+    @patch.object(PANWAuthManager, "get_access_token", return_value="fake_token")
+    @patch("requests.Session.request")
+    def test_create_user_group(self, mock_req, mock_auth):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 201
+        mock_resp.json.return_value = {"group_id": "grp-123", "group_name": "permissivev2"}
+        mock_req.return_value = mock_resp
+
+        res = self.client.create_user_group(
+            group_name="permissivev2",
+            tsg_id="1965438697",
+            identity_ids=["id-sim-001"],
+        )
+        self.assertEqual(res["group_id"], "grp-123")
+
+        args, kwargs = mock_req.call_args
+        self.assertEqual(kwargs["method"], "POST")
+        self.assertEqual(kwargs["json"]["group_name"], "permissivev2")
+        self.assertEqual(kwargs["json"]["identity_id"], ["id-sim-001"])
+
 
 if __name__ == "__main__":
     unittest.main()

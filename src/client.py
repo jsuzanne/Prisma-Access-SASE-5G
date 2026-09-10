@@ -496,10 +496,27 @@ class Prisma5GClient:
         if not target_tsg:
             raise ValueError("tsg_id must be provided or configured in .env (PANW_TSG_ID)")
 
+        final_identities = list(identity_ids) if identity_ids else []
+        
+        # Strata Cloud Manager requires at least 1 identity ID in the list.
+        if not final_identities:
+            try:
+                available_ues = self.list_tenant_ues(tsg_id=target_tsg)
+                if available_ues:
+                    final_identities = [available_ues[0].id]
+                    logger.info("Auto-assigned first available SIM %s to group '%s'", available_ues[0].imsi, group_name)
+            except Exception as exc:
+                logger.debug("Could not auto-fetch SIMs for TSG %s: %s", target_tsg, exc)
+
+        if not final_identities:
+            raise ValueError(
+                f"Cannot create user group '{group_name}': Strata Cloud Manager requires at least 1 registered SIM identity ID in tenant '{target_tsg}'. Please register a SIM card first."
+            )
+
         payload = {
             "group_name": group_name,
             "tsg_id": target_tsg,
-            "identity_id": identity_ids or [],
+            "identity_id": final_identities,
         }
 
         resp = self._request("POST", "/mt/manage/5g/userGroup", json_data=payload)
@@ -510,7 +527,7 @@ class Prisma5GClient:
         try:
             return resp.json()
         except Exception:
-            return {"status": "success", "group_name": group_name}
+            return {"status": "success", "group_name": group_name, "identity_id": final_identities}
 
     def update_user_group(
         self,
