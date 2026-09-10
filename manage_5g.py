@@ -19,10 +19,98 @@ from src.models import UESession
 console = Console()
 
 
+def print_rich_help():
+    """Render a comprehensive, beautiful Rich-formatted CLI guide."""
+    console.print()
+    console.print(
+        Panel.fit(
+            "[bold white]Prisma Access 5G SASE[/bold white] [bold cyan]Command-Line Interface (CLI)[/bold cyan]\n"
+            "[dim]Palo Alto Networks Strata Cloud Manager & Carrier Core Automation[/dim]",
+            border_style="cyan",
+            title="[bold orange3]5G SASE Manager[/bold orange3]",
+            subtitle="[dim]--help guide[/dim]",
+        )
+    )
+
+    # Group 1: Hierarchy & Inventory
+    t_inv = Table(title="📱 1. Tenant & SIM Inventory Lifecycle", title_style="bold cyan", border_style="cyan")
+    t_inv.add_column("Command", style="bold yellow", no_wrap=True)
+    t_inv.add_column("Key Options / Arguments", style="white")
+    t_inv.add_column("Description", style="dim")
+    t_inv.add_row("tenants", "--env <path>", "Discover Root TSG and child tenant organizations (e.g. Transatel demo)")
+    t_inv.add_row("list", "--tenant <name> | --tsg-id <id> [--json]", "List all registered SIM cards / Tenant UE mappings")
+    t_inv.add_row("get", "<ue_id> [--json]", "Fetch full details of a specific SIM card by Identity UUID")
+    t_inv.add_row("add", "--imsi <15d> --imei <15d> [--apn <apn>] [--tenant <name>] [--ip <ip>]", "Register a new SIM card & optionally activate its 5G session IP")
+    t_inv.add_row("update", "<ue_id> [--imsi <i>] [--imei <m>] [--apn <a>] [--group-id <gid>]", "Update SIM parameters or reassign to another security group")
+    t_inv.add_row("delete", "<ue_id>", "Remove a SIM card / Tenant UE mapping from Strata Cloud Manager")
+    t_inv.add_row("bulk-delete", "<ue_id_1> <ue_id_2> ...", "Delete multiple SIM cards simultaneously in batch")
+    console.print(t_inv)
+    console.print()
+
+    # Group 2: Session Telemetry
+    t_sess = Table(title="⚡ 2. Real-Time 5G Session Telemetry", title_style="bold yellow", border_style="yellow")
+    t_sess.add_column("Command", style="bold yellow", no_wrap=True)
+    t_sess.add_column("Key Options / Arguments", style="white")
+    t_sess.add_column("Description", style="dim")
+    t_sess.add_row("session-register", "--imsi <15d> --imei <15d> --apn <apn> [--ipv4 <ip>] [--ip-type IPv4]", "Report active 5G session & IP allocation from mobile core to SASE")
+    t_sess.add_row("session-terminate", "--imsi <15d> --imei <15d> --apn <apn> --ip <ipv4>", "Terminate subscriber session and release assigned IP from SASE core")
+    console.print(t_sess)
+    console.print()
+
+    # Group 3: Groups & Security Policies
+    t_grp = Table(title="🛡️ 3. Subscriber User Groups & Zero-Trust Policies", title_style="bold green", border_style="green")
+    t_grp.add_column("Command", style="bold yellow", no_wrap=True)
+    t_grp.add_column("Key Options / Arguments", style="white")
+    t_grp.add_column("Description", style="dim")
+    t_grp.add_row("groups", "[--tsg-id <id>] [--json]", "List all 5G subscriber identity groups (Permissive, Restrictive, Custom)")
+    t_grp.add_row("group-get", "<group_id> [--json]", "Inspect details and member SIM IDs of a subscriber group")
+    t_grp.add_row("group-create", "--name <group_name> [--tsg-id <id>] [--identities <id1> ...]", "Create a new 5G subscriber policy group in Strata Cloud Manager")
+    t_grp.add_row("group-delete", "<group_id>", "Delete a custom subscriber group (Protected groups are locked)")
+    t_grp.add_row("assign-group", "--ue-id <ue_id> (--group-id <id> | --group-name <name>)", "Assign a SIM card to a specific policy group (e.g. 'Restrictive')")
+    console.print(t_grp)
+    console.print()
+
+    # Group 4: SCM Monitoring & Dashboard
+    t_mon = Table(title="📊 4. Monitoring & Strata Cloud Manager Telemetry", title_style="bold blue", border_style="blue")
+    t_mon.add_column("Command", style="bold yellow", no_wrap=True)
+    t_mon.add_column("Key Options / Arguments", style="white")
+    t_mon.add_column("Description", style="dim")
+    t_mon.add_row("summary", "[--tsg-id <id>] [--json]", "Display 5G SASE KPI summary (Tenants, Bandwidth, Configured Users, Interconnects)")
+    t_mon.add_row("interconnect", "[--tsg-id <id>] [--json]", "List regional 5G Interconnect status, bandwidth capacity, and VLAN attachments")
+    console.print(t_mon)
+    console.print()
+
+    # Usage Examples Panel
+    console.print(
+        Panel(
+            "[bold white]Quick Start Examples:[/bold white]\n"
+            "  [cyan]# Discover Tenant Hierarchy[/cyan]\n"
+            "  [green]python manage_5g.py tenants[/green]\n\n"
+            "  [cyan]# List SIMs in Transatel demo tenant[/cyan]\n"
+            "  [green]python manage_5g.py list --tenant \"Transatel demo\"[/green]\n\n"
+            "  [cyan]# Register new SIM with automatic 5G session activation[/cyan]\n"
+            "  [green]python manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ip 10.56.0.195[/green]\n\n"
+            "  [cyan]# Switch SIM policy group to Restrictive (for live demo)[/cyan]\n"
+            "  [green]python manage_5g.py assign-group --ue-id <SIM_ID> --group-name Restrictive[/green]\n\n"
+            "  [cyan]# Display Strata Cloud Manager 5G SASE Summary KPIs[/cyan]\n"
+            "  [green]python manage_5g.py summary[/green]",
+            title="[bold yellow]💡 Examples & Usage[/bold yellow]",
+            border_style="yellow",
+        )
+    )
+    console.print()
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="Prisma Access 5G SASE CLI Manager",
+        description="Prisma Access 5G SASE CLI Manager - Palo Alto Networks & Carrier Automation",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        add_help=False,
+    )
+    parser.add_argument(
+        "-h", "--help",
+        action="store_true",
+        help="Show this rich help guide and exit",
     )
     parser.add_argument(
         "--env",
@@ -36,7 +124,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Enable debug logging",
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="Commands")
+    subparsers = parser.add_subparsers(dest="command", help="Available subcommands")
+
+    # Help command
+    subparsers.add_parser("help", help="Show detailed CLI help & commands guide")
 
     # 0. tenants
     subparsers.add_parser("tenants", help="List all Tenant Service Groups (Root & Child Tenants)")
@@ -516,9 +607,9 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
 
-    if not args.command:
-        parser.print_help()
-        sys.exit(1)
+    if getattr(args, "help", False) or args.command == "help" or not args.command:
+        print_rich_help()
+        sys.exit(0 if (getattr(args, "help", False) or args.command == "help") else 1)
 
     if args.debug:
         logging.basicConfig(level=logging.DEBUG)
