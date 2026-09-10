@@ -53,6 +53,21 @@ static_dir.mkdir(exist_ok=True)
 app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
 
 
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    """Serve favicon.ico or favicon.png."""
+    ico_path = static_dir / "favicon.ico"
+    if ico_path.exists():
+        return FileResponse(ico_path, media_type="image/x-icon")
+    svg_path = static_dir / "favicon.svg"
+    if svg_path.exists():
+        return FileResponse(svg_path, media_type="image/svg+xml")
+    png_path = static_dir / "favicon.png"
+    if png_path.exists():
+        return FileResponse(png_path, media_type="image/png")
+    return HTMLResponse(status_code=204, content="")
+
+
 def get_current_client(custom_config: Optional[Config] = None) -> Prisma5GClient:
     """Instantiate a client using current .env configuration."""
     cfg = custom_config or load_config(str(ENV_PATH) if ENV_PATH.exists() else None)

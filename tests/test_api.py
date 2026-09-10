@@ -197,6 +197,14 @@ class TestAppEndpoints(unittest.TestCase):
         response = client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertIn("Prisma SASE 5G", response.text)
+        self.assertIn("favicon.svg", response.text)
+
+    def test_favicon_endpoint(self):
+        response = client.get("/favicon.ico")
+        self.assertEqual(response.status_code, 200)
+        svg_resp = client.get("/static/favicon.svg")
+        self.assertEqual(svg_resp.status_code, 200)
+        self.assertIn("svg", svg_resp.headers.get("content-type", ""))
 
     @patch("app.Prisma5GClient.get_monitoring_summary")
     def test_metrics_summary_endpoint(self, mock_summary):
