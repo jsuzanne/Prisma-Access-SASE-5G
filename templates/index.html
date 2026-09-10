@@ -151,16 +151,16 @@
     <div class="min-h-screen flex flex-col">
 
         <!-- Top Navigation Bar -->
-        <header class="glass-panel border-b border-white/10 sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-3">
+        <header class="glass-panel border-b border-white/10 sticky top-0 z-40 px-4 sm:px-6 lg:px-8 py-2.5">
             <div class="w-full flex items-center justify-between gap-3 lg:gap-4 flex-nowrap">
                 <!-- Branding: Palo Alto Networks + Carrier Co-Branding -->
                 <div class="flex items-center space-x-3 shrink-0">
                     <div class="flex items-center space-x-2">
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-[#FA582D] to-[#8A2BE2] flex items-center justify-center font-bold text-white shadow-md glow-panw">
+                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-[#FA582D] to-[#8A2BE2] flex items-center justify-center font-bold text-white shadow-md glow-panw shrink-0">
                             <i data-lucide="radio" class="w-4 h-4 sm:w-4.5 sm:h-4.5"></i>
                         </div>
                         <div>
-                            <h1 class="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent flex items-center gap-1.5">
+                            <h1 class="text-sm sm:text-base font-extrabold tracking-tight bg-gradient-to-r from-white via-gray-100 to-gray-300 bg-clip-text text-transparent flex items-center gap-1.5 whitespace-nowrap">
                                 Prisma SASE 5G
                                 <span class="px-2 py-0.5 text-[10px] font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 rounded-full font-mono">5G Core</span>
                                 <span class="text-gray-500 text-xs select-none">•</span>
@@ -170,21 +170,21 @@
                     </div>
 
                     <!-- Vertical separator -->
-                    <div class="h-6 w-px bg-white/20 hidden md:block"></div>
+                    <div class="h-6 w-px bg-white/20 hidden md:block shrink-0"></div>
 
-                    <!-- Dynamic MSSP / Carrier Co-Branding Badge (Prominent) -->
-                    <div id="header-partner-badge" class="hidden md:flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition shadow-sm">
-                        <div id="header-partner-logo-box" class="h-6 px-2 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                            <img id="header-partner-logo-img" src="/static/img/transatel_logo.png" alt="Carrier Logo" class="h-4.5 w-auto object-contain">
+                    <!-- Dynamic MSSP / Carrier Co-Branding Badge (Strictly Constrained) -->
+                    <div id="header-partner-badge" class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition shadow-sm shrink-0" style="max-height: 36px;">
+                        <div id="header-partner-logo-box" class="px-1.5 py-0.5 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm overflow-hidden" style="height: 22px; max-height: 22px; min-width: 32px; max-width: 90px;">
+                            <img id="header-partner-logo-img" src="/static/img/transatel_logo.png" alt="Carrier Logo" style="height: 16px; max-height: 16px; width: auto; max-width: 80px; object-fit: contain; display: block;">
                         </div>
-                        <div class="text-left leading-tight">
-                            <div id="header-partner-name" class="text-xs font-bold text-white font-sans tracking-wide">Transatel (NTT)</div>
-                            <div id="header-partner-subtitle" class="text-[10px] text-cyan-400 font-mono font-medium">5G Connectivity Partner</div>
+                        <div class="text-left leading-tight shrink-0">
+                            <div id="header-partner-name" class="text-xs font-bold text-white font-sans tracking-tight leading-none mb-0.5">Transatel (NTT)</div>
+                            <div id="header-partner-subtitle" class="text-[9px] text-cyan-400 font-mono font-medium leading-none">5G Partner</div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Navigation Tabs (Prominent & Clear) -->
+                <!-- Navigation Tabs (Streamlined, Clear & Roomy) -->
                 <nav class="hidden xl:flex items-center gap-1 glass-panel px-1.5 py-1 rounded-xl shrink">
                     <button onclick="switchTab('tab-summary')" id="nav-tab-summary" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-white bg-white/10 flex items-center gap-1.5 transition whitespace-nowrap">
                         <i data-lucide="bar-chart-2" class="w-4 h-4 text-cyan-400"></i> <span>5G Summary</span>
@@ -201,28 +201,18 @@
                     <button onclick="switchTab('tab-lifecycle')" id="nav-tab-lifecycle" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5 transition whitespace-nowrap">
                         <i data-lucide="play-circle" class="w-4 h-4 text-purple-400"></i> <span>Lifecycle</span>
                     </button>
-                    <button onclick="switchTab('tab-matrix')" id="nav-tab-matrix" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5 transition whitespace-nowrap">
-                        <i data-lucide="compass" class="w-4 h-4 text-orange-400"></i> <span>SCM Guide</span>
-                    </button>
                     <button onclick="switchTab('tab-settings')" id="nav-tab-settings" class="tab-btn px-3 py-1.5 rounded-lg text-xs sm:text-sm font-semibold text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-1.5 transition whitespace-nowrap">
                         <i data-lucide="settings" class="w-4 h-4 text-blue-400"></i> <span>Settings</span>
                     </button>
                 </nav>
 
-                <!-- Status & Action Area (Prominent & Accessible) -->
+                <!-- Status & Action Area (Clean & Accessible) -->
                 <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0 ml-auto">
                     <!-- Strata Cloud Manager Direct Portal Link -->
                     <a href="https://stratacloudmanager.paloaltonetworks.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-orange-400 hover:text-orange-300 text-xs sm:text-sm font-semibold transition shadow-sm" title="Open Strata Cloud Manager Portal">
                         <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
                         <span class="hidden sm:inline">SCM Portal</span>
                     </a>
-
-                    <!-- API Debug Inspector Trigger -->
-                    <button id="btn-api-debugger" onclick="openApiDebuggerModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-cyan-400 hover:text-cyan-300 text-xs sm:text-sm font-semibold transition group shadow-sm" title="Open Live API Inspector">
-                        <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400 group-hover:animate-pulse"></i>
-                        <span class="hidden md:inline">API Logs</span>
-                        <span id="api-logs-badge-count" class="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-mono border border-cyan-500/30">0</span>
-                    </button>
 
                     <!-- Quick Font Size / Zoom Toggle Button -->
                     <button onclick="toggleHeaderFontSize()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-gray-300 hover:text-cyan-300 text-xs sm:text-sm font-semibold transition" title="Toggle Font Size Scaling">
@@ -919,9 +909,14 @@
                             Compare how every 5G subscriber provisioning and telemetry step maps across the <strong class="text-cyan-400">Web Portal</strong>, the <strong class="text-purple-400">CLI & REST API</strong>, and official <strong class="text-orange-400">Palo Alto Networks Strata Cloud Manager (SCM)</strong>.
                         </p>
                     </div>
-                    <a href="https://stratacloudmanager.paloaltonetworks.com" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold flex items-center gap-2 transition flex-shrink-0">
-                        <i data-lucide="external-link" class="w-4 h-4"></i> Open Strata Portal
-                    </a>
+                    <div class="flex items-center gap-2.5 flex-shrink-0">
+                        <button type="button" onclick="switchTab('tab-settings')" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i> Back to Settings
+                        </button>
+                        <a href="https://stratacloudmanager.paloaltonetworks.com" target="_blank" rel="noopener noreferrer" class="px-4 py-2 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 text-xs font-semibold flex items-center gap-2 transition">
+                            <i data-lucide="external-link" class="w-4 h-4"></i> Open Strata Portal
+                        </a>
+                    </div>
                 </div>
 
                 <!-- Step Cards Matrix -->
@@ -1528,7 +1523,13 @@
                                     <span class="text-gray-300 font-mono">FastAPI / Python 3.11</span>
                                 </div>
                             </div>
-                            <button type="button" onclick="openChangelogModal()" class="w-full mt-2 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition">
+                            <button type="button" onclick="openApiDebuggerModal()" class="w-full mt-2 py-2 px-3 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-cyan-300 hover:text-cyan-200 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400"></i> Open Live API Logs Inspector (<span id="api-logs-badge-count-settings" class="font-mono">0</span>)
+                            </button>
+                            <button type="button" onclick="switchTab('tab-matrix')" class="w-full mt-1.5 py-2 px-3 rounded-xl bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/30 text-orange-400 hover:text-orange-300 text-xs font-semibold flex items-center justify-center gap-2 transition">
+                                <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM & CLI 3-Pillars Guide
+                            </button>
+                            <button type="button" onclick="openChangelogModal()" class="w-full mt-1.5 py-2 px-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 hover:text-white text-xs font-medium flex items-center justify-center gap-2 transition">
                                 <i data-lucide="file-text" class="w-3.5 h-3.5 text-cyan-400"></i> View Complete Changelog
                             </button>
                         </div>
