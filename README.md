@@ -46,13 +46,13 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ---
 
-## 🚀 Quick Start with Docker Compose (Zero-Config)
+## 🚀 Quick Start with Docker Compose (Zero-Config & Persistent)
 
 The easiest way to run the portal on any machine (Laptop, Server, NUC, Raspberry Pi):
 
-### Option A: 1-Click Launch with `docker-compose.yml`
+### Option A: 1-Click Launch with `docker-compose.yml` (Recommended)
 
-Create a `docker-compose.yml` file with the following contents:
+Create a `docker-compose.yml` file with the persistent `./config` volume:
 
 ```yaml
 services:
@@ -61,6 +61,9 @@ services:
     container_name: prisma-sase-5g
     ports:
       - "8000:8000"
+    volumes:
+      # Persists config.json & credentials across container recreation / updates
+      - ./config:/app/config
     environment:
       - PYTHONUNBUFFERED=1
     restart: unless-stopped
@@ -73,6 +76,9 @@ Then start the container:
 docker compose up -d
 ```
 
+> [!TIP]
+> **Persistent Configuration**: When you save credentials in the Web UI **Settings** tab, they are automatically saved to `./config/config.json` and `./config/.env` on your host. Recreating, updating, or restarting the Docker container will preserve all your configuration seamlessly!
+
 ### Option B: Clone Repository & Run
 
 ```bash
@@ -84,10 +90,15 @@ cd Prisma-SASE-5G
 docker compose up -d
 ```
 
-### Option C: Direct `docker run`
+### Option C: Direct `docker run` with Persistent Volume
 
 ```bash
-docker run -d -p 8000:8000 --name prisma-sase-5g jsuzanne/prisma-5g-sase:latest
+mkdir -p config
+docker run -d \
+  -p 8000:8000 \
+  -v $(pwd)/config:/app/config \
+  --name prisma-sase-5g \
+  jsuzanne/prisma-5g-sase:latest
 ```
 
 Once running, open your browser at **[http://localhost:8000](http://localhost:8000)**.  

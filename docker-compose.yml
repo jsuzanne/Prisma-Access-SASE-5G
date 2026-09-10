@@ -7,12 +7,16 @@ services:
     container_name: prisma-sase-5g
     ports:
       - "8000:8000"
+    volumes:
+      # Persists config.json / .env across container recreations and upgrades
+      - ./config:/app/config
     environment:
       - PYTHONUNBUFFERED=1
-      # Optional: Credentials can be configured directly in the Web UI Settings tab
-      # or passed here as environment variables:
+      # Optional: Credentials can be saved directly in the Web UI Settings tab
+      # (persisted to ./config/config.json) or passed here as environment variables:
       # - PANW_CLIENT_ID=5g-service-account@...
       # - PANW_CLIENT_SECRET=...
       # - PANW_TSG_ID=...
     restart: unless-stopped
+
 

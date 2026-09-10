@@ -4,6 +4,7 @@ FROM python:3.11-slim
 # Prevent Python from buffering stdout/stderr and generating .pyc
 ENV PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
+    CONFIG_DIR=/app/config \
     PORT=8000
 
 WORKDIR /app
@@ -17,8 +18,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application files
-RUN mkdir -p /app/static
+# Copy application files and prepare persistent directories
+RUN mkdir -p /app/config /app/static
 COPY src/ /app/src/
 COPY templates/ /app/templates/
 COPY static/ /app/static/

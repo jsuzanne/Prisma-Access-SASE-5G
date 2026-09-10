@@ -1423,7 +1423,7 @@
                                     <i data-lucide="shield-check" class="w-4 h-4 text-cyan-400"></i> Test Connection Live
                                 </button>
                                 <button type="submit" id="btn-tab-save-settings" class="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-semibold text-xs shadow-lg glow-cyan flex items-center gap-2 transition">
-                                    <i data-lucide="save" class="w-4 h-4"></i> Save Configuration (.env)
+                                    <i data-lucide="save" class="w-4 h-4"></i> Save Configuration
                                 </button>
                             </div>
                         </form>
@@ -1433,7 +1433,7 @@
                     <div class="space-y-6 lg:col-span-1">
                         <div class="glass-panel rounded-2xl p-6 space-y-4 border border-white/10">
                             <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                                <i data-lucide="help-circle" class="w-4 h-4 text-cyan-400"></i> Credentials Setup
+                                <i data-lucide="help-circle" class="w-4 h-4 text-cyan-400"></i> Credentials & Persistence
                             </h4>
                             <div class="space-y-3 text-xs text-gray-300 leading-relaxed font-sans">
                                 <p>To connect to Palo Alto Networks 5G SASE APIs, you need a Service Account generated from the **Cloud Services Portal (CSP)** or **Strata Cloud Manager**.</p>
@@ -1442,7 +1442,12 @@
                                     <div class="text-gray-400">• Manage 5G Services</div>
                                     <div class="text-gray-400">• Tenant Service Groups Read</div>
                                 </div>
-                                <p class="text-[11px] text-gray-400">When you click **Save Configuration**, settings are written directly to your local <code class="text-cyan-400 font-mono">.env</code> file without exposing them publicly.</p>
+                                <div class="p-3 bg-blue-950/40 rounded-xl border border-blue-500/20 space-y-1.5 text-[11px]">
+                                    <div class="text-cyan-400 font-semibold flex items-center gap-1.5">
+                                        <i data-lucide="hard-drive" class="w-3.5 h-3.5"></i> Docker Volume Persistence
+                                    </div>
+                                    <p class="text-gray-300">Saved credentials are automatically persisted to <code class="text-cyan-300 font-mono">config/config.json</code> and <code class="text-cyan-300 font-mono">.env</code> on your host mount (<code class="text-cyan-300 font-mono">./config:/app/config</code>), keeping settings safe across container recreation.</p>
+                                </div>
                             </div>
                         </div>
 
@@ -2789,7 +2794,7 @@
 
                 if (tabSecretStatus) {
                     if (cfg.has_secret) {
-                        tabSecretStatus.innerText = "✓ Secret is stored securely in .env (" + (cfg.secret_masked || '••••') + ")";
+                        tabSecretStatus.innerText = "✓ Secret is stored in local config/config.json & .env (" + (cfg.secret_masked || '••••') + ")";
                         tabSecretStatus.className = "text-[11px] text-emerald-400 mt-1";
                     } else {
                         tabSecretStatus.innerText = "⚠ No client secret found. Please enter your secret.";
@@ -2811,7 +2816,7 @@
 
                 if (mSecretStatus) {
                     if (cfg.has_secret) {
-                        mSecretStatus.innerText = "✓ Secret is stored securely in .env (" + (cfg.secret_masked || '••••') + ")";
+                        mSecretStatus.innerText = "✓ Secret is stored in local config/config.json & .env (" + (cfg.secret_masked || '••••') + ")";
                         mSecretStatus.className = "text-[10px] text-emerald-400 mt-1";
                     } else {
                         mSecretStatus.innerText = "⚠ No secret found. Please enter client secret.";
@@ -2863,7 +2868,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast("Configuration Saved", "Updated .env successfully");
+                    showToast("Configuration Saved", "Persisted to config/config.json & .env successfully");
                     document.getElementById('tab-settings-client-secret').value = '';
                     await refreshAll();
                 } else {
@@ -2873,7 +2878,7 @@
                 showToast("Network Error", err.message, true);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Configuration (.env)';
+                btn.innerHTML = '<i data-lucide="save" class="w-4 h-4"></i> Save Configuration';
                 lucide.createIcons();
             }
         }
@@ -2938,7 +2943,7 @@
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast("Settings Saved", "Configuration updated in .env");
+                    showToast("Settings Saved", "Persisted to config/config.json & .env");
                     closeSettingsModal();
                     await refreshAll();
                 } else {

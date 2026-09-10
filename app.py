@@ -22,15 +22,16 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.config import Config, load_config
+from src.config import Config, load_config, save_config, get_config_dir
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession
 from src.client import Prisma5GClient
 from src.debug_logger import api_debug_logger
 
-# Project base directory
+# Project base and config directories
 BASE_DIR = Path(__file__).resolve().parent
-ENV_PATH = BASE_DIR / ".env"
+CONFIG_DIR = get_config_dir()
+ENV_PATH = CONFIG_DIR / ".env"
 
 app = FastAPI(
     title="Prisma SASE 5G Manager",
@@ -69,8 +70,8 @@ def favicon():
 
 
 def get_current_client(custom_config: Optional[Config] = None) -> Prisma5GClient:
-    """Instantiate a client using current .env configuration."""
-    cfg = custom_config or load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+    """Instantiate a client using current configuration."""
+    cfg = custom_config or load_config()
     return Prisma5GClient(cfg)
 
 
@@ -161,7 +162,7 @@ ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
 def get_system_status():
     """Get system health, authentication state, and connected TSG info."""
     try:
-        config = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+        config = load_config()
         has_creds = bool(config.client_id and config.client_secret and config.tsg_id)
         
         token_preview = None
@@ -197,10 +198,15 @@ def get_system_status():
 def get_app_config():
     """Get current configuration with masked client secret for the Settings UI."""
     try:
-        cfg = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+        cfg = load_config()
         secret_masked = None
         if cfg.client_secret:
             secret_masked = f"••••••••{cfg.client_secret[-4:]}" if len(cfg.client_secret) >= 4 else "••••••••"
+
+        json_file = CONFIG_DIR / "config.json"
+        env_file = CONFIG_DIR / ".env"
+        root_env = BASE_DIR / ".env"
+        config_exists = json_file.exists() or env_file.exists() or root_env.exists()
 
         return {
             "client_id": cfg.client_id or "",
@@ -210,7 +216,10 @@ def get_app_config():
             "api_base_url": cfg.api_base_url,
             "default_apn": cfg.default_apn,
             "default_ip_type": cfg.default_ip_type,
-            "env_file_exists": ENV_PATH.exists(),
+            "config_dir": str(CONFIG_DIR),
+            "config_file_exists": config_exists,
+            "json_exists": json_file.exists(),
+            "env_file_exists": config_exists,
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -218,9 +227,9 @@ def get_app_config():
 
 @app.post("/api/config")
 def update_app_config(payload: ConfigUpdateModel):
-    """Update .env configuration file securely from the Settings UI."""
+    """Update persistent JSON and .env configuration files securely from the Settings UI."""
     try:
-        current_cfg = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+        current_cfg = load_config()
         
         # Keep existing secret if empty/not provided
         new_secret = payload.client_secret if (payload.client_secret and payload.client_secret.strip()) else current_cfg.client_secret
@@ -230,26 +239,23 @@ def update_app_config(payload: ConfigUpdateModel):
         new_apn = payload.default_apn or "sasetest"
         new_ip_type = payload.default_ip_type or "IPv4"
 
-        # Build clean .env content
-        lines = [
-            "# Palo Alto Networks Prisma SASE 5G Configuration",
-            f"PANW_CLIENT_ID={new_client_id or ''}",
-            f"PANW_CLIENT_SECRET={new_secret or ''}",
-            f"PANW_TSG_ID={new_tsg_id or ''}",
-            f"PANW_API_BASE_URL={new_api_base}",
-            "PANW_AUTH_URL=https://auth.apps.paloaltonetworks.com/am/oauth2/access_token",
-            f"DEFAULT_APN={new_apn}",
-            f"DEFAULT_IP_TYPE={new_ip_type}",
-            "",
-        ]
-        ENV_PATH.write_text("\n".join(lines), encoding="utf-8")
-
-        # Reload environment variables into memory
-        load_config(str(ENV_PATH))
+        save_result = save_config(
+            Config(
+                client_id=new_client_id,
+                client_secret=new_secret,
+                tsg_id=new_tsg_id,
+                api_base_url=new_api_base,
+                default_apn=new_apn,
+                default_ip_type=new_ip_type,
+            ),
+            target_dir=CONFIG_DIR,
+            save_env_backup=True,
+        )
 
         return {
             "success": True,
-            "message": "Configuration saved to .env successfully",
+            "message": "Configuration saved to persistent config/config.json and .env successfully",
+            "details": save_result,
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to update config: {exc}")
@@ -258,7 +264,7 @@ def update_app_config(payload: ConfigUpdateModel):
 @app.post("/api/config/test")
 def test_app_config(payload: ConfigTestModel):
     """Test OAuth2 credentials and connectivity against PANW endpoints."""
-    current_cfg = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+    current_cfg = load_config()
     
     effective_secret = payload.client_secret.strip() if (payload.client_secret and payload.client_secret.strip()) else current_cfg.client_secret
     effective_client_id = payload.client_id.strip() if (payload.client_id and payload.client_id.strip()) else current_cfg.client_id
@@ -708,7 +714,7 @@ def run_lifecycle():
             "duration_ms": duration_ms,
         })
 
-    config = load_config(str(ENV_PATH) if ENV_PATH.exists() else None)
+    config = load_config()
     client = Prisma5GClient(config)
 
     # Step 1: Config & Auth

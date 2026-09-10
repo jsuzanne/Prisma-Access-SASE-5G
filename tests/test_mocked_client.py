@@ -1,17 +1,18 @@
-"""Unit tests for Prisma SASE 5G client with mocked HTTP responses."""
-
 import unittest
 from unittest.mock import patch, MagicMock
+import tempfile
+import json
+from pathlib import Path
 import time
 
-from src.config import Config, load_config
+from src.config import Config, load_config, save_config, get_config_dir
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession, UserGroup
 from src.client import Prisma5GClient
 
 
 class TestConfigAndModels(unittest.TestCase):
-    """Test configuration loading and model serialization."""
+    """Test configuration loading, model serialization, and persistent JSON config."""
 
     def test_config_validation(self):
         # Empty config should fail validation
@@ -30,6 +31,53 @@ class TestConfigAndModels(unittest.TestCase):
         # Config with static token
         token_cfg = Config(auth_token="bearer_token_xyz")
         token_cfg.validate()  # Should not raise
+
+    def test_json_config_save_and_load(self):
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+            cfg = Config(
+                client_id="test-service-account@123.iam.panserviceaccount.com",
+                client_secret="test-secret-key-123",
+                tsg_id="1965438697",
+                default_apn="customapn",
+                default_ip_type="IPv4",
+            )
+            result = save_config(cfg, target_dir=tmp_path)
+            self.assertTrue(result["success"])
+            self.assertTrue((tmp_path / "config.json").exists())
+            self.assertTrue((tmp_path / ".env").exists())
+
+            # Verify JSON content
+            saved_json = json.loads((tmp_path / "config.json").read_text())
+            self.assertEqual(saved_json["client_id"], "test-service-account@123.iam.panserviceaccount.com")
+            self.assertEqual(saved_json["default_apn"], "customapn")
+
+            # Load from directory
+            loaded_cfg = load_config(tmp_path)
+            self.assertEqual(loaded_cfg.client_id, "test-service-account@123.iam.panserviceaccount.com")
+            self.assertEqual(loaded_cfg.tsg_id, "1965438697")
+            self.assertEqual(loaded_cfg.default_apn, "customapn")
+
+            # Load directly from json file
+            loaded_json_cfg = load_config(tmp_path / "config.json")
+            self.assertEqual(loaded_json_cfg.client_secret, "test-secret-key-123")
+
+    def test_config_dict_conversions(self):
+        data = {
+            "clientId": "sa-client@test.com",
+            "clientSecret": "sec123",
+            "tsgId": "999888",
+            "defaultApn": "iotapn",
+        }
+        cfg = Config.from_dict(data)
+        self.assertEqual(cfg.client_id, "sa-client@test.com")
+        self.assertEqual(cfg.client_secret, "sec123")
+        self.assertEqual(cfg.tsg_id, "999888")
+        self.assertEqual(cfg.default_apn, "iotapn")
+
+        d_public = cfg.to_dict(include_secret=False)
+        self.assertNotIn("client_secret", d_public)
+        self.assertIn("client_id", d_public)
 
     def test_tenant_ue_model(self):
         ue = TenantUEMapping(
