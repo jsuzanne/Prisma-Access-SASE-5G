@@ -194,13 +194,13 @@ Toggle between two display modes instantly from the **SIM Inventory** toolbar:
 
 ---
 
-## 📖 Complete Provisioning Walkthrough: Web UI vs CLI vs Strata Cloud Manager (SCM)
+## 📖 Complete Provisioning Walkthrough (Web UI vs CLI)
 
 Provisioning a 5G subscriber into Palo Alto Networks Prisma SASE 5G consists of two essential phases:
 1. **Control Plane Provisioning**: Mapping the SIM hardware identifiers (`IMSI`, `IMEI`, `APN`) and assigning security groups.
 2. **User Plane / Session Enrichment**: Injecting real-time IP allocation telemetry when the SIM connects to the 5G Core network, binding Zero-Trust security policies instantly.
 
-Below is the step-by-step lifecycle breakdown across the **Web UI**, the **CLI**, and **Strata Cloud Manager (SCM)**:
+Below is the step-by-step lifecycle breakdown across the **Web UI** and the **CLI**:
 
 ---
 
@@ -212,7 +212,6 @@ Inspect the global health of your 5G SASE tenant, allocated bandwidth, and VLAN 
 | :--- | :--- |
 | 🌐 **Web UI** | Navigate to the **"5G SASE Summary"** tab to view the 4 KPI cards and Ingress/Egress Throughput trends. |
 | 💻 **CLI** | `python3 manage_5g.py summary` and `python3 manage_5g.py interconnect` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Dashboard** $\to$ **5G SASE Summary**.<br>Displays regional interconnects, active compute region (e.g. `europe-west9`), and VLAN health. |
 
 ---
 
@@ -224,7 +223,6 @@ Inspect or create subscriber security groups that hold Zero-Trust policy profile
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"Groups & Policies"** tab, click **"+ Add Group"** to define a new policy group with interactive SIM assignment. |
 | 💻 **CLI** | `python3 manage_5g.py groups`<br>`python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 1291887562` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Objects** $\to$ **5G Identities Groups** (or **Mobile Security** $\to$ **Subscriber Groups**).<br>Click **+ Add** to define group rules. |
 
 ---
 
@@ -236,7 +234,6 @@ Register the SIM card hardware identifiers and assign it to an APN (default `sas
 | :--- | :--- |
 | 🌐 **Web UI** | Click **"Add New SIM"** in the banner or **SIM Inventory** tab, enter or generate IMSI/IMEI, select APN `sasetest`, and click **"Create SIM"**. |
 | 💻 **CLI** | `python3 manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Identities (UE)**.<br>Click **+ Add New** to enter IMSI, IMEI, and APN. |
 
 ---
 
@@ -248,7 +245,6 @@ Assign or move the SIM card to a specific security policy group (`Permissive`, `
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"SIM Inventory"** tab, click the **Edit ✏️** button on any SIM row. In the modal, choose the desired **Subscriber Group** and click **Save**. |
 | 💻 **CLI** | `python3 manage_5g.py assign-group --ue-id "<IDENTITY_ID>" --group-name "Permissive"`<br>`python3 manage_5g.py update "<IDENTITY_ID>" --apn "sase" --group-id "<GROUP_ID>"` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **5G Identities** $\to$ Click the pencil icon on the subscriber $\to$ In **Edit 5G Identity**, update the group assignment $\to$ Click **Save**. |
 
 ---
 
@@ -260,18 +256,17 @@ When the IoT device connects to the 5G Core network, the carrier network assigns
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"Connect 5G"** next to the SIM (or use the form in the **"5G Sessions"** tab). |
 | 💻 **CLI** | `python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.200` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Activity / Monitor** $\to$ **5G SASE Summary** $\to$ **UE Mappings**.<br>Traffic from IP `10.56.0.200` is correlated with the subscriber IMSI, turning status to 🟢 **Active**. |
 
 ---
 
-### Step 6: Threat Inspection & Policy Enforcement in SCM
+### Step 6: Threat Inspection & Policy Enforcement
 
 When a device in the `Restrictive` group attempts to access malicious or unauthorized content (e.g. `wicar.org`):
 
 | Component | Observation & Behavior |
 | :--- | :--- |
 | 📱 **Connected Device** | The browser receives the Palo Alto Networks **Zero-Trust Block Page** directly from the 5G Core user plane without requiring any local endpoint agent. |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Activity** $\to$ **Threat Logs** & **URL Filtering Logs**.<br>Log entry displays: **Source User**: `IMSI 208950...`, **Source IP**: `10.56.0.200`, **URL**: `wicar.org`, **Action**: `block-url`, **Rule**: `Block-High-Risk-IoT`. |
+| 🛡️ **Zero-Trust Enforcement** | Real-time URL filtering and DNS security rules inspect the mobile payload associated with the subscriber IMSI and IP session mapping. |
 
 ---
 
@@ -283,7 +278,6 @@ When the subscriber disconnects or changes cell/IP, a deregistration event is em
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"5G Sessions"** tab, send a session termination event. |
 | 💻 **CLI** | `python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.200` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Activity** $\to$ **Session Monitor**.<br>The active IP session mapping is gracefully aged out and unlinked from the IMSI. |
 
 ---
 
@@ -295,7 +289,6 @@ To decommission or remove a SIM from the tenant:
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"Delete"** next to the test SIM. |
 | 💻 **CLI** | `python3 manage_5g.py delete <IDENTITY_ID>` |
-| 🛡️ **Strata Cloud Manager (SCM)** | **Configuration** $\to$ **Mobile Security** $\to$ **5G Subscribers**.<br>The record is purged from the tenant's active SIM database. |
 
 ---
 
