@@ -16,8 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Realistic Transatel NTT IMSI generator (`generate_transatel_imsi`) and Luhn-compliant IMEI generator (`generate_valid_imei`).
   - Dual SIM table view switch (*Industry Fleet View* vs. *Raw SCM View*).
   - Clear, high-contrast typography in the SIM table optimized for small and large screens.
-- **Antigravity Customization Skill**:
-  - Created `.agents/skills/sido-5g-demo/SKILL.md` with trade show storytelling script, live runbook, and SCM log correlation.
 - **English Localization**:
   - Full English translation across all UI components, modals, CLI prompts, and API response messages.
 - **Unit Test Suite**:

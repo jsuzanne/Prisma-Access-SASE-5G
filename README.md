@@ -19,9 +19,6 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - **1-Click Quick Presets**: Instant form population in the Add SIM modal with realistic Transatel NTT IMSIs (`20895...`) and Luhn-compliant IMEIs.
   - **Dual View Mode**: Switch seamlessly between **Industry Fleet View** (rich equipment names, vertical badges, icons) and **Raw SCM View** (unfiltered hardware identifiers).
   - **Clean Typography**: High-contrast, scannable layout designed specifically for live demonstrations on laptops, tablets, and 2K/4K presentation screens.
-- **🤖 Antigravity Customization Skill (`sido-5g-demo`)**:
-  - Interactive demonstration guide, booth storytelling script, and operational runbook located in [`.agents/skills/sido-5g-demo/SKILL.md`](file:///.agents/skills/sido-5g-demo/SKILL.md).
-  - Step-by-step pitch instructions for demonstrating agentless zero-touch 5G security, subscriber policy group shifts (`Permissive` vs `Restrictive`), and real-time SCM log correlation.
 - **📊 5G SASE Summary Dashboard (Strata Cloud Manager Alignment)**:
   - **4 Top KPI Cards**: Total 5G Tenants, Total Bandwidth (Mbps), Total Configured Users, and 5G Network Interconnects (VLAN attachments Up/Down).
   - **Throughput Trend Chart**: Real-time dual-curve time-series monitoring with Ingress (Purple) and Egress (Cyan) bandwidth metrics over 1h, 24h, or 7d with interactive hover tooltips.
@@ -188,13 +185,6 @@ Instead of generating duplicate fictitious SIM entries in Strata Cloud Manager (
 Toggle between two display modes instantly from the **SIM Inventory** toolbar:
 - 🏭 **Industry Fleet View**: Displays equipment names, vertical badges, industry icons, and high-contrast typography.
 - ⚙️ **Raw SCM View**: Displays pure hardware identifiers (unfiltered IMSI, IMEI, APN) exactly as seen in the Strata Cloud Manager portal.
-
-### 🤖 Antigravity Trade Show Customization Skill
-
-The repository includes a specialized Antigravity Skill located at [`.agents/skills/sido-5g-demo/SKILL.md`](file:///.agents/skills/sido-5g-demo/SKILL.md). It provides:
-- **3-Minute Elevator Pitch & Storyline**: Framing Transatel NTT 5G Core + Palo Alto Networks Prisma SASE 5G as the premier zero-touch security architecture.
-- **Interactive Runbook**: Step-by-step instructions for switching subscriber groups from `Permissive` to `Restrictive` and demonstrating instant live block pages on connected devices.
-- **Strata Cloud Manager Log Correlation**: Exactly where to show threat logs and user plane security enforcement during a live customer demo.
 
 ---
 
