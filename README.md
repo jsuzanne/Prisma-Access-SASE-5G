@@ -11,6 +11,12 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ---
 
+<p align="center">
+  <img src="static/img/dashboard_preview.png" alt="Prisma SASE 5G Manager UI with Industry Fleet Enrichment" width="100%">
+</p>
+
+---
+
 ## 🌟 Key Features
 
 - **🏭 7 Industry Verticals & IoT Fleet Simulation (SIDO 2026 Ready)**:
