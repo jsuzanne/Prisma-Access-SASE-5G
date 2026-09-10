@@ -19,7 +19,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ## 🌟 Key Features
 
-- **🏭 7 Industry Verticals & IoT Fleet Simulation (SIDO 2026 Ready)**:
+- **🏭 7 Industry Verticals & Enterprise IoT Fleet Simulation**:
   - **7 Industry Verticals**: *Smart City & Utilities*, *Industrial IoT & Robotics*, *Connected Healthcare*, *Logistics & Fleet Tracking*, *Retail & Smart POS*, *Agritech & Environmental*, and *Energy & Smart Grid*.
   - **Auto-Enrich Fleet**: Automatically assign realistic IoT equipment profiles, industry badges, and icons to existing SIMs in SCM inventory with a single click—no duplicate SIMs or manual data entry needed.
   - **1-Click Quick Presets**: Instant form population in the Add SIM modal with realistic Transatel NTT IMSIs (`20895...`) and Luhn-compliant IMEIs.
@@ -161,11 +161,11 @@ Visit **[http://localhost:8000](http://localhost:8000)**.
 
 ---
 
-## 🏭 Industry Verticals & Fleet Simulation (SIDO 2026 Showcase)
+## 🏭 Industry Verticals & Enterprise IoT Fleet Simulation
 
-To make demonstrations at trade shows (such as **SIDO Lyon 2026**) highly relatable to enterprise prospects and OT/IoT decision-makers, the portal provides **7 ready-to-use Industry Verticals**:
+To make live demonstrations, customer proof-of-concepts, and executive presentations highly relatable to enterprise decision-makers and OT/IoT engineers, the portal provides **7 ready-to-use Industry Verticals**:
 
-| Vertical | Icon | Sample Equipment Profiles | SIDO Demo Use Case |
+| Vertical | Icon | Sample Equipment Profiles | Enterprise Use Case & Value |
 | :--- | :---: | :--- | :--- |
 | **Smart City & Utilities** | 🏙️ | Connected CCTV Camera, Air Quality Station, Smart Water Meter, Streetlight Gateway, Waste Bin Level Sensor | Urban infrastructure & municipal sensor security |
 | **Industrial IoT & Robotics** | 🏭 | Automated Guided Vehicle (AGV), Robotic Arm Controller, Predictive Vibration Sensor, PLC Gateway, Remote Telemetry Unit (RTU) | Factory automation & Industry 4.0 shop floor isolation |

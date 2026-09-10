@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.0.0] - 2026-09-11
 
 ### Added
-- **SIDO 2026 5G IoT Industry Presets & Auto-Enrichment**:
+- **5G IoT Industry Presets & Fleet Auto-Enrichment**:
   - Added 7 industry verticals: *Smart City & Utilities*, *Industrial IoT & Robotics*, *Connected Healthcare*, *Logistics & Fleet Tracking*, *Retail & Smart POS*, *Agritech & Environmental*, and *Energy & Smart Grid*.
   - **Auto-Enrich Fleet** feature to automatically assign industry device profiles to existing SIMs in SCM inventory without creating duplicates.
   - Realistic Transatel NTT IMSI generator (`generate_transatel_imsi`) and Luhn-compliant IMEI generator (`generate_valid_imei`).
