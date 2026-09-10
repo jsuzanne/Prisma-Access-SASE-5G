@@ -1,5 +1,4 @@
-"""Prisma SASE 5G API Client."""
-
+import time
 import logging
 from typing import List, Dict, Any, Optional, Union
 import requests
@@ -7,6 +6,7 @@ import requests
 from .config import Config, load_config
 from .auth import PANWAuthManager
 from .models import TenantUEMapping, UESession, UserGroup
+from .debug_logger import api_debug_logger
 
 logger = logging.getLogger("Prisma5GClient")
 
@@ -40,19 +40,10 @@ class Prisma5GClient:
 
         logger.debug("%s %s (params=%s, body=%s)", method, url, params, json_data)
         
-        response = self.session.request(
-            method=method,
-            url=url,
-            params=params,
-            json=json_data,
-            headers=headers,
-            timeout=30,
-        )
-
-        # If token expired or unauthorized, attempt 1 refresh
-        if response.status_code == 401 and retry_on_401 and not self.config.auth_token:
-            logger.info("Received 401 Unauthorized. Refreshing token and retrying...")
-            headers = self.auth.get_auth_headers(force_refresh=True)
+        start_time = time.perf_counter()
+        error_msg = None
+        response = None
+        try:
             response = self.session.request(
                 method=method,
                 url=url,
@@ -62,7 +53,51 @@ class Prisma5GClient:
                 timeout=30,
             )
 
-        return response
+            # If token expired or unauthorized, attempt 1 refresh
+            if response.status_code == 401 and retry_on_401 and not self.config.auth_token:
+                logger.info("Received 401 Unauthorized. Refreshing token and retrying...")
+                headers = self.auth.get_auth_headers(force_refresh=True)
+                response = self.session.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    json=json_data,
+                    headers=headers,
+                    timeout=30,
+                )
+            return response
+        except Exception as exc:
+            error_msg = str(exc)
+            raise
+        finally:
+            duration_ms = (time.perf_counter() - start_time) * 1000
+            resp_status = response.status_code if response is not None else None
+            resp_headers = dict(response.headers) if response is not None else {}
+            resp_body = None
+            if response is not None:
+                try:
+                    resp_body = response.json()
+                except Exception:
+                    resp_body = response.text
+            
+            # Combine params into URL or body info for logging clarity
+            log_body = json_data
+            if log_body is None and params:
+                log_body = {"_query_params": params}
+
+            api_debug_logger.record(
+                method=method,
+                url=url + (("?" + "&".join(f"{k}={v}" for k, v in params.items())) if params else ""),
+                path=path,
+                request_headers=headers,
+                request_body=log_body,
+                response_status=resp_status,
+                response_headers=resp_headers,
+                response_body=resp_body,
+                duration_ms=duration_ms,
+                error=error_msg,
+                source="SCM API",
+            )
 
     # --------------------------------------------------------------------------
     # 0. Multitenant & Hierarchy Discovery

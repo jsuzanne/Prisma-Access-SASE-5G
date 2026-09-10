@@ -26,6 +26,7 @@ from src.config import Config, load_config
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession
 from src.client import Prisma5GClient
+from src.debug_logger import api_debug_logger
 
 # Project base directory
 BASE_DIR = Path(__file__).resolve().parent
@@ -884,6 +885,58 @@ def get_throughput_metrics(
         }
     except Exception as exc:
         return {"success": False, "error": str(exc)}
+
+
+# -----------------------------------------------------------------------------
+# Debug Logger & Live API Inspector Endpoints
+# -----------------------------------------------------------------------------
+
+@app.get("/api/debug/logs")
+def get_debug_logs(
+    limit: int = 50,
+    search: Optional[str] = None,
+    method: Optional[str] = None,
+    status_code: Optional[int] = None,
+):
+    """Retrieve recorded API transactions."""
+    logs = api_debug_logger.get_logs(
+        limit=limit,
+        search=search,
+        method=method,
+        status_code=status_code,
+    )
+    return {
+        "success": True,
+        "count": len(logs),
+        "total_buffered": api_debug_logger.count(),
+        "logs": logs,
+    }
+
+
+@app.get("/api/debug/logs/export")
+def export_debug_logs():
+    """Export all debug logs as downloadable JSON."""
+    logs = api_debug_logger.get_logs(limit=150)
+    return JSONResponse(
+        content={"exported_at": time.time(), "total": len(logs), "transactions": logs},
+        headers={"Content-Disposition": f"attachment; filename=prisma_5g_api_logs_{int(time.time())}.json"}
+    )
+
+
+@app.get("/api/debug/logs/{log_id}")
+def get_debug_log_detail(log_id: str):
+    """Retrieve single transaction log details."""
+    log = api_debug_logger.get_log_by_id(log_id)
+    if not log:
+        raise HTTPException(status_code=404, detail=f"Log transaction '{log_id}' not found")
+    return {"success": True, "log": log}
+
+
+@app.delete("/api/debug/logs")
+def clear_debug_logs():
+    """Clear all recorded debug logs."""
+    cleared = api_debug_logger.clear()
+    return {"success": True, "cleared_count": cleared}
 
 
 # -----------------------------------------------------------------------------

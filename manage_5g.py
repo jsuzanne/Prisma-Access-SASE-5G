@@ -15,6 +15,7 @@ from rich.panel import Panel
 from src.config import load_config
 from src.client import Prisma5GClient
 from src.models import UESession
+from src.debug_logger import api_debug_logger
 
 console = Console()
 
@@ -78,6 +79,16 @@ def print_rich_help():
     t_mon.add_row("summary", "[--tsg-id <id>] [--json]", "Display 5G SASE KPI summary (Tenants, Bandwidth, Configured Users, Interconnects)")
     t_mon.add_row("interconnect", "[--tsg-id <id>] [--json]", "List regional 5G Interconnect status, bandwidth capacity, and VLAN attachments")
     console.print(t_mon)
+    console.print()
+
+    # Group 5: Debug Inspection
+    t_dbg = Table(title="⚡ 5. Developer & API Inspection", title_style="bold magenta", border_style="magenta")
+    t_dbg.add_column("Command", style="bold yellow", no_wrap=True)
+    t_dbg.add_column("Key Options / Arguments", style="white")
+    t_dbg.add_column("Description", style="dim")
+    t_dbg.add_row("debug-logs", "[--limit <n>] [--id <log_id>] [--search <text>] [--json]", "Inspect live API transactions, request/response payloads, and cURL commands")
+    t_dbg.add_row("--debug", "Global flag on any command", "Print live request/response HTTP payload trace to terminal")
+    console.print(t_dbg)
     console.print()
 
     # Usage Examples Panel
@@ -235,6 +246,14 @@ def build_parser() -> argparse.ArgumentParser:
     ic_p = subparsers.add_parser("interconnect", help="List regional 5G Interconnects, Bandwidth, and VLAN attachments")
     ic_p.add_argument("--tsg-id", help="Override TSG ID")
     ic_p.add_argument("--json", action="store_true", help="Output raw JSON")
+
+    # 16. debug-logs
+    dbg_p = subparsers.add_parser("debug-logs", help="Inspect recorded API transaction logs, payloads, and cURL commands")
+    dbg_p.add_argument("--id", help="Filter by specific Transaction ID to show full payload & cURL")
+    dbg_p.add_argument("--limit", type=int, default=20, help="Number of logs to retrieve (default: 20)")
+    dbg_p.add_argument("--search", help="Filter logs by search term")
+    dbg_p.add_argument("--clear", action="store_true", help="Clear all stored logs")
+    dbg_p.add_argument("--json", action="store_true", help="Output raw JSON")
 
     return parser
 
@@ -603,6 +622,76 @@ def handle_interconnect(client: Prisma5GClient, args: argparse.Namespace):
     console.print(table)
 
 
+def handle_debug_logs(client: Prisma5GClient, args: argparse.Namespace):
+    if getattr(args, "clear", False):
+        cleared = api_debug_logger.clear()
+        console.print(f"[bold green]✓ Cleared {cleared} debug transaction log(s).[/bold green]")
+        return
+
+    if getattr(args, "id", None):
+        tx = api_debug_logger.get_log_by_id(args.id)
+        if not tx:
+            console.print(f"[bold red]Error:[/bold red] Transaction ID '{args.id}' not found in buffer.")
+            return
+        if getattr(args, "json", False):
+            console.print_json(data=tx)
+            return
+
+        status_color = "green" if (tx.get("response_status") or 0) < 400 else "red"
+        console.print(
+            Panel(
+                f"[bold cyan]ID:[/bold cyan] {tx['id']}  "
+                f"[bold cyan]Time:[/bold cyan] {tx['time_local']}  "
+                f"[bold cyan]Method:[/bold cyan] [bold yellow]{tx['method']}[/bold yellow]  "
+                f"[bold cyan]Status:[/bold cyan] [{status_color}]{tx.get('response_status') or 'N/A'}[/{status_color}]  "
+                f"[bold cyan]Duration:[/bold cyan] {tx['duration_ms']}ms\n"
+                f"[bold cyan]URL:[/bold cyan] {tx['url']}\n\n"
+                f"[bold yellow]cURL Command (Ready to Copy):[/bold yellow]\n[dim]{tx['curl_command']}[/dim]",
+                title=f"🔍 API Transaction Details - {tx['id']}",
+                border_style="cyan",
+            )
+        )
+        if tx.get("request_body"):
+            console.print(Panel(json.dumps(tx["request_body"], indent=2), title="📤 Request Payload", border_style="blue"))
+        if tx.get("response_body"):
+            resp_str = json.dumps(tx["response_body"], indent=2) if isinstance(tx["response_body"], (dict, list)) else str(tx["response_body"])
+            console.print(Panel(resp_str, title="📥 Response Payload", border_style="green" if (tx.get("response_status") or 0) < 400 else "red"))
+        return
+
+    logs = api_debug_logger.get_logs(limit=args.limit, search=getattr(args, "search", None))
+    if getattr(args, "json", False):
+        console.print_json(data=logs)
+        return
+
+    if not logs:
+        console.print("[dim]No API transaction logs recorded yet in this process session.[/dim]")
+        console.print("[dim]Tip: Outbound calls made with manage_5g.py or the Web UI are logged in real-time.[/dim]")
+        return
+
+    table = Table(title=f"⚡ Live API Debug Transactions (Showing {len(logs)} / {api_debug_logger.count()} buffered)")
+    table.add_column("ID", style="bold cyan", no_wrap=True)
+    table.add_column("Time", style="dim")
+    table.add_column("Method", style="bold yellow")
+    table.add_column("Status", justify="center")
+    table.add_column("Duration", justify="right", style="magenta")
+    table.add_column("Path / Endpoint", style="white")
+
+    for log in logs:
+        status = log.get("response_status")
+        status_style = "bold green" if status and status < 400 else "bold red"
+        table.add_row(
+            log["id"],
+            log["time_local"],
+            log["method"],
+            f"[{status_style}]{status or 'ERR'}[/{status_style}]",
+            f"{log['duration_ms']} ms",
+            log["path"],
+        )
+
+    console.print(table)
+    console.print("[dim]Tip: Use 'python manage_5g.py debug-logs --id <ID>' to inspect full payload & cURL command.[/dim]")
+
+
 def main():
     parser = build_parser()
     args = parser.parse_args()
@@ -637,6 +726,7 @@ def main():
             "assign-group": handle_assign_group,
             "summary": handle_summary,
             "interconnect": handle_interconnect,
+            "debug-logs": handle_debug_logs,
         }
 
         handler = handlers.get(args.command)

@@ -143,6 +143,13 @@
                         <span>SCM Portal</span>
                     </a>
 
+                    <!-- API Debug Inspector Trigger -->
+                    <button id="btn-api-debugger" onclick="openApiDebuggerModal()" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-cyan-400 hover:text-cyan-300 text-xs font-semibold transition group" title="Open Live API Inspector & Debug Log Console">
+                        <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400 group-hover:animate-pulse"></i>
+                        <span class="hidden md:inline">API Logs</span>
+                        <span id="api-logs-badge-count" class="px-1.5 py-0.2 rounded-full bg-cyan-500/20 text-cyan-300 text-[10px] font-mono border border-cyan-500/30">0</span>
+                    </button>
+
                     <!-- Clean SCM Online Pill -->
                     <div id="status-pill" class="flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium cursor-pointer hover:bg-emerald-500/20 transition" onclick="switchTab('tab-settings')" title="Connected to Strata Cloud Manager - Click to configure">
                         <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
@@ -1481,6 +1488,81 @@
         </div>
     </div>
 
+    <!-- MODAL 5: Live API Debugger & Inspector -->
+    <div id="modal-api-debugger" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-2 sm:p-5">
+        <div class="glass-panel rounded-2xl w-full max-w-7xl h-[90vh] flex flex-col border border-cyan-500/40 glow-cyan shadow-2xl overflow-hidden">
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between px-6 py-3.5 border-b border-white/10 bg-gray-950/80 shrink-0">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+                        <i data-lucide="terminal" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-sm font-bold text-white tracking-wide">Live API Inspector & Debug Console</h3>
+                            <span id="debugger-total-count" class="px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 text-[11px] font-mono border border-cyan-500/30">0 calls</span>
+                        </div>
+                        <p class="text-[11px] text-gray-400">Real-time SCM 5G REST API transactions, request/response payloads, latencies & copy cURL</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <!-- Live stream toggle -->
+                    <label class="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-xs text-gray-300 cursor-pointer hover:bg-white/10 transition">
+                        <input type="checkbox" id="debugger-auto-refresh" checked onchange="toggleDebuggerAutoRefresh()" class="rounded border-gray-700 text-cyan-500 focus:ring-0">
+                        <span class="text-[11px] flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Live Stream</span>
+                    </label>
+
+                    <!-- Export button -->
+                    <button onclick="exportDebuggerLogs()" class="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-xs flex items-center gap-1.5 transition" title="Export transactions as JSON">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i> <span class="hidden sm:inline">Export</span>
+                    </button>
+
+                    <!-- Clear logs -->
+                    <button onclick="clearDebuggerLogs()" class="px-3 py-1.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-400 text-xs flex items-center gap-1.5 transition" title="Clear recorded transaction buffer">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> <span class="hidden sm:inline">Clear</span>
+                    </button>
+
+                    <!-- Close button -->
+                    <button onclick="closeApiDebuggerModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Content (Split Master-Detail Layout) -->
+            <div class="flex-1 flex flex-col md:flex-row overflow-hidden min-h-0 bg-gray-950/50">
+                <!-- Left Sidebar (Transactions List) -->
+                <div class="w-full md:w-[380px] lg:w-[420px] border-r border-white/10 flex flex-col shrink-0 bg-gray-950/70">
+                    <!-- Search & Filter Controls -->
+                    <div class="p-3 border-b border-white/10 space-y-2.5 bg-gray-900/60">
+                        <div class="relative">
+                            <i data-lucide="search" class="w-3.5 h-3.5 absolute left-3 top-2.5 text-gray-500"></i>
+                            <input type="text" id="debugger-search-input" oninput="handleDebuggerSearch()" placeholder="Filter by endpoint, status, keyword..." class="w-full pl-8 pr-3 py-1.5 bg-gray-950 border border-white/10 rounded-xl text-white text-xs font-mono focus:border-cyan-400 focus:outline-none">
+                        </div>
+                        <div class="flex items-center gap-1 text-[11px] overflow-x-auto pb-0.5" id="debugger-filter-pills">
+                            <button onclick="setDebuggerFilter('ALL')" class="debugger-filter-btn px-2.5 py-1 rounded-lg bg-cyan-500 text-black font-bold transition" data-filter="ALL">All</button>
+                            <button onclick="setDebuggerFilter('POST')" class="debugger-filter-btn px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white transition" data-filter="POST">POST</button>
+                            <button onclick="setDebuggerFilter('GET')" class="debugger-filter-btn px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white transition" data-filter="GET">GET</button>
+                            <button onclick="setDebuggerFilter('DELETE')" class="debugger-filter-btn px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white transition" data-filter="DELETE">DELETE</button>
+                            <button onclick="setDebuggerFilter('ERR')" class="debugger-filter-btn px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white transition" data-filter="ERR">Errors</button>
+                        </div>
+                    </div>
+
+                    <!-- Scrollable Transaction List -->
+                    <div id="debugger-tx-list" class="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1.5">
+                        <!-- Populated dynamically via renderDebuggerTxList() -->
+                    </div>
+                </div>
+
+                <!-- Right Pane (Transaction Inspection Detail) -->
+                <div id="debugger-detail-pane" class="flex-1 flex flex-col overflow-y-auto custom-scrollbar p-5 space-y-5 bg-gray-950/30">
+                    <!-- Populated dynamically via selectDebuggerTx() -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm glass-panel rounded-2xl p-4 border border-cyan-500/30 text-xs text-white shadow-2xl hidden flex items-start gap-3 transition-all duration-300">
         <div id="toast-icon" class="text-cyan-400 mt-0.5"><i data-lucide="info" class="w-4 h-4"></i></div>
@@ -2746,8 +2828,385 @@
             lucide.createIcons();
         }
 
+        // =========================================================================
+        // Live API Inspector & Debug Console Logic
+        // =========================================================================
+        let debuggerLogs = [];
+        let selectedTxId = null;
+        let debuggerFilter = 'ALL';
+        let debuggerSearchQuery = '';
+        let debuggerInterval = null;
+        let isDebuggerModalOpen = false;
+
+        function openApiDebuggerModal() {
+            isDebuggerModalOpen = true;
+            const modal = document.getElementById('modal-api-debugger');
+            if (modal) {
+                modal.classList.remove('hidden');
+            }
+            fetchDebuggerLogs();
+            startDebuggerPolling();
+            lucide.createIcons();
+        }
+
+        function closeApiDebuggerModal() {
+            isDebuggerModalOpen = false;
+            const modal = document.getElementById('modal-api-debugger');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            stopDebuggerPolling();
+        }
+
+        function startDebuggerPolling() {
+            stopDebuggerPolling();
+            const autoRefresh = document.getElementById('debugger-auto-refresh');
+            if (autoRefresh && autoRefresh.checked && isDebuggerModalOpen) {
+                debuggerInterval = setInterval(fetchDebuggerLogs, 2500);
+            }
+        }
+
+        function stopDebuggerPolling() {
+            if (debuggerInterval) {
+                clearInterval(debuggerInterval);
+                debuggerInterval = null;
+            }
+        }
+
+        function toggleDebuggerAutoRefresh() {
+            const autoRefresh = document.getElementById('debugger-auto-refresh');
+            if (autoRefresh && autoRefresh.checked) {
+                startDebuggerPolling();
+                showToast("Live Stream Active", "Auto-polling API transactions every 2.5s");
+            } else {
+                stopDebuggerPolling();
+                showToast("Live Stream Paused", "Manual refresh only");
+            }
+        }
+
+        async function fetchDebuggerLogs() {
+            try {
+                const res = await fetch('/api/debug/logs?limit=100');
+                const data = await res.json();
+                if (data.success && Array.isArray(data.logs)) {
+                    debuggerLogs = data.logs;
+                    updateDebuggerBadgeCount(data.total_buffered || data.logs.length);
+                    renderDebuggerTxList();
+                    
+                    if (selectedTxId) {
+                        const current = debuggerLogs.find(t => t.id === selectedTxId);
+                        if (current) renderDebuggerDetail(current);
+                    } else if (debuggerLogs.length > 0) {
+                        selectDebuggerTx(debuggerLogs[0].id);
+                    } else {
+                        renderEmptyDebuggerDetail();
+                    }
+                }
+            } catch (err) {
+                console.error("Failed to fetch debug logs", err);
+            }
+        }
+
+        function updateDebuggerBadgeCount(count) {
+            const badge = document.getElementById('api-logs-badge-count');
+            const totalCount = document.getElementById('debugger-total-count');
+            if (badge) badge.innerText = count;
+            if (totalCount) totalCount.innerText = `${count} calls`;
+        }
+
+        function handleDebuggerSearch() {
+            const input = document.getElementById('debugger-search-input');
+            debuggerSearchQuery = input ? input.value.trim().toLowerCase() : '';
+            renderDebuggerTxList();
+        }
+
+        function setDebuggerFilter(filter) {
+            debuggerFilter = filter;
+            document.querySelectorAll('.debugger-filter-btn').forEach(btn => {
+                if (btn.getAttribute('data-filter') === filter) {
+                    btn.className = "debugger-filter-btn px-2.5 py-1 rounded-lg bg-cyan-500 text-black font-bold transition";
+                } else {
+                    btn.className = "debugger-filter-btn px-2.5 py-1 rounded-lg bg-white/5 text-gray-400 hover:text-white transition";
+                }
+            });
+            renderDebuggerTxList();
+        }
+
+        function getFilteredLogs() {
+            return debuggerLogs.filter(tx => {
+                // Filter by method / status
+                if (debuggerFilter === 'POST' && tx.method !== 'POST') return false;
+                if (debuggerFilter === 'GET' && tx.method !== 'GET') return false;
+                if (debuggerFilter === 'DELETE' && tx.method !== 'DELETE') return false;
+                if (debuggerFilter === 'ERR' && (tx.response_status && tx.response_status < 400 && !tx.error)) return false;
+
+                // Filter by search query
+                if (debuggerSearchQuery) {
+                    const searchable = `${tx.method} ${tx.path} ${tx.url} ${tx.response_status || ''} ${JSON.stringify(tx.request_body || '')} ${JSON.stringify(tx.response_body || '')}`.toLowerCase();
+                    if (!searchable.includes(debuggerSearchQuery)) return false;
+                }
+                return true;
+            });
+        }
+
+        function renderDebuggerTxList() {
+            const container = document.getElementById('debugger-tx-list');
+            if (!container) return;
+
+            const filtered = getFilteredLogs();
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 text-center text-gray-500 space-y-2">
+                        <i data-lucide="inbox" class="w-8 h-8 mx-auto opacity-40"></i>
+                        <p class="text-xs font-sans">No matching API transactions found</p>
+                    </div>`;
+                lucide.createIcons();
+                return;
+            }
+
+            container.innerHTML = filtered.map(tx => {
+                const isSelected = tx.id === selectedTxId;
+                
+                // Method styling
+                let methodBadge = 'bg-blue-500/20 text-blue-400 border-blue-500/40';
+                if (tx.method === 'POST') methodBadge = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+                else if (tx.method === 'DELETE') methodBadge = 'bg-red-500/20 text-red-400 border-red-500/40';
+                else if (tx.method === 'PUT') methodBadge = 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+
+                // Status styling
+                const status = tx.response_status || (tx.error ? 'ERR' : '...');
+                let statusColor = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+                if (typeof status === 'number' && status >= 400 || status === 'ERR') {
+                    statusColor = 'text-red-400 bg-red-500/10 border-red-500/30';
+                }
+
+                // Shorten path for UI
+                const displayPath = tx.path || tx.url;
+
+                return `
+                    <div onclick="selectDebuggerTx('${tx.id}')" class="p-3 rounded-xl cursor-pointer transition flex flex-col gap-1.5 border ${isSelected ? 'bg-cyan-500/10 border-cyan-500/50 glow-cyan shadow-lg' : 'bg-gray-900/40 hover:bg-gray-900/80 border-white/5'}">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold font-mono border ${methodBadge}">${tx.method}</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-mono border ${statusColor}">${status}</span>
+                            </div>
+                            <div class="flex items-center gap-2 text-[10px] text-gray-400 font-mono">
+                                <span>${tx.duration_ms}ms</span>
+                                <span>${tx.time_local}</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-200 font-mono truncate" title="${displayPath}">${displayPath}</div>
+                    </div>`;
+            }).join('');
+
+            lucide.createIcons();
+        }
+
+        function selectDebuggerTx(id) {
+            selectedTxId = id;
+            renderDebuggerTxList();
+            const tx = debuggerLogs.find(t => t.id === id);
+            if (tx) {
+                renderDebuggerDetail(tx);
+            }
+        }
+
+        function renderEmptyDebuggerDetail() {
+            const pane = document.getElementById('debugger-detail-pane');
+            if (!pane) return;
+            pane.innerHTML = `
+                <div class="flex-1 flex flex-col items-center justify-center text-center p-8 text-gray-500 space-y-3">
+                    <div class="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400">
+                        <i data-lucide="terminal" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">No API Call Selected</h4>
+                        <p class="text-xs text-gray-400 mt-1 max-w-sm">Interact with the portal (register SIMs, trigger session events, or run tests) to see real-time requests.</p>
+                    </div>
+                </div>`;
+            lucide.createIcons();
+        }
+
+        function renderDebuggerDetail(tx) {
+            const pane = document.getElementById('debugger-detail-pane');
+            if (!pane) return;
+
+            // Status Badge
+            const status = tx.response_status || (tx.error ? 'FAILED' : 'PENDING');
+            const isError = (typeof status === 'number' && status >= 400) || tx.error;
+            const statusStyle = isError ? 'bg-red-500/10 text-red-400 border-red-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30';
+
+            // Method Badge
+            let methodBadge = 'bg-blue-500/20 text-blue-400 border-blue-500/40';
+            if (tx.method === 'POST') methodBadge = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40';
+            else if (tx.method === 'DELETE') methodBadge = 'bg-red-500/20 text-red-400 border-red-500/40';
+            else if (tx.method === 'PUT') methodBadge = 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+
+            const reqBodyJson = tx.request_body ? JSON.stringify(tx.request_body, null, 2) : null;
+            const respBodyJson = tx.response_body ? (typeof tx.response_body === 'object' ? JSON.stringify(tx.response_body, null, 2) : String(tx.response_body)) : (tx.error ? String(tx.error) : 'null');
+
+            pane.innerHTML = `
+                <!-- Top Summary Banner -->
+                <div class="glass-panel rounded-2xl p-4 border border-white/10 space-y-3 bg-gray-900/60">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-bold font-mono border ${methodBadge}">${tx.method}</span>
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-mono font-semibold border ${statusStyle}">${status} ${tx.response_status === 200 ? 'OK' : tx.response_status === 201 ? 'Created' : ''}</span>
+                            <span class="px-2.5 py-1 rounded-lg text-xs font-mono bg-purple-500/10 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                                <i data-lucide="clock" class="w-3 h-3"></i> ${tx.duration_ms} ms
+                            </span>
+                        </div>
+                        <div class="flex items-center gap-3 text-xs text-gray-400 font-mono">
+                            <span>ID: <strong class="text-cyan-400">${tx.id}</strong></span>
+                            <span>•</span>
+                            <span>${tx.time_local}</span>
+                        </div>
+                    </div>
+
+                    <!-- URL Bar with Copy Button -->
+                    <div class="flex items-center gap-2 p-2.5 bg-gray-950 rounded-xl border border-white/5 font-mono text-xs text-gray-200">
+                        <span class="text-gray-500 select-none">URL:</span>
+                        <span class="flex-1 text-cyan-300 truncate select-all">${tx.url}</span>
+                        <button onclick="copyToClipboard('${escapeJsString(tx.url)}', 'URL')" class="px-2.5 py-1 bg-white/5 hover:bg-white/10 rounded-lg text-[11px] text-gray-300 hover:text-white transition flex items-center gap-1 shrink-0">
+                            <i data-lucide="copy" class="w-3 h-3"></i> Copy URL
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1. cURL Command Card -->
+                <div class="glass-panel rounded-2xl p-4 border border-cyan-500/20 space-y-2 bg-gray-900/40">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <i data-lucide="terminal" class="w-3.5 h-3.5 text-cyan-400"></i> cURL Command (Ready to Run)
+                        </h4>
+                        <button onclick="copyToClipboard('${escapeJsString(tx.curl_command)}', 'cURL command')" class="px-3 py-1.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold text-xs transition flex items-center gap-1.5 shadow">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy cURL
+                        </button>
+                    </div>
+                    <pre class="p-3 bg-gray-950 rounded-xl font-mono text-xs text-cyan-300 overflow-x-auto custom-scrollbar border border-white/5 whitespace-pre-wrap select-all max-h-40 leading-relaxed">${escapeHtml(tx.curl_command)}</pre>
+                </div>
+
+                <!-- 2. Request & Response Payload Side-by-Side (or stacked on mobile) -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <!-- Request Payload -->
+                    <div class="glass-panel rounded-2xl p-4 border border-white/10 space-y-2 bg-gray-900/40 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold text-blue-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="upload" class="w-3.5 h-3.5"></i> Request Payload (JSON)
+                            </h4>
+                            ${reqBodyJson ? `
+                                <button onclick="copyToClipboard('${escapeJsString(reqBodyJson)}', 'Request JSON')" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-gray-300 hover:text-white transition flex items-center gap-1">
+                                    <i data-lucide="copy" class="w-3 h-3"></i> Copy JSON
+                                </button>` : ''}
+                        </div>
+                        ${reqBodyJson ? `
+                            <pre class="p-3 bg-gray-950 rounded-xl font-mono text-xs text-blue-300 overflow-x-auto custom-scrollbar border border-white/5 select-all flex-1 max-h-72 leading-relaxed">${escapeHtml(reqBodyJson)}</pre>
+                        ` : `
+                            <div class="p-6 bg-gray-950/60 rounded-xl text-center text-xs text-gray-500 font-mono flex-1 flex items-center justify-center">
+                                No Request Payload (${tx.method})
+                            </div>
+                        `}
+                    </div>
+
+                    <!-- Response Payload -->
+                    <div class="glass-panel rounded-2xl p-4 border border-white/10 space-y-2 bg-gray-900/40 flex flex-col">
+                        <div class="flex items-center justify-between">
+                            <h4 class="text-xs font-bold ${isError ? 'text-red-400' : 'text-emerald-400'} uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="download" class="w-3.5 h-3.5"></i> Response Payload (JSON)
+                            </h4>
+                            <button onclick="copyToClipboard('${escapeJsString(respBodyJson)}', 'Response JSON')" class="px-2.5 py-1 bg-white/10 hover:bg-white/20 rounded-lg text-xs text-gray-300 hover:text-white transition flex items-center gap-1">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copy JSON
+                            </button>
+                        </div>
+                        <pre class="p-3 bg-gray-950 rounded-xl font-mono text-xs ${isError ? 'text-red-300' : 'text-emerald-300'} overflow-x-auto custom-scrollbar border border-white/5 select-all flex-1 max-h-72 leading-relaxed">${escapeHtml(respBodyJson)}</pre>
+                    </div>
+                </div>
+
+                <!-- 3. Sanitized Headers (Collapsible) -->
+                <div class="glass-panel rounded-2xl p-4 border border-white/5 space-y-2 bg-gray-900/30">
+                    <details class="text-xs space-y-3">
+                        <summary class="cursor-pointer text-gray-400 hover:text-white font-semibold flex items-center gap-2 select-none">
+                            <i data-lucide="layers" class="w-3.5 h-3.5 text-purple-400"></i> View HTTP Headers (Request & Response)
+                        </summary>
+                        <div class="pt-3 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <h5 class="text-[11px] font-bold text-gray-300 mb-1">Request Headers (Masked)</h5>
+                                <pre class="p-2.5 bg-gray-950 rounded-lg font-mono text-[11px] text-gray-300 overflow-x-auto border border-white/5">${escapeHtml(JSON.stringify(tx.request_headers, null, 2))}</pre>
+                            </div>
+                            <div>
+                                <h5 class="text-[11px] font-bold text-gray-300 mb-1">Response Headers</h5>
+                                <pre class="p-2.5 bg-gray-950 rounded-lg font-mono text-[11px] text-gray-300 overflow-x-auto border border-white/5">${escapeHtml(JSON.stringify(tx.response_headers, null, 2))}</pre>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            `;
+
+            lucide.createIcons();
+        }
+
+        async function clearDebuggerLogs() {
+            try {
+                const res = await fetch('/api/debug/logs', { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) {
+                    debuggerLogs = [];
+                    selectedTxId = null;
+                    updateDebuggerBadgeCount(0);
+                    renderDebuggerTxList();
+                    renderEmptyDebuggerDetail();
+                    showToast("Logs Cleared", `Cleared ${data.cleared_count} transaction logs.`);
+                }
+            } catch (err) {
+                showToast("Error", "Failed to clear logs", true);
+            }
+        }
+
+        function exportDebuggerLogs() {
+            window.location.href = '/api/debug/logs/export';
+            showToast("Export Initiated", "Downloading JSON transactions log...");
+        }
+
+        function copyToClipboard(text, itemDesc) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast("Copied to Clipboard", `${itemDesc} copied successfully!`);
+            }).catch(err => {
+                console.error("Failed to copy", err);
+                showToast("Copy Failed", "Could not copy to clipboard", true);
+            });
+        }
+
+        function escapeJsString(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r');
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
         async function refreshAll() {
-            await Promise.all([fetchStatus(), fetchTenants(), fetchSIMs(), fetchGroups(), loadSettingsData(), loadSummaryMetrics(), loadThroughputChart()]);
+            await Promise.all([
+                fetchStatus(),
+                fetchTenants(),
+                fetchSIMs(),
+                fetchGroups(),
+                loadSettingsData(),
+                loadSummaryMetrics(),
+                loadThroughputChart(),
+                fetchDebuggerLogs()
+            ]);
         }
 
         // Initialize on load
@@ -2755,6 +3214,17 @@
             applyBrandToUI(currentBrand);
             lucide.createIcons();
             refreshAll();
+
+            // Periodic background check for API log badge count
+            setInterval(async () => {
+                try {
+                    const res = await fetch('/api/debug/logs?limit=1');
+                    const data = await res.json();
+                    if (data.success && typeof data.total_buffered === 'number') {
+                        updateDebuggerBadgeCount(data.total_buffered);
+                    }
+                } catch(e) {}
+            }, 6000);
         });
     </script>
 </body>
