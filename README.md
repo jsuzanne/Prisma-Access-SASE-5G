@@ -13,6 +13,15 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ## 🌟 Key Features
 
+- **🏭 7 Industry Verticals & IoT Fleet Simulation (SIDO 2026 Ready)**:
+  - **7 Industry Verticals**: *Smart City & Utilities*, *Industrial IoT & Robotics*, *Connected Healthcare*, *Logistics & Fleet Tracking*, *Retail & Smart POS*, *Agritech & Environmental*, and *Energy & Smart Grid*.
+  - **Auto-Enrich Fleet**: Automatically assign realistic IoT equipment profiles, industry badges, and icons to existing SIMs in SCM inventory with a single click—no duplicate SIMs or manual data entry needed.
+  - **1-Click Quick Presets**: Instant form population in the Add SIM modal with realistic Transatel NTT IMSIs (`20895...`) and Luhn-compliant IMEIs.
+  - **Dual View Mode**: Switch seamlessly between **Industry Fleet View** (rich equipment names, vertical badges, icons) and **Raw SCM View** (unfiltered hardware identifiers).
+  - **Clean Typography**: High-contrast, scannable layout designed specifically for live demonstrations on laptops, tablets, and 2K/4K presentation screens.
+- **🤖 Antigravity Customization Skill (`sido-5g-demo`)**:
+  - Interactive demonstration guide, booth storytelling script, and operational runbook located in [`.agents/skills/sido-5g-demo/SKILL.md`](file:///.agents/skills/sido-5g-demo/SKILL.md).
+  - Step-by-step pitch instructions for demonstrating agentless zero-touch 5G security, subscriber policy group shifts (`Permissive` vs `Restrictive`), and real-time SCM log correlation.
 - **📊 5G SASE Summary Dashboard (Strata Cloud Manager Alignment)**:
   - **4 Top KPI Cards**: Total 5G Tenants, Total Bandwidth (Mbps), Total Configured Users, and 5G Network Interconnects (VLAN attachments Up/Down).
   - **Throughput Trend Chart**: Real-time dual-curve time-series monitoring with Ingress (Purple) and Egress (Cyan) bandwidth metrics over 1h, 24h, or 7d with interactive hover tooltips.
@@ -36,13 +45,16 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 - **🔍 Display & Typography Scaling for 2K/4K Displays**:
   - Fluid responsive scaling designed for large 2K / 2560px / 4K screens and stage presentations.
   - Interactive header zoom toggle (`100%`, `115%`, `130%`) with preference saved in `localStorage`.
+- **🏷️ Auto-Incrementing Dynamic Versioning & Changelog**:
+  - Automatic build number calculation on every push (`2.0.<commit_count>`) displayed discreetly in header and Settings.
+  - Interactive Release Notes & Changelog modal powered by [`CHANGELOG.md`](file:///CHANGELOG.md).
 - **🌐 Direct Strata Cloud Manager Portal Link**:
   - Direct top-bar link to [https://stratacloudmanager.paloaltonetworks.com](https://stratacloudmanager.paloaltonetworks.com).
 - **⚙️ In-App Settings & Credentials Manager**:
   - Manage service account credentials (`PANW_CLIENT_ID`, `PANW_CLIENT_SECRET`, `PANW_TSG_ID`, `DEFAULT_APN`) directly from the Web UI with security masking and a live connection test button.
 - **🧪 Automated Lifecycle Runner & Test Suite**:
   - Interactive 8-step pipeline with live terminal output.
-  - 33 automated unit tests with 100% passing rate on GitHub Actions CI.
+  - 43 automated unit tests with 100% passing rate on GitHub Actions CI.
 
 ---
 
@@ -143,6 +155,46 @@ DEFAULT_IP_TYPE=IPv4
 python3 app.py
 ```
 Visit **[http://localhost:8000](http://localhost:8000)**.
+
+---
+
+## 🏭 Industry Verticals & Fleet Simulation (SIDO 2026 Showcase)
+
+To make demonstrations at trade shows (such as **SIDO Lyon 2026**) highly relatable to enterprise prospects and OT/IoT decision-makers, the portal provides **7 ready-to-use Industry Verticals**:
+
+| Vertical | Icon | Sample Equipment Profiles | SIDO Demo Use Case |
+| :--- | :---: | :--- | :--- |
+| **Smart City & Utilities** | 🏙️ | Connected CCTV Camera, Air Quality Station, Smart Water Meter, Streetlight Gateway, Waste Bin Level Sensor | Urban infrastructure & municipal sensor security |
+| **Industrial IoT & Robotics** | 🏭 | Automated Guided Vehicle (AGV), Robotic Arm Controller, Predictive Vibration Sensor, PLC Gateway, Remote Telemetry Unit (RTU) | Factory automation & Industry 4.0 shop floor isolation |
+| **Connected Healthcare** | 🏥 | Mobile Ultrasound Scanner, Remote Telemetry Monitor, Emergency Defibrillator, Smart Infusion Pump, Asset Tracking Tag | Hospital IoT, medical device micro-segmentation & HIPAA compliance |
+| **Logistics & Fleet Tracking** | 🚚 | Heavy Fleet GPS Tracker, Cold Chain Thermometer, Autonomous Forklift, Rugged Handheld Scanner, Smart Container Lock | Supply chain telematics & roaming asset tracking |
+| **Retail & Smart POS** | 🛒 | Mobile POS Terminal, Digital Signage Player, Interactive Kiosk, AI Smart Shelf Camera, Inventory RFID Gateway | Payment isolation (PCI-DSS) & digital store security |
+| **Agritech & Environmental** | 🌱 | Soil Moisture Probe, Weather Station, Autonomous Drone Base, Precision Irrigation Valve, Livestock Biometric Sensor | Smart farming, remote telemetry & crop protection |
+| **Energy & Smart Grid** | ⚡ | Solar Inverter Gateway, EV Ultra-Fast Charger, Grid Substation RTU, Wind Turbine Anemometer, Transformer Thermal Sensor | Critical national infrastructure (CNI) & smart energy |
+
+### ✨ Auto-Enrich Existing SIM Fleet
+
+Instead of generating duplicate fictitious SIM entries in Strata Cloud Manager (SCM), the **"Auto-Enrich Fleet"** button enriches your **actual registered SIM cards** in SCM inventory:
+1. Click **"Auto-Enrich Fleet"** in the top action bar or **SIM Inventory** tab.
+2. Select an **Industry Vertical** (e.g. *Industrial IoT & Robotics*) or choose **Random / Mixed Verticals**.
+3. Choose an assignment strategy (*Equally across equipment* or *Random mix*).
+4. Click **"Apply Fleet Enrichment"**. All existing SIMs will immediately display realistic device types (e.g. *Autonomous Guided Vehicle (AGV)*), vertical badges, and industry icons.
+
+> [!NOTE]
+> **Zero Impact on SCM Identity Integrity**: Palo Alto Networks SCM rejects unrecognized JSON attributes. The portal stores industry metadata locally in `config/sim_metadata.json` (correlated via IMSI) and preserves pure hardware payloads for outbound SCM API calls.
+
+### 🔄 Dual View Mode: Industry Fleet vs Raw SCM
+
+Toggle between two display modes instantly from the **SIM Inventory** toolbar:
+- 🏭 **Industry Fleet View**: Displays equipment names, vertical badges, industry icons, and high-contrast typography.
+- ⚙️ **Raw SCM View**: Displays pure hardware identifiers (unfiltered IMSI, IMEI, APN) exactly as seen in the Strata Cloud Manager portal.
+
+### 🤖 Antigravity Trade Show Customization Skill
+
+The repository includes a specialized Antigravity Skill located at [`.agents/skills/sido-5g-demo/SKILL.md`](file:///.agents/skills/sido-5g-demo/SKILL.md). It provides:
+- **3-Minute Elevator Pitch & Storyline**: Framing Transatel NTT 5G Core + Palo Alto Networks Prisma SASE 5G as the premier zero-touch security architecture.
+- **Interactive Runbook**: Step-by-step instructions for switching subscriber groups from `Permissive` to `Restrictive` and demonstrating instant live block pages on connected devices.
+- **Strata Cloud Manager Log Correlation**: Exactly where to show threat logs and user plane security enforcement during a live customer demo.
 
 ---
 
@@ -296,7 +348,7 @@ python3 manage_5g.py debug-logs --limit 20
 Run the test suite covering all REST endpoints, authentication, SIM CRUD, group creation, group assignment, API debug logging, and system protections:
 
 ```bash
-# Run unit tests (33 passing tests)
+# Run unit tests (43 passing tests)
 ./.venv/bin/python -m unittest discover tests -v
 
 # Run end-to-end automated lifecycle test script
@@ -311,11 +363,17 @@ Interactive Swagger documentation is available at **[http://localhost:8000/docs]
 
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
-| `GET` | `/api/status` | System health, TSG status, and token preview |
+| `GET` | `/api/status` | System health, TSG status, version, and token preview |
+| `GET` | `/api/version` | Dynamic application version & Git commit build metadata |
+| `GET` | `/api/changelog` | Retrieve full changelog and release notes in Markdown |
 | `GET` | `/api/config` | Read current configuration (masked secret) |
 | `POST` | `/api/config` | Update `.env` credentials dynamically |
 | `POST` | `/api/config/test` | Test OAuth2 connection & tenant resolution |
 | `GET` | `/api/tenants` | List tenant hierarchy (Root MSP and child TSGs) |
+| `GET` | `/api/presets/verticals` | List all 7 industry verticals with equipment catalog |
+| `GET` | `/api/presets/random` | Generate realistic Transatel IMSI, IMEI & device preset |
+| `POST` | `/api/presets/enrich` | Auto-enrich existing registered SIMs with vertical profiles |
+| `POST` | `/api/metadata/clear` | Clear local SIM industry metadata overlay |
 | `GET` | `/api/ues` | List registered SIM cards with dynamic IP and status |
 | `POST` | `/api/ues` | Register new SIM card (optional session IP attach) |
 | `PUT` | `/api/ues/{id}` | Update SIM metadata and group assignment |
