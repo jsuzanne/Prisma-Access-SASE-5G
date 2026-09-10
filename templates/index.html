@@ -584,44 +584,85 @@
 
             <!-- TAB 1: SIM Inventory -->
             <div id="tab-sims" class="tab-content hidden space-y-4">
-                <!-- SCM Subheader: Search & Actions -->
-                <div class="flex flex-col sm:flex-row items-center justify-between gap-3">
-                    <div class="relative w-full sm:w-80">
-                        <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                        <input type="text" id="search-sims" oninput="filterSIMs()" placeholder="Search by IMSI, IMEI, APN or Group..." class="w-full pl-10 pr-4 py-2 bg-gray-900/60 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition">
+                <!-- SCM Subheader: Search, View Mode & Actions -->
+                <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+                    <div class="flex items-center gap-2 flex-1">
+                        <div class="relative flex-1 max-w-md">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                            <input type="text" id="search-sims" oninput="filterSIMs()" placeholder="Search by Memo, Equipment, IMSI, APN, Vertical..." class="w-full pl-10 pr-4 py-2 bg-gray-900/60 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition">
+                        </div>
+
+                        <!-- View Mode Toggle (Enriched IoT / SIDO vs Raw SCM) -->
+                        <div class="flex items-center p-0.5 bg-gray-950/80 rounded-xl border border-white/10 text-[11px] font-medium shrink-0">
+                            <button type="button" id="btn-mode-enriched" onclick="setInventoryViewMode('enriched')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-white bg-cyan-500/20 border border-cyan-500/30 shadow-sm" title="Enriched Industry Fleet View (Verticals, Device Types, Demo Memos)">
+                                <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
+                                <span class="hidden sm:inline">Industry Fleet View</span>
+                            </button>
+                            <button type="button" id="btn-mode-raw" onclick="setInventoryViewMode('raw')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-gray-400 hover:text-white" title="Direct Strata Cloud Manager Technical View">
+                                <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                                <span class="hidden sm:inline">Raw SCM View</span>
+                            </button>
+                        </div>
                     </div>
-                    <div class="flex items-center gap-2.5 text-xs text-gray-400 w-full sm:w-auto justify-between sm:justify-end">
+
+                    <div class="flex items-center gap-2 text-xs text-gray-400 justify-between lg:justify-end flex-wrap">
                         <span id="sim-count-badge" class="px-2.5 py-1 rounded-lg bg-white/5 text-[11px] font-mono text-gray-300">Loading...</span>
                         <button onclick="refreshSIMInventory(this)" class="p-2 rounded-xl glass-panel hover:bg-white/10 text-gray-300 hover:text-white transition cursor-pointer" title="Refresh SIM Inventory">
                             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
                         </button>
+                        <button onclick="handleClearMetadata()" class="px-2.5 py-1.5 rounded-xl glass-panel hover:border-red-500/40 text-[11px] text-gray-400 hover:text-red-300 transition" title="Clear all local SIM metadata (Return to 100% Raw SCM view)">
+                            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline"></i> Reset Metadata
+                        </button>
                         <button onclick="switchTab('tab-matrix')" class="px-3 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-[11px] text-orange-300 font-medium flex items-center gap-1.5 transition" title="Compare Web UI, CLI & Strata Cloud Manager">
                             <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM Guide
                         </button>
-                        <button onclick="openAddSimModal()" class="px-3.5 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition">
+                        <button onclick="openAutoPopulateModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer" title="Enrich existing SIMs with realistic IoT equipment names and verticals">
+                            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Auto-Enrich Fleet
+                        </button>
+                        <button onclick="openAddSimModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add New SIM
                         </button>
                     </div>
                 </div>
 
-                <!-- SIMs Table (SCM Layout) -->
+                <!-- Industry Vertical Filter Chips (Visible in Enriched Mode) -->
+                <div id="vertical-filter-container" class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 text-xs">
+                    <button onclick="filterByVertical('all')" id="chip-vertical-all" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 bg-cyan-500/20 text-cyan-300 border-cyan-500/40">
+                        <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i> All Industries
+                    </button>
+                    <button onclick="filterByVertical('ev_infrastructure')" id="chip-vertical-ev_infrastructure" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-amber-400 hover:border-amber-500/30">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> ⚡ EV Infra
+                    </button>
+                    <button onclick="filterByVertical('manufacturing')" id="chip-vertical-manufacturing" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-cyan-400 hover:border-cyan-500/30">
+                        <i data-lucide="bot" class="w-3.5 h-3.5 text-cyan-400"></i> 🤖 Industry 4.0
+                    </button>
+                    <button onclick="filterByVertical('retail')" id="chip-vertical-retail" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-emerald-400 hover:border-emerald-500/30">
+                        <i data-lucide="credit-card" class="w-3.5 h-3.5 text-emerald-400"></i> 💳 Retail & POS
+                    </button>
+                    <button onclick="filterByVertical('aviation')" id="chip-vertical-aviation" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-blue-400 hover:border-blue-500/30">
+                        <i data-lucide="plane" class="w-3.5 h-3.5 text-blue-400"></i> ✈️ Aviation
+                    </button>
+                    <button onclick="filterByVertical('automotive')" id="chip-vertical-automotive" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-purple-400 hover:border-purple-500/30">
+                        <i data-lucide="car" class="w-3.5 h-3.5 text-purple-400"></i> 🚗 Automotive
+                    </button>
+                    <button onclick="filterByVertical('public_transport')" id="chip-vertical-public_transport" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-rose-400 hover:border-rose-500/30">
+                        <i data-lucide="bus" class="w-3.5 h-3.5 text-rose-400"></i> 🚌 Transit
+                    </button>
+                    <button onclick="filterByVertical('smart_city')" id="chip-vertical-smart_city" class="px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-indigo-400 hover:border-indigo-500/30">
+                        <i data-lucide="building-2" class="w-3.5 h-3.5 text-indigo-400"></i> 🏙️ Smart City
+                    </button>
+                </div>
+
+                <!-- SIMs Table (SCM Layout with Enriched Mode support) -->
                 <div class="glass-panel rounded-2xl overflow-hidden border border-white/10">
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-gray-900/90 text-gray-400 uppercase tracking-wider font-semibold border-b border-white/10 text-[11px]">
-                                <tr>
-                                    <th class="px-5 py-3.5">IMSI</th>
-                                    <th class="px-5 py-3.5">IMEI</th>
-                                    <th class="px-5 py-3.5">APN</th>
-                                    <th class="px-5 py-3.5">Live IP / Status</th>
-                                    <th class="px-5 py-3.5">Tenant</th>
-                                    <th class="px-5 py-3.5">Subscriber Group</th>
-                                    <th class="px-5 py-3.5 text-right">Actions</th>
-                                </tr>
+                            <thead id="sims-table-head" class="bg-gray-900/90 text-gray-400 uppercase tracking-wider font-semibold border-b border-white/10 text-[11px]">
+                                <!-- Rendered dynamically by JS -->
                             </thead>
                             <tbody id="sims-table-body" class="divide-y divide-white/5 font-mono">
                                 <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                                         <div class="flex justify-center items-center gap-2">
                                             <i data-lucide="loader-2" class="w-4 h-4 animate-spin text-cyan-400"></i>
                                             Fetching registered SIMs...
@@ -1479,55 +1520,197 @@
         </footer>
     </div>
 
-    <!-- MODAL 1: Add SIM Modal -->
+    <!-- MODAL 1: Add SIM Modal (Enriched SIDO Presets & Manual) -->
     <div id="modal-add-sim" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel rounded-2xl max-w-md w-full p-6 space-y-5 border border-cyan-500/30 glow-cyan">
+        <div class="glass-panel rounded-2xl max-w-lg w-full p-6 space-y-4 border border-cyan-500/30 glow-cyan max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                         <i data-lucide="sim-card" class="w-4 h-4"></i>
                     </div>
-                    <h3 class="text-sm font-bold text-white">Register New 5G SIM</h3>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Register New 5G SIM (eSIM / Fleet)</h3>
+                        <p class="text-[11px] text-gray-400">Direct eSIM registration or industry fleet generation</p>
+                    </div>
                 </div>
                 <button onclick="closeAddSimModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
 
-            <form id="add-sim-form" onsubmit="handleAddSimSubmit(event)" class="space-y-4 text-xs">
-                <div>
-                    <label class="block text-gray-300 mb-1 font-medium">IMSI (15 digits)</label>
-                    <div class="flex gap-2">
-                        <input type="text" id="add-sim-imsi" required placeholder="208950..." class="flex-1 px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
-                        <button type="button" onclick="generateRandomIMSI()" class="px-3 py-2 bg-white/10 hover:bg-white/20 rounded-xl text-gray-300 text-[11px]">Generate</button>
+            <!-- 1-Click Quick Industry Presets Bar -->
+            <div class="space-y-1.5 p-3 rounded-xl bg-gray-950/70 border border-white/5">
+                <div class="flex items-center justify-between text-[11px]">
+                    <span class="font-semibold text-cyan-300 flex items-center gap-1">
+                        <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> 1-Click Industry Presets:
+                    </span>
+                    <span class="text-gray-400 text-[10px]">Quick SIDO fleet fill</span>
+                </div>
+                <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 pt-0.5">
+                    <button type="button" onclick="selectPresetInModal('ev_infrastructure')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-medium shrink-0 transition" title="Ultra-Fast EV Charger">
+                        ⚡ EVSE Charger
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('manufacturing')" class="px-2 py-1 rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-[10px] font-medium shrink-0 transition" title="Industrial AGV / Factory 4.0 Robot">
+                        🤖 Factory Robot
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('retail')" class="px-2 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-medium shrink-0 transition" title="POS Payment Terminal">
+                        💳 Retail POS
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('aviation')" class="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[10px] font-medium shrink-0 transition" title="Maintenance Technician iPad">
+                        ✈️ Avionics iPad
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('automotive')" class="px-2 py-1 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-medium shrink-0 transition" title="Vehicle Telematics Unit">
+                        🚗 Auto Telematics
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('public_transport')" class="px-2 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-medium shrink-0 transition" title="Transit Router / NFC Validator">
+                        🚌 Transit Router
+                    </button>
+                    <button type="button" onclick="selectPresetInModal('smart_city')" class="px-2 py-1 rounded-lg bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 text-[10px] font-medium shrink-0 transition" title="Smart Water/Grid Concentrator">
+                        🏙️ Smart Meter
+                    </button>
+                </div>
+            </div>
+
+            <form id="add-sim-form" onsubmit="handleAddSimSubmit(event)" class="space-y-3.5 text-xs">
+                <!-- Vertical & Equipment Selection -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Industry Vertical</label>
+                        <select id="add-sim-vertical" onchange="onAddSimVerticalChange()" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- Generic / No Vertical --</option>
+                            <option value="ev_infrastructure">⚡ EV Infrastructure</option>
+                            <option value="manufacturing">🤖 Manufacturing / Industry 4.0</option>
+                            <option value="retail">💳 Retail & Smart Commerce</option>
+                            <option value="aviation">✈️ Aviation & Ground Ops</option>
+                            <option value="automotive">🚗 Automotive & Telematics</option>
+                            <option value="public_transport">🚌 Public Transport & Fleet</option>
+                            <option value="smart_city">🏙️ Smart City & Utilities</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Equipment / Device Type</label>
+                        <div class="relative">
+                            <input type="text" id="add-sim-device-type" placeholder="e.g. EV Fast-Charger OCPI Gateway" list="add-sim-device-options" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <datalist id="add-sim-device-options"></datalist>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Custom Stand Demo Label / Memo -->
                 <div>
-                    <label class="block text-gray-300 mb-1 font-medium">IMEI (15 digits)</label>
-                    <input type="text" id="add-sim-imei" required placeholder="860123..." class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    <label class="block text-gray-300 mb-1 font-medium">
+                        Demo Memo / Device Label <span class="text-[10px] text-gray-400 font-normal">(Optional - Reference for physical test devices)</span>
+                    </label>
+                    <input type="text" id="add-sim-memo" placeholder="e.g. SIDO Demo iPad (Engineer), Booth iPhone 15 Pro, Gateway #1..." class="w-full px-3.5 py-2 bg-gray-900 border border-cyan-500/30 rounded-xl text-cyan-300 font-sans focus:border-cyan-400 focus:outline-none placeholder-gray-600">
                 </div>
-                <div>
-                    <label class="block text-gray-300 mb-1 font-medium">APN (Access Point Name)</label>
-                    <input type="text" id="add-sim-apn" value="sasetest" required class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none">
+
+                <!-- 3GPP Technical Identifiers -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <label class="text-gray-300 font-medium">IMSI (15 digits) <span class="text-rose-400">*</span></label>
+                            <button type="button" onclick="generateRandomIMSI()" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-medium">Generate 3GPP</button>
+                        </div>
+                        <input type="text" id="add-sim-imsi" required placeholder="20895..." class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">IMEI (15 digits) <span class="text-rose-400">*</span></label>
+                        <input type="text" id="add-sim-imei" required placeholder="860123..." class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
                 </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">APN (Access Point Name)</label>
+                        <input type="text" id="add-sim-apn" value="sasetest" required class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Security User Group (Dynamic)</label>
+                        <select id="add-sim-group" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- None (Unassigned) --</option>
+                        </select>
+                    </div>
+                </div>
+
                 <div>
                     <label class="block text-gray-300 mb-1 font-medium">Target Tenant Service Group</label>
                     <select id="add-sim-tsg" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
                     </select>
                 </div>
-                <div class="pt-2 border-t border-white/10">
+
+                <div class="pt-1.5 border-t border-white/10">
                     <label class="flex items-center gap-2 cursor-pointer">
                         <input type="checkbox" id="add-sim-auto-session" checked class="rounded border-gray-700 text-cyan-500 focus:ring-0">
-                        <span class="text-gray-300 text-[11px]">Immediately attach 5G Session IP (<span class="font-mono text-cyan-400">10.56.0.195</span>)</span>
+                        <span class="text-gray-300 text-[11px]">Immediately register active 5G session IP (<span class="font-mono text-cyan-400">10.56.0.195</span>)</span>
                     </label>
                 </div>
-                <div class="flex items-center justify-end gap-3 pt-3">
+
+                <div class="flex items-center justify-end gap-3 pt-2">
                     <button type="button" onclick="closeAddSimModal()" class="px-4 py-2 rounded-xl glass-panel text-gray-400 hover:text-white">Cancel</button>
-                    <button type="submit" id="btn-submit-add-sim" class="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-black font-semibold flex items-center gap-1.5">
+                    <button type="submit" id="btn-submit-add-sim" class="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-semibold flex items-center gap-1.5 shadow">
                         <i data-lucide="check" class="w-4 h-4"></i> Create SIM
                     </button>
                 </div>
             </form>
         </div>
     </div>
+
+    <!-- MODAL 6: Auto-Enrich Existing Fleet Modal -->
+    <div id="modal-auto-populate" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-2xl max-w-lg w-full p-6 space-y-4 border border-amber-500/30 glow-amber max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                <div class="flex items-center space-x-2.5">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-400">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-white">Auto-Enrich Existing SIM Fleet</h3>
+                        <p class="text-[11px] text-gray-400">Enrich your existing SCM inventory with realistic industry verticals & device types</p>
+                    </div>
+                </div>
+                <button onclick="closeAutoPopulateModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
+            </div>
+
+            <!-- Demo Info Banner -->
+            <div class="p-3 rounded-xl bg-gray-950/70 border border-white/5 space-y-1 text-xs">
+                <div class="flex items-center gap-1.5 text-amber-300 font-semibold">
+                    <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Zero-Touch Metadata Enrichment
+                </div>
+                <p class="text-[11px] text-gray-400">
+                    Replaces generic <span class="font-mono text-cyan-300">"5G Connected Device"</span> labels on your existing SIM cards with realistic equipment types, industry verticals, and demo memos.
+                </p>
+            </div>
+
+            <form id="auto-populate-form" onsubmit="handleAutoPopulateSubmit(event)" class="space-y-3.5 text-xs">
+                <div>
+                    <label class="block text-gray-300 mb-1 font-medium">Industry Vertical Profile</label>
+                    <select id="auto-pop-vertical" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-amber-400 focus:outline-none">
+                        <option value="all">🌟 Distribute Across All 7 Industry Verticals</option>
+                        <option value="ev_infrastructure">⚡ EV Infrastructure (EVSE Fast-Chargers, 350kW Hub Units)</option>
+                        <option value="manufacturing">🤖 Manufacturing / Industry 4.0 (Robotics, AGVs, PLCs)</option>
+                        <option value="retail">💳 Retail & Smart Commerce (POS Terminals, Self-Checkouts)</option>
+                        <option value="aviation">✈️ Aviation & Ground Ops (Maintenance iPads, GPUs)</option>
+                        <option value="automotive">🚗 Automotive & Telematics (TCUs, Fleet Trackers)</option>
+                        <option value="public_transport">🚌 Public Transport & Fleet (Bus Routers, NFC Validators)</option>
+                        <option value="smart_city">🏙️ Smart City & Utilities (Smart Meters, Sensors)</option>
+                    </select>
+                </div>
+
+                <div class="pt-1.5 border-t border-white/10">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" id="auto-pop-overwrite" checked class="rounded border-gray-700 text-amber-500 focus:ring-0">
+                        <span class="text-gray-300 text-[11px]">Overwrite metadata on all existing SIM cards in inventory</span>
+                    </label>
+                </div>
+
+                <div class="flex items-center justify-end gap-3 pt-2">
+                    <button type="button" onclick="closeAutoPopulateModal()" class="px-4 py-2 rounded-xl glass-panel text-gray-400 hover:text-white">Cancel</button>
+                    <button type="submit" id="btn-submit-auto-populate" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-black font-semibold flex items-center gap-1.5 shadow transition cursor-pointer">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i> Enrich Existing Fleet
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- MODAL 2: Settings & Credentials (.env) -->
     <div id="modal-settings" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
@@ -1588,47 +1771,81 @@
         </div>
     </div>
 
-    <!-- MODAL 3: Edit 5G Identity (SCM Style) -->
+    <!-- MODAL 3: Edit 5G Identity & Metadata (SCM Style + SIDO Fields) -->
     <div id="modal-edit-sim" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
-        <div class="glass-panel rounded-2xl max-w-md w-full p-6 space-y-5 border border-cyan-500/30 glow-cyan">
+        <div class="glass-panel rounded-2xl max-w-lg w-full p-6 space-y-4 border border-cyan-500/30 glow-cyan max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
                 <div class="flex items-center space-x-2.5">
                     <div class="w-8 h-8 rounded-lg bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
                         <i data-lucide="edit-3" class="w-4 h-4"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-white">Edit 5G Identity</h3>
+                        <h3 class="text-sm font-bold text-white">Edit 5G Identity & Metadata</h3>
                         <p class="text-[10px] text-gray-400 font-mono" id="edit-sim-id-label">ID: ...</p>
                     </div>
                 </div>
                 <button onclick="closeEditSimModal()" class="text-gray-400 hover:text-white"><i data-lucide="x" class="w-4 h-4"></i></button>
             </div>
 
-            <form id="edit-sim-form" onsubmit="handleEditSimSubmit(event)" class="space-y-4 text-xs">
+            <form id="edit-sim-form" onsubmit="handleEditSimSubmit(event)" class="space-y-3.5 text-xs">
                 <input type="hidden" id="edit-sim-identity-id">
+                
+                <!-- Demo Memo / Device Label -->
                 <div>
-                    <label class="block text-gray-300 mb-1 font-medium">IMSI <span class="text-rose-400">*</span></label>
-                    <input type="text" id="edit-sim-imsi" required placeholder="e.g. 901370001420683" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    <label class="block text-gray-300 mb-1 font-medium">Demo Memo / Device Label</label>
+                    <input type="text" id="edit-sim-memo" placeholder="e.g. SIDO Demo iPad (Engineer), Booth iPhone 15 Pro..." class="w-full px-3.5 py-2 bg-gray-900 border border-cyan-500/30 rounded-xl text-cyan-300 font-sans focus:border-cyan-400 focus:outline-none">
                 </div>
-                <div>
-                    <label class="block text-gray-300 mb-1 font-medium">IMEI (Optional)</label>
-                    <input type="text" id="edit-sim-imei" placeholder="000000000000000" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Industry Vertical</label>
+                        <select id="edit-sim-vertical" onchange="onEditSimVerticalChange()" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- Generic / No Vertical --</option>
+                            <option value="ev_infrastructure">⚡ EV Infrastructure</option>
+                            <option value="manufacturing">🤖 Manufacturing / Industry 4.0</option>
+                            <option value="retail">💳 Retail & Smart Commerce</option>
+                            <option value="aviation">✈️ Aviation & Ground Ops</option>
+                            <option value="automotive">🚗 Automotive & Telematics</option>
+                            <option value="public_transport">🚌 Public Transport & Fleet</option>
+                            <option value="smart_city">🏙️ Smart City & Utilities</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Equipment / Device Type</label>
+                        <input type="text" id="edit-sim-device-type" placeholder="e.g. EV Fast-Charger OCPI Gateway" list="edit-sim-device-options" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                        <datalist id="edit-sim-device-options"></datalist>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-gray-300 mb-1 font-medium">APN <span class="text-rose-400">*</span></label>
-                    <input type="text" id="edit-sim-apn" required placeholder="sase" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none">
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">IMSI <span class="text-rose-400">*</span></label>
+                        <input type="text" id="edit-sim-imsi" required placeholder="e.g. 20895..." class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">IMEI (Optional)</label>
+                        <input type="text" id="edit-sim-imei" placeholder="000000000000000" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-gray-300 mb-1 font-medium">Subscriber Group</label>
-                    <select id="edit-sim-group" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
-                        <option value="">-- None (Unassigned) --</option>
-                    </select>
-                    <p class="text-[10px] text-gray-400 mt-1">Assigns this SIM identity to a Zero-Trust security profile (e.g. Restrictive or Permissive).</p>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">APN <span class="text-rose-400">*</span></label>
+                        <input type="text" id="edit-sim-apn" required placeholder="sase" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-gray-300 mb-1 font-medium">Subscriber Group (Dynamic)</label>
+                        <select id="edit-sim-group" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- None (Unassigned) --</option>
+                        </select>
+                    </div>
                 </div>
+
                 <div>
                     <label class="block text-gray-300 mb-1 font-medium">Tenant Service Group (TSG)</label>
                     <input type="text" id="edit-sim-tsg" readonly class="w-full px-3.5 py-2 bg-gray-900/50 border border-white/5 rounded-xl text-gray-400 font-mono">
                 </div>
+
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
                     <button type="button" onclick="closeEditSimModal()" class="px-4 py-2 rounded-xl glass-panel text-gray-400 hover:text-white">Cancel</button>
                     <button type="submit" id="btn-save-edit-sim" class="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold flex items-center gap-1.5 shadow-lg">
@@ -2154,6 +2371,252 @@
             }
         }
 
+        // State variables for Vertical Presets & View Modes
+        let allVerticals = [];
+        let activeVerticalFilter = 'all';
+        let inventoryViewMode = localStorage.getItem('prisma_5g_sim_view_mode') || 'enriched';
+
+        // Helper to format vertical display name and icon
+        function getVerticalIcon(verticalId) {
+            const map = {
+                'ev_infrastructure': 'zap',
+                'manufacturing': 'bot',
+                'retail': 'credit-card',
+                'aviation': 'plane',
+                'automotive': 'car',
+                'public_transport': 'bus',
+                'smart_city': 'building-2'
+            };
+            return map[verticalId] || 'smartphone';
+        }
+
+        function getVerticalName(verticalId) {
+            const map = {
+                'ev_infrastructure': 'EV Infrastructure',
+                'manufacturing': 'Industry 4.0',
+                'retail': 'Retail & POS',
+                'aviation': 'Aviation',
+                'automotive': 'Automotive',
+                'public_transport': 'Transport',
+                'smart_city': 'Smart City'
+            };
+            return map[verticalId] || verticalId || 'IoT Fleet';
+        }
+
+        // Fetch Vertical Catalog Presets
+        async function fetchVerticalPresets() {
+            try {
+                const res = await fetch('/api/presets/verticals');
+                const data = await res.json();
+                allVerticals = data.data || [];
+                updateDatalistOptions('add-sim-device-options', '');
+                updateDatalistOptions('edit-sim-device-options', '');
+            } catch (e) {
+                console.warn("Could not load vertical presets catalog", e);
+            }
+        }
+
+        function updateDatalistOptions(datalistId, selectedVertical) {
+            const dl = document.getElementById(datalistId);
+            if (!dl) return;
+            let options = [];
+            if (selectedVertical) {
+                const v = allVerticals.find(item => item.id === selectedVertical);
+                if (v && v.equipment_types) {
+                    options = v.equipment_types;
+                }
+            } else {
+                allVerticals.forEach(v => {
+                    if (v.equipment_types) options.push(...v.equipment_types);
+                });
+            }
+            dl.innerHTML = options.map(opt => `<option value="${opt}"></option>`).join('');
+        }
+
+        function onAddSimVerticalChange() {
+            const v = document.getElementById('add-sim-vertical').value;
+            updateDatalistOptions('add-sim-device-options', v);
+            const found = allVerticals.find(item => item.id === v);
+            if (found && found.equipment_types && found.equipment_types.length > 0) {
+                document.getElementById('add-sim-device-type').value = found.equipment_types[0];
+            }
+            // Suggest group if available
+            if (found && found.suggested_group) {
+                const groupSelect = document.getElementById('add-sim-group');
+                if (groupSelect) {
+                    const matchOpt = Array.from(groupSelect.options).find(o => o.text.toLowerCase().includes(found.suggested_group.toLowerCase()));
+                    if (matchOpt) groupSelect.value = matchOpt.value;
+                }
+            }
+        }
+
+        function onEditSimVerticalChange() {
+            const v = document.getElementById('edit-sim-vertical').value;
+            updateDatalistOptions('edit-sim-device-options', v);
+        }
+
+        // 1-Click Preset Selection in Add SIM Modal
+        function selectPresetInModal(verticalId) {
+            const v = allVerticals.find(item => item.id === verticalId);
+            generateRandomIMSI();
+
+            const vSelect = document.getElementById('add-sim-vertical');
+            if (vSelect) {
+                vSelect.value = verticalId;
+                onAddSimVerticalChange();
+            }
+
+            if (v && v.equipment_types && v.equipment_types.length > 0) {
+                const randomEq = v.equipment_types[Math.floor(Math.random() * v.equipment_types.length)];
+                document.getElementById('add-sim-device-type').value = randomEq;
+            }
+
+            // Auto-select suggested group
+            if (v && v.suggested_group) {
+                const groupSelect = document.getElementById('add-sim-group');
+                if (groupSelect) {
+                    const matchOpt = Array.from(groupSelect.options).find(o => o.text.toLowerCase().includes(v.suggested_group.toLowerCase()));
+                    if (matchOpt) groupSelect.value = matchOpt.value;
+                }
+            }
+
+            showToast("Preset Loaded", `Configured preset for: ${v ? v.name : verticalId}`);
+        }
+
+        // Auto-Enrich Existing Fleet Modal Handlers
+        function openAutoPopulateModal() {
+            document.getElementById('modal-auto-populate').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function closeAutoPopulateModal() {
+            document.getElementById('modal-auto-populate').classList.add('hidden');
+        }
+
+        async function handleAutoPopulateSubmit(event) {
+            event.preventDefault();
+            const btn = document.getElementById('btn-submit-auto-populate');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin inline mr-1.5"></i> Enriching Existing Fleet...';
+            btn.disabled = true;
+
+            const vertical = document.getElementById('auto-pop-vertical').value;
+            const overwrite = document.getElementById('auto-pop-overwrite').checked;
+
+            try {
+                const res = await fetch('/api/presets/enrich', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        vertical: vertical,
+                        overwrite: overwrite
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast("Fleet Enriched", data.message || `Enriched ${data.count} existing devices.`);
+                    closeAutoPopulateModal();
+                    await fetchSIMs();
+                } else {
+                    showToast("Enrichment Error", data.detail || data.message || "Failed to enrich fleet", true);
+                }
+            } catch (err) {
+                showToast("Network Error", err.message, true);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
+        // View Mode Switcher (Enriched vs Raw SCM)
+        function setInventoryViewMode(mode) {
+            inventoryViewMode = mode;
+            localStorage.setItem('prisma_5g_sim_view_mode', mode);
+
+            const btnEnriched = document.getElementById('btn-mode-enriched');
+            const btnRaw = document.getElementById('btn-mode-raw');
+            const filterContainer = document.getElementById('vertical-filter-container');
+
+            if (mode === 'enriched') {
+                if (btnEnriched) btnEnriched.className = "px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-white bg-cyan-500/20 border border-cyan-500/30 shadow-sm";
+                if (btnRaw) btnRaw.className = "px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-gray-400 hover:text-white";
+                if (filterContainer) filterContainer.classList.remove('hidden');
+            } else {
+                if (btnEnriched) btnEnriched.className = "px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-gray-400 hover:text-white";
+                if (btnRaw) btnRaw.className = "px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-white bg-purple-500/20 border border-purple-500/30 shadow-sm";
+                if (filterContainer) filterContainer.classList.add('hidden');
+            }
+
+            renderSIMsTable(allSIMs);
+            lucide.createIcons();
+        }
+
+        // Industry Vertical Filter Chip Logic
+        function filterByVertical(verticalId) {
+            activeVerticalFilter = verticalId;
+            const chips = ['all', 'ev_infrastructure', 'manufacturing', 'retail', 'aviation', 'automotive', 'public_transport', 'smart_city'];
+            
+            chips.forEach(c => {
+                const btn = document.getElementById(`chip-vertical-${c}`);
+                if (btn) {
+                    if (c === verticalId) {
+                        btn.className = "px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow";
+                    } else {
+                        btn.className = "px-3 py-1 rounded-xl text-[11px] font-medium transition border flex items-center gap-1.5 glass-panel text-gray-300 hover:text-white hover:border-white/20";
+                    }
+                }
+            });
+
+            filterSIMs();
+        }
+
+        // Clear Local Metadata (Reset to Raw SCM)
+        async function handleClearMetadata() {
+            if (!confirm("Do you want to reset all local business metadata (verticals, equipment types, demo memos) and return to 100% Raw Strata Cloud Manager view?")) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/metadata/clear', { method: 'POST' });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast("Metadata Reset", "Inventory reset to raw SCM view.");
+                    await fetchSIMs();
+                } else {
+                    showToast("Reset Error", data.detail || "Failed", true);
+                }
+            } catch (err) {
+                showToast("Network Error", err.message, true);
+            }
+        }
+
+        // Dynamic Group Badges Styling (Supports arbitrary custom group names)
+        function getDynamicGroupBadges(groups, identityId) {
+            if (!groups || groups.length === 0) {
+                return `<span onclick="openEditSimModal('${identityId}')" class="text-gray-500 text-[11px] hover:text-cyan-400 cursor-pointer font-sans" title="Click to assign group">+ Assign Group</span>`;
+            }
+
+            return groups.map(g => {
+                const gName = g.name || g.group_name || 'Group';
+                const lower = gName.toLowerCase();
+                let colorClass = 'text-cyan-300 bg-cyan-500/10 border-cyan-500/30';
+
+                if (lower.includes('permissive')) {
+                    colorClass = 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+                } else if (lower.includes('restrictive')) {
+                    colorClass = 'text-purple-300 bg-purple-500/10 border-purple-500/30';
+                } else if (lower.includes('kiosk') || lower.includes('iot') || lower.includes('sensor')) {
+                    colorClass = 'text-amber-300 bg-amber-500/10 border-amber-500/30';
+                } else if (lower.includes('vip') || lower.includes('vehicle') || lower.includes('telematics')) {
+                    colorClass = 'text-blue-300 bg-blue-500/10 border-blue-500/30';
+                } else if (lower.includes('guest') || lower.includes('transit')) {
+                    colorClass = 'text-rose-300 bg-rose-500/10 border-rose-500/30';
+                }
+
+                return `<span onclick="openEditSimModal('${identityId}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-medium border ${colorClass} hover:brightness-125 cursor-pointer transition shadow-sm" title="Click to change security group">${gName}</span>`;
+            }).join(' ');
+        }
+
         // Fetch SIMs Inventory
         async function fetchSIMs() {
             try {
@@ -2163,19 +2626,50 @@
                 renderSIMsTable(allSIMs);
                 renderSummaryUEMappings(allSIMs);
             } catch (e) {
-                document.getElementById('sims-table-body').innerHTML = `
-                    <tr><td colspan="5" class="px-6 py-6 text-center text-red-400">Failed to load SIM inventory: ${e.message}</td></tr>
-                `;
+                const tbody = document.getElementById('sims-table-body');
+                if (tbody) {
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-6 text-center text-red-400">Failed to load SIM inventory: ${e.message}</td></tr>`;
+                }
             }
         }
 
         function renderSIMsTable(sims) {
             const tbody = document.getElementById('sims-table-body');
-            document.getElementById('sim-count-badge').innerText = `Total: ${sims.length} SIM card(s)`;
+            const thead = document.getElementById('sims-table-head');
+            const countBadge = document.getElementById('sim-count-badge');
+            if (countBadge) countBadge.innerText = `Total: ${sims.length} SIM card(s)`;
+
+            // Render Head based on active view mode
+            if (thead) {
+                if (inventoryViewMode === 'enriched') {
+                    thead.innerHTML = `
+                        <tr>
+                            <th class="px-5 py-3.5">Device & Industry Vertical</th>
+                            <th class="px-5 py-3.5">Live 5G IP / Status</th>
+                            <th class="px-5 py-3.5">Tenant</th>
+                            <th class="px-5 py-3.5">APN</th>
+                            <th class="px-5 py-3.5">Security Group</th>
+                            <th class="px-5 py-3.5 text-right">Actions</th>
+                        </tr>
+                    `;
+                } else {
+                    thead.innerHTML = `
+                        <tr>
+                            <th class="px-5 py-3.5">IMSI</th>
+                            <th class="px-5 py-3.5">IMEI</th>
+                            <th class="px-5 py-3.5">APN</th>
+                            <th class="px-5 py-3.5">Live IP / Status</th>
+                            <th class="px-5 py-3.5">Tenant</th>
+                            <th class="px-5 py-3.5">Subscriber Group</th>
+                            <th class="px-5 py-3.5 text-right">Actions</th>
+                        </tr>
+                    `;
+                }
+            }
 
             if (!sims || sims.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="6" class="px-6 py-8 text-center text-gray-500">No SIM cards found in tenant inventory.</td></tr>
+                    <tr><td colspan="7" class="px-6 py-8 text-center text-gray-500 font-sans">No SIM cards found matching search criteria.</td></tr>
                 `;
                 return;
             }
@@ -2183,73 +2677,137 @@
             tbody.innerHTML = sims.map(sim => {
                 const identityId = sim.identity_id || '';
                 const groups = sim.groups || [];
-                const groupBadges = groups.length > 0
-                    ? groups.map(g => {
-                        const gName = g.name || g.group_name || 'Group';
-                        const isPerm = gName.toLowerCase().includes('permissive');
-                        const color = isPerm ? 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30' : 'text-purple-300 bg-purple-500/10 border-purple-500/30';
-                        return `<span onclick="openEditSimModal('${identityId}')" class="px-2.5 py-0.5 rounded-full text-[10px] font-sans font-medium border ${color} hover:brightness-125 cursor-pointer transition" title="Click to change group">${gName}</span>`;
-                    }).join(' ')
-                    : `<span onclick="openEditSimModal('${identityId}')" class="text-gray-500 text-[11px] hover:text-cyan-400 cursor-pointer font-sans" title="Click to assign group">+ Assign Group</span>`;
+                const groupBadges = getDynamicGroupBadges(groups, identityId);
 
                 const isActive = sim.status === 'Active' || Boolean(sim.ipv4_addr);
                 const ipDisplay = sim.ipv4_addr
                     ? `<div class="flex items-center gap-1.5 font-mono text-cyan-400 font-semibold"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> ${sim.ipv4_addr}</div>`
                     : `<div class="flex items-center gap-1.5 text-gray-500 font-sans text-[11px]"><span class="w-1.5 h-1.5 rounded-full bg-red-500/60"></span> Inactive</div>`;
 
-                return `
-                    <tr class="hover:bg-white/5 transition">
-                        <td class="px-5 py-3.5">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
-                                <div>
-                                    <div class="font-bold text-white font-mono">${sim.imsi}</div>
-                                    ${identityId ? `<div class="text-[10px] text-gray-500 font-mono">ID: ${identityId.substring(0, 10)}...</div>` : ''}
+                if (inventoryViewMode === 'enriched') {
+                    // Rich Business / IoT Fleet View
+                    const iconName = sim.icon || getVerticalIcon(sim.vertical);
+                    const deviceName = sim.device_type || '5G Connected Device';
+                    const verticalName = getVerticalName(sim.vertical);
+
+                    const memoBadge = (sim.custom_label && !sim.custom_label.startsWith('SIDO '))
+                        ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-sans font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1" title="Custom Memo"><i data-lucide="tag" class="w-3 h-3"></i> ${sim.custom_label}</span>`
+                        : '';
+
+                    const verticalBadge = sim.vertical
+                        ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-sans text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 font-medium">${verticalName}</span>`
+                        : '';
+
+                    return `
+                        <tr class="hover:bg-white/5 transition">
+                            <td class="px-5 py-3.5">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 shrink-0">
+                                        <i data-lucide="${iconName}" class="w-4 h-4"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="text-sm font-semibold text-white font-sans">${deviceName}</span>
+                                            ${verticalBadge}
+                                            ${memoBadge}
+                                        </div>
+                                        <div class="text-xs text-gray-400 font-mono flex items-center gap-2">
+                                            <span class="text-gray-300 font-medium">${sim.imsi}</span>
+                                            ${sim.imei && sim.imei !== '000000000000000' ? `<span class="text-gray-500">• IMEI: ${sim.imei}</span>` : ''}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                        </td>
-                        <td class="px-5 py-3.5 text-gray-300 font-mono">
-                            ${sim.imei || '<span class="text-gray-600 font-sans">N/A</span>'}
-                        </td>
-                        <td class="px-5 py-3.5">
-                            <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[11px] font-mono">${sim.apn}</span>
-                        </td>
-                        <td class="px-5 py-3.5">
-                            ${ipDisplay}
-                        </td>
-                        <td class="px-5 py-3.5">
-                            <div class="text-gray-300 font-sans text-xs">${sim.tenant_name || 'Tenant'}</div>
-                            <div class="text-gray-500 text-[10px] font-mono">TSG: ${sim.tsg_id || 'N/A'}</div>
-                        </td>
-                        <td class="px-5 py-3.5 font-sans">
-                            ${groupBadges}
-                        </td>
-                        <td class="px-5 py-3.5 text-right space-x-1.5 font-sans">
-                            <button onclick="openEditSimModal('${identityId}')" class="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs transition" title="Edit 5G Identity & Group">
-                                <i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit
-                            </button>
-                            <button onclick="prefillSession('${sim.imsi}', '${sim.imei}', '${sim.apn}')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs transition" title="Connect 5G Session">
-                                <i data-lucide="zap" class="w-3.5 h-3.5 inline"></i>
-                            </button>
-                            <button onclick="handleDeleteSIM('${identityId}', '${sim.imsi}')" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete SIM">
-                                <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                            </td>
+                            <td class="px-5 py-3.5">
+                                ${ipDisplay}
+                            </td>
+                            <td class="px-5 py-3.5">
+                                <div class="text-gray-300 font-sans text-xs">${sim.tenant_name || 'Tenant'}</div>
+                                <div class="text-gray-500 text-[10px] font-mono">TSG: ${sim.tsg_id || 'N/A'}</div>
+                            </td>
+                            <td class="px-5 py-3.5">
+                                <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[11px] font-mono">${sim.apn}</span>
+                            </td>
+                            <td class="px-5 py-3.5 font-sans">
+                                ${groupBadges}
+                            </td>
+                            <td class="px-5 py-3.5 text-right space-x-1.5 font-sans">
+                                <button onclick="openEditSimModal('${identityId}')" class="px-2.5 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs transition" title="Edit 5G Identity & Metadata">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit
+                                </button>
+                                <button onclick="prefillSession('${sim.imsi}', '${sim.imei}', '${sim.apn}')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs transition" title="Connect 5G Session">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5 inline"></i>
+                                </button>
+                                <button onclick="handleDeleteSIM('${identityId}', '${sim.imsi}')" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete SIM">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                } else {
+                    // Pure / Raw Standard SCM View
+                    return `
+                        <tr class="hover:bg-white/5 transition">
+                            <td class="px-5 py-3.5">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
+                                    <div>
+                                        <div class="font-bold text-white font-mono">${sim.imsi}</div>
+                                        ${identityId ? `<div class="text-[10px] text-gray-500 font-mono">ID: ${identityId.substring(0, 10)}...</div>` : ''}
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-5 py-3.5 text-gray-300 font-mono">
+                                ${sim.imei || '<span class="text-gray-600 font-sans">N/A</span>'}
+                            </td>
+                            <td class="px-5 py-3.5">
+                                <span class="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/20 text-[11px] font-mono">${sim.apn}</span>
+                            </td>
+                            <td class="px-5 py-3.5">
+                                ${ipDisplay}
+                            </td>
+                            <td class="px-5 py-3.5">
+                                <div class="text-gray-300 font-sans text-xs">${sim.tenant_name || 'Tenant'}</div>
+                                <div class="text-gray-500 text-[10px] font-mono">TSG: ${sim.tsg_id || 'N/A'}</div>
+                            </td>
+                            <td class="px-5 py-3.5 font-sans">
+                                ${groupBadges}
+                            </td>
+                            <td class="px-5 py-3.5 text-right space-x-1.5 font-sans">
+                                <button onclick="openEditSimModal('${identityId}')" class="px-2 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs transition" title="Edit 5G Identity & Group">
+                                    <i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit
+                                </button>
+                                <button onclick="prefillSession('${sim.imsi}', '${sim.imei}', '${sim.apn}')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs transition" title="Connect 5G Session">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5 inline"></i>
+                                </button>
+                                <button onclick="handleDeleteSIM('${identityId}', '${sim.imsi}')" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete SIM">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    `;
+                }
             }).join('');
             lucide.createIcons();
         }
 
         function filterSIMs() {
             const q = document.getElementById('search-sims').value.toLowerCase();
-            const filtered = allSIMs.filter(s => 
-                (s.imsi && s.imsi.toLowerCase().includes(q)) ||
-                (s.imei && s.imei.toLowerCase().includes(q)) ||
-                (s.apn && s.apn.toLowerCase().includes(q)) ||
-                (s.tenant_name && s.tenant_name.toLowerCase().includes(q)) ||
-                (s.groups && s.groups.some(g => (g.name || g.group_name || '').toLowerCase().includes(q)))
-            );
+            const filtered = allSIMs.filter(s => {
+                const matchesQ = (
+                    (s.imsi && s.imsi.toLowerCase().includes(q)) ||
+                    (s.imei && s.imei.toLowerCase().includes(q)) ||
+                    (s.apn && s.apn.toLowerCase().includes(q)) ||
+                    (s.tenant_name && s.tenant_name.toLowerCase().includes(q)) ||
+                    (s.custom_label && s.custom_label.toLowerCase().includes(q)) ||
+                    (s.device_type && s.device_type.toLowerCase().includes(q)) ||
+                    (s.vertical && s.vertical.toLowerCase().includes(q)) ||
+                    (s.groups && s.groups.some(g => (g.name || g.group_name || '').toLowerCase().includes(q)))
+                );
+
+                const matchesVertical = (activeVerticalFilter === 'all') || (s.vertical === activeVerticalFilter);
+                return matchesQ && matchesVertical;
+            });
             renderSIMsTable(filtered);
         }
 
@@ -2260,8 +2818,20 @@
                 const data = await res.json();
                 allGroups = data.data || [];
                 renderGroups(allGroups);
+                updateSimModalsGroupDropdowns();
             } catch (e) {
                 console.error("Groups fetch error", e);
+            }
+        }
+
+        function updateSimModalsGroupDropdowns() {
+            const addGroupSelect = document.getElementById('add-sim-group');
+            if (addGroupSelect) {
+                const curVal = addGroupSelect.value;
+                addGroupSelect.innerHTML = `<option value="">-- None (Unassigned) --</option>` + allGroups.map(g => {
+                    return `<option value="${g.group_id}">${g.name} (${g.user_count || 0} members)</option>`;
+                }).join('');
+                if (curVal) addGroupSelect.value = curVal;
             }
         }
 
@@ -2325,7 +2895,7 @@
             if (cardsContainer) {
                 cardsContainer.innerHTML = groups.map(g => {
                     const isPermissive = (g.name || '').toLowerCase().includes('permissive');
-                    const colorClass = isPermissive ? 'emerald' : 'rose';
+                    const colorClass = isPermissive ? 'emerald' : 'purple';
                     const count = g.user_count !== undefined && g.user_count !== null ? g.user_count : (g.identity_ids ? g.identity_ids.length : 0);
 
                     return `
@@ -2365,7 +2935,7 @@
             renderGroups(filtered);
         }
 
-        // Edit SIM Modal Functions (SCM Drawer Replica)
+        // Edit SIM Modal Functions (SCM Drawer Replica + SIDO Fields)
         function openEditSimModal(identityId) {
             const sim = allSIMs.find(s => s.identity_id === identityId);
             if (!sim) {
@@ -2379,8 +2949,13 @@
             document.getElementById('edit-sim-imei').value = sim.imei || '';
             document.getElementById('edit-sim-apn').value = sim.apn || '';
             document.getElementById('edit-sim-tsg').value = sim.tsg_id || (allTenants.length > 0 ? allTenants[0].id : '');
+            
+            document.getElementById('edit-sim-memo').value = sim.custom_label || '';
+            document.getElementById('edit-sim-vertical').value = sim.vertical || '';
+            document.getElementById('edit-sim-device-type').value = sim.device_type || '';
+            updateDatalistOptions('edit-sim-device-options', sim.vertical || '');
 
-            // Populate group dropdown
+            // Populate group dropdown dynamically
             const groupSelect = document.getElementById('edit-sim-group');
             const currentGroup = (sim.groups && sim.groups.length > 0) ? (sim.groups[0].id || sim.groups[0].group_id || sim.groups[0].group_name || sim.groups[0].name) : '';
 
@@ -2410,6 +2985,9 @@
             const apn = document.getElementById('edit-sim-apn').value;
             const tsg_id = document.getElementById('edit-sim-tsg').value;
             const group_id = document.getElementById('edit-sim-group').value;
+            const custom_label = document.getElementById('edit-sim-memo').value.trim();
+            const vertical = document.getElementById('edit-sim-vertical').value;
+            const device_type = document.getElementById('edit-sim-device-type').value.trim();
 
             try {
                 const res = await fetch(`/api/ues/${identityId}`, {
@@ -2420,12 +2998,16 @@
                         imei,
                         apn,
                         tsg_id,
-                        group_id: group_id || "none"
+                        group_id: group_id || "none",
+                        custom_label,
+                        vertical,
+                        device_type,
+                        icon: getVerticalIcon(vertical)
                     })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
-                    showToast("5G Identity Saved", `Updated SIM ${imsi} and security group assignment.`);
+                    showToast("5G Identity Saved", `Updated SIM ${imsi} and metadata successfully.`);
                     closeEditSimModal();
                     await fetchSIMs();
                     await fetchGroups();
@@ -2471,7 +3053,7 @@
                     <div class="flex items-center gap-2">
                         <input type="checkbox" name="add-group-sim-chk" value="${sim.id || sim.imsi}" ${idx === 0 ? 'checked' : ''} class="rounded border-gray-700 text-emerald-500 focus:ring-0">
                         <span class="font-mono text-white font-semibold">${sim.imsi}</span>
-                        ${sim.group_name ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-500/20 text-purple-300 border border-purple-500/30">${sim.group_name}</span>` : ''}
+                        ${sim.custom_label ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-sans bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${sim.custom_label}</span>` : ''}
                     </div>
                     <span class="text-[10px] text-cyan-400 font-mono">${sim.apn || 'sasetest'}</span>
                 </label>
@@ -2517,7 +3099,6 @@
                     lucide.createIcons();
                     return;
                 } else {
-                    // Auto-select first available SIM
                     identity_ids = [allSIMs[0].id || allSIMs[0].imsi];
                 }
             }
@@ -2576,6 +3157,7 @@
         // Add SIM Modal Functions
         function openAddSimModal() {
             generateRandomIMSI();
+            updateSimModalsGroupDropdowns();
             document.getElementById('modal-add-sim').classList.remove('hidden');
             lucide.createIcons();
         }
@@ -2585,9 +3167,11 @@
         }
 
         function generateRandomIMSI() {
-            const rand = Math.floor(100000000 + Math.random() * 900000000);
-            document.getElementById('add-sim-imsi').value = "208950" + rand;
-            document.getElementById('add-sim-imei').value = "860123" + rand;
+            // Generates Transatel 20895... format + valid 15-digit IMEI
+            const rand10 = Math.floor(1000000000 + Math.random() * 9000000000);
+            const rand8 = Math.floor(10000000 + Math.random() * 90000000);
+            document.getElementById('add-sim-imsi').value = "20895" + rand10;
+            document.getElementById('add-sim-imei').value = "860123" + rand8;
         }
 
         async function handleAddSimSubmit(e) {
@@ -2602,6 +3186,10 @@
             const apn = document.getElementById('add-sim-apn').value;
             const tsg_id = document.getElementById('add-sim-tsg').value;
             const autoSession = document.getElementById('add-sim-auto-session').checked;
+            const vertical = document.getElementById('add-sim-vertical').value;
+            const device_type = document.getElementById('add-sim-device-type').value.trim();
+            const custom_label = document.getElementById('add-sim-memo').value.trim();
+            const group_id = document.getElementById('add-sim-group').value;
 
             try {
                 const res = await fetch('/api/ues', {
@@ -2612,7 +3200,12 @@
                         imei,
                         apn,
                         tsg_id,
-                        session_ip: autoSession ? "10.56.0.195" : null
+                        session_ip: autoSession ? "10.56.0.195" : null,
+                        vertical,
+                        device_type,
+                        custom_label,
+                        icon: getVerticalIcon(vertical),
+                        group_id: group_id || null
                     })
                 });
                 const data = await res.json();
@@ -2620,6 +3213,7 @@
                     showToast("SIM Registered Successfully", `Created SIM ${imsi} (Identity ID: ${data.identity_id || 'OK'})`);
                     closeAddSimModal();
                     await fetchSIMs();
+                    await fetchGroups();
                 } else {
                     showToast("Failed to Register SIM", data.detail || data.error || "Unknown error", true);
                 }
@@ -2642,11 +3236,12 @@
                 return;
             }
             try {
-                const res = await fetch(`/api/ues/${identityId}`, { method: 'DELETE' });
+                const res = await fetch(`/api/ues/${identityId}?imsi=${imsi || ''}`, { method: 'DELETE' });
                 const data = await res.json();
                 if (res.ok && data.success) {
                     showToast("SIM Deleted", `Removed SIM ${imsi} successfully.`);
                     await fetchSIMs();
+                    await fetchGroups();
                 } else {
                     showToast("Delete Failed", data.detail || "Error deleting SIM", true);
                 }
@@ -3741,6 +4336,8 @@
         window.addEventListener('DOMContentLoaded', () => {
             applyFontSize(currentFontSize);
             applyBrandToUI(currentBrand);
+            fetchVerticalPresets();
+            setInventoryViewMode(inventoryViewMode);
             lucide.createIcons();
             refreshAll();
 

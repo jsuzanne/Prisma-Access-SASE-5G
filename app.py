@@ -22,11 +22,30 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-from src.config import Config, load_config, save_config, get_config_dir
+from src.config import (
+    Config,
+    load_config,
+    save_config,
+    get_config_dir,
+    load_sim_metadata,
+    save_sim_metadata,
+    update_single_sim_metadata,
+    delete_single_sim_metadata,
+    clear_all_sim_metadata,
+)
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession
 from src.client import Prisma5GClient
 from src.debug_logger import api_debug_logger
+from src.presets import (
+    VERTICALS_CATALOG,
+    get_all_verticals,
+    get_random_preset,
+    generate_transatel_imsi,
+    generate_valid_imei,
+    generate_fleet_devices,
+    enrich_existing_imsis,
+)
 
 # Project base and config directories
 BASE_DIR = Path(__file__).resolve().parent
@@ -101,6 +120,11 @@ class CreateUEModel(BaseModel):
     apn: str = "sasetest"
     tsg_id: Optional[str] = None
     session_ip: Optional[str] = None  # If provided, auto-registers 5G session
+    vertical: Optional[str] = None
+    device_type: Optional[str] = None
+    custom_label: Optional[str] = None
+    icon: Optional[str] = None
+    group_id: Optional[str] = None
 
 
 class UpdateUEModel(BaseModel):
@@ -109,6 +133,10 @@ class UpdateUEModel(BaseModel):
     apn: Optional[str] = None
     tsg_id: Optional[str] = None
     group_id: Optional[str] = None  # target group id, or "" / "none" to unassign
+    vertical: Optional[str] = None
+    device_type: Optional[str] = None
+    custom_label: Optional[str] = None
+    icon: Optional[str] = None
 
 
 class CreateGroupModel(BaseModel):
@@ -143,6 +171,21 @@ class DeregisterSessionModel(BaseModel):
     imei: str
     apn: str = "sasetest"
     ipv4_addr: str = "10.56.0.195"
+
+
+class AutoPopulateModel(BaseModel):
+    vertical: Optional[str] = "all"  # vertical id or "all"
+    count: Optional[int] = 3
+    tsg_id: Optional[str] = None
+    auto_session: bool = True
+    overwrite: bool = True
+
+
+class EnrichFleetModel(BaseModel):
+    vertical: Optional[str] = "all"  # vertical id or "all"
+    overwrite: bool = True  # whether to overwrite already enriched SIMs
+    tsg_id: Optional[str] = None
+
 
 
 # Active 5G subscriber session state tracking (IMSI -> Session IP telemetry)
@@ -333,27 +376,109 @@ def list_tenants():
 
 
 # -----------------------------------------------------------------------------
+# API Endpoints: Presets & Vertical Metadata (SIDO Demo)
+# -----------------------------------------------------------------------------
+
+@app.get("/api/presets/verticals")
+def get_vertical_presets():
+    """Get list of all supported industry verticals, icons, and typical equipment presets."""
+    return {
+        "success": True,
+        "data": get_all_verticals(),
+    }
+
+
+@app.get("/api/presets/random")
+def get_random_sim_preset(vertical_id: Optional[str] = None):
+    """Generate a realistic SIM preset with 3GPP-compliant IMSI/IMEI for a vertical."""
+    return {
+        "success": True,
+        "data": get_random_preset(vertical_id),
+    }
+
+
+@app.post("/api/metadata/clear")
+def clear_metadata():
+    """Clear all local SIM metadata (Cleanup / Raw SCM Reset mode)."""
+    clear_all_sim_metadata()
+    return {
+        "success": True,
+        "message": "All local SIM business metadata cleared successfully (Raw SCM mode)",
+    }
+
+
+@app.post("/api/presets/enrich")
+@app.post("/api/presets/populate")
+def auto_enrich_existing_fleet(payload: EnrichFleetModel):
+    """
+    Enrich existing SIM cards already registered in SCM with realistic industry vertical metadata
+    (replaces generic '5G Connected Device' with realistic equipment types, icons, and demo labels).
+    """
+    try:
+        client = get_current_client()
+        resp = client.list_tenant_ues(tsg_id=payload.tsg_id)
+        models = resp.get("models", [])
+        
+        if not models:
+            return {
+                "success": True,
+                "count": 0,
+                "message": "No existing SIMs found in SCM inventory to enrich.",
+                "data": [],
+            }
+
+        existing_imsis = [str(m.imsi) for m in models if m.imsi]
+        local_meta = load_sim_metadata()
+        
+        # Filter if not overwriting
+        imsis_to_enrich = [imsi for imsi in existing_imsis if payload.overwrite or imsi not in local_meta]
+        
+        enrichment_map = enrich_existing_imsis(imsis_to_enrich, vertical_id=payload.vertical)
+        
+        for imsi, meta_dict in enrichment_map.items():
+            update_single_sim_metadata(imsi, meta_dict)
+
+        return {
+            "success": True,
+            "count": len(enrichment_map),
+            "message": f"Successfully enriched {len(enrichment_map)} existing SIM(s) with industry metadata.",
+            "data": [
+                {"imsi": imsi, **meta_dict}
+                for imsi, meta_dict in enrichment_map.items()
+            ],
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+
+
+# -----------------------------------------------------------------------------
 # API Endpoints: SIM Cards / UEs
 # -----------------------------------------------------------------------------
 
 @app.get("/api/ues")
 def list_ues(tsg_id: Optional[str] = None):
-    """List registered SIM cards (UE mappings) across all tenants or for a specific TSG."""
+    """List registered SIM cards (UE mappings) enriched with local business metadata."""
     try:
         client = get_current_client()
         resp = client.list_tenant_ues(tsg_id=tsg_id)
         
         items = resp.get("data", [])
         models = resp.get("models", [])
+        local_meta = load_sim_metadata()
         
         # Convert models to rich json list
         res_data = []
         for m in models:
-            sess_info = ACTIVE_5G_SESSIONS.get(str(m.imsi))
+            imsi_str = str(m.imsi)
+            sess_info = ACTIVE_5G_SESSIONS.get(imsi_str)
             ipv4 = m.ipv4_addr or (sess_info["ipv4_addr"] if sess_info else None)
             status = m.status if (m.ipv4_addr and m.status) else (sess_info["status"] if sess_info else ("Active" if ipv4 else "Inactive"))
             region = m.region or (sess_info["region"] if sess_info else ("europe-west9" if status == "Active" else None))
             tenant_status = "Yes" if status == "Active" else (m.tenant_status or "No")
+            
+            meta = local_meta.get(imsi_str, {})
 
             res_data.append({
                 "identity_id": m.identity_id,
@@ -370,6 +495,10 @@ def list_ues(tsg_id: Optional[str] = None):
                 "region": region,
                 "tenant_status": tenant_status,
                 "create_time": m.create_time,
+                "vertical": meta.get("vertical"),
+                "device_type": meta.get("device_type"),
+                "custom_label": meta.get("custom_label"),
+                "icon": meta.get("icon"),
             })
 
         return {
@@ -383,11 +512,11 @@ def list_ues(tsg_id: Optional[str] = None):
 
 @app.post("/api/ues")
 def create_ue(payload: CreateUEModel):
-    """Register a new SIM card (UE mapping) with optional immediate 5G session attach."""
+    """Register a new SIM card (UE mapping) with optional 5G session attach and business metadata."""
     try:
         client = get_current_client()
         
-        # 1. Register SIM mapping
+        # 1. Register SIM mapping in SCM
         create_resp = client.create_tenant_ue(
             imsi=payload.imsi,
             imei=payload.imei,
@@ -397,8 +526,34 @@ def create_ue(payload: CreateUEModel):
         data_obj = create_resp.get("data", {})
         created_id = data_obj.get("id") or data_obj.get("identity_id")
 
+        # 2. Save local business metadata (vertical, device type, custom memo label, icon)
+        meta_dict = {}
+        if payload.vertical:
+            meta_dict["vertical"] = payload.vertical
+        if payload.device_type:
+            meta_dict["device_type"] = payload.device_type
+        if payload.custom_label:
+            meta_dict["custom_label"] = payload.custom_label
+        if payload.icon:
+            meta_dict["icon"] = payload.icon
+            
+        if meta_dict:
+            update_single_sim_metadata(str(payload.imsi), meta_dict)
+
+        # 3. If group_id is provided, assign the SIM to the group immediately
+        group_assign_result = None
+        if payload.group_id and created_id:
+            try:
+                group_assign_result = client.assign_ue_to_group(
+                    ue_identity_id=created_id,
+                    target_group_id=payload.group_id,
+                    tsg_id=payload.tsg_id,
+                )
+            except Exception as g_err:
+                group_assign_result = {"error": str(g_err)}
+
         session_result = None
-        # 2. If session_ip provided, auto-register 5G session telemetry
+        # 4. If session_ip provided, auto-register 5G session telemetry
         if payload.session_ip:
             try:
                 sess = UESession(
@@ -431,6 +586,7 @@ def create_ue(payload: CreateUEModel):
             "success": True,
             "identity_id": created_id,
             "data": data_obj,
+            "group_assignment": group_assign_result,
             "session_result": session_result,
             "message": f"SIM {payload.imsi} registered successfully with APN '{payload.apn}'",
         }
@@ -440,11 +596,11 @@ def create_ue(payload: CreateUEModel):
 
 @app.put("/api/ues/{identity_id}")
 def update_ue(identity_id: str, payload: UpdateUEModel):
-    """Update SIM card hardware mapping details (IMSI, IMEI, APN) and/or group assignment."""
+    """Update SIM card hardware mapping details (IMSI, IMEI, APN), metadata, and/or group assignment."""
     try:
         client = get_current_client()
         
-        # 1. Update basic SIM metadata if any is provided
+        # 1. Update basic SIM mapping in SCM if hardware fields changed
         update_res = None
         if payload.imsi or payload.imei or payload.apn:
             update_res = client.update_tenant_ue(
@@ -455,7 +611,30 @@ def update_ue(identity_id: str, payload: UpdateUEModel):
                 tsg_id=payload.tsg_id,
             )
 
-        # 2. Update group assignment if group_id field is specified
+        # 2. Update local business metadata if provided
+        meta_dict = {}
+        if payload.vertical is not None:
+            meta_dict["vertical"] = payload.vertical
+        if payload.device_type is not None:
+            meta_dict["device_type"] = payload.device_type
+        if payload.custom_label is not None:
+            meta_dict["custom_label"] = payload.custom_label
+        if payload.icon is not None:
+            meta_dict["icon"] = payload.icon
+
+        target_imsi = payload.imsi
+        if not target_imsi:
+            # Look up IMSI from SCM or existing list
+            try:
+                ue_obj = client.get_tenant_ue(identity_id)
+                target_imsi = ue_obj.get("imsi") if isinstance(ue_obj, dict) else getattr(ue_obj, "imsi", None)
+            except Exception:
+                pass
+
+        if target_imsi and meta_dict:
+            update_single_sim_metadata(str(target_imsi), meta_dict)
+
+        # 3. Update group assignment if group_id field is specified
         group_res = None
         if payload.group_id is not None:
             target_gid = payload.group_id.strip()
@@ -503,11 +682,23 @@ def assign_ue_group(identity_id: str, payload: AssignGroupModel):
 
 
 @app.delete("/api/ues/{identity_id}")
-def delete_ue(identity_id: str):
-    """Safely delete a SIM card mapping by identity ID."""
+def delete_ue(identity_id: str, imsi: Optional[str] = None):
+    """Safely delete a SIM card mapping by identity ID and clean up local metadata."""
     try:
         client = get_current_client()
+        
+        # If imsi not provided directly, try to get it
+        if not imsi:
+            try:
+                ue_obj = client.get_tenant_ue(identity_id)
+                imsi = ue_obj.get("imsi") if isinstance(ue_obj, dict) else getattr(ue_obj, "imsi", None)
+            except Exception:
+                pass
+
         resp = client.delete_tenant_ue(identity_id)
+        if imsi:
+            delete_single_sim_metadata(str(imsi))
+            
         return {
             "success": True,
             "identity_id": identity_id,

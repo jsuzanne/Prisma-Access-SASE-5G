@@ -21,3 +21,9 @@ venv/
 .vscode/
 .idea/
 
+# Confidential / Internal Demos & Use Cases
+verticals use cases/
+*vertical*use*case*
+*.pdf
+*.pptx
+*.key

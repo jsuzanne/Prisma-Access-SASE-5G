@@ -5,7 +5,28 @@ import os
 from dataclasses import dataclass, asdict
 from pathlib import Path
 from typing import Any, Dict, Optional, Union
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except ImportError:
+    def load_dotenv(dotenv_path=None, override=False):
+        """Fallback lightweight .env loader if python-dotenv is not installed."""
+        if not dotenv_path:
+            return
+        p = Path(dotenv_path)
+        if not p.exists():
+            return
+        try:
+            for line in p.read_text(encoding="utf-8").splitlines():
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                k, v = line.split("=", 1)
+                k = k.strip()
+                v = v.strip().strip('"').strip("'")
+                if override or k not in os.environ:
+                    os.environ[k] = v
+        except Exception:
+            pass
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -235,3 +256,72 @@ def save_config(
         "json_path": str(json_path),
         "env_path": str(env_path),
     }
+
+
+def get_sim_metadata_file(target_dir: Optional[Union[str, Path]] = None) -> Path:
+    """Return path to sim_metadata.json in the configuration directory."""
+    cfg_dir = get_config_dir(target_dir)
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir / "sim_metadata.json"
+
+
+def load_sim_metadata(target_dir: Optional[Union[str, Path]] = None) -> Dict[str, Dict[str, Any]]:
+    """Load local SIM metadata dictionary keyed by IMSI."""
+    meta_file = get_sim_metadata_file(target_dir)
+    if meta_file.exists():
+        try:
+            data = json.loads(meta_file.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+            
+    # Check fallback in config.json
+    cfg_dir = get_config_dir(target_dir)
+    cfg_json = cfg_dir / "config.json"
+    if cfg_json.exists():
+        try:
+            data = json.loads(cfg_json.read_text(encoding="utf-8"))
+            if isinstance(data, dict) and "sim_metadata" in data and isinstance(data["sim_metadata"], dict):
+                return data["sim_metadata"]
+        except Exception:
+            pass
+            
+    return {}
+
+
+def save_sim_metadata(metadata: Dict[str, Dict[str, Any]], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Persist local SIM metadata dictionary to sim_metadata.json."""
+    meta_file = get_sim_metadata_file(target_dir)
+    meta_file.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+
+def update_single_sim_metadata(imsi: str, data: Dict[str, Any], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Update or insert metadata for a specific IMSI."""
+    if not imsi:
+        return
+    current = load_sim_metadata(target_dir)
+    if imsi not in current:
+        current[imsi] = {}
+    current[imsi].update(data)
+    save_sim_metadata(current, target_dir)
+
+
+def delete_single_sim_metadata(imsi: str, target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Remove metadata for a specific IMSI."""
+    if not imsi:
+        return
+    current = load_sim_metadata(target_dir)
+    if imsi in current:
+        del current[imsi]
+        save_sim_metadata(current, target_dir)
+
+
+def clear_all_sim_metadata(target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Clear all local SIM metadata (Cleanup / Raw SCM Reset mode)."""
+    meta_file = get_sim_metadata_file(target_dir)
+    if meta_file.exists():
+        try:
+            meta_file.write_text(json.dumps({}, indent=2), encoding="utf-8")
+        except Exception:
+            pass

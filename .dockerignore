@@ -19,3 +19,8 @@ env/
 venv/
 *.egg-info/
 .pytest_cache/
+
+# Internal / Confidential Docs
+verticals use cases/
+*vertical*use*case*
+config/

@@ -23,6 +23,10 @@ class TenantUEMapping:
     tenant_status: Optional[str] = "No"  # "Yes" | "No"
     create_time: Optional[int] = None
     update_time: Optional[int] = None
+    vertical: Optional[str] = None
+    device_type: Optional[str] = None
+    custom_label: Optional[str] = None
+    icon: Optional[str] = None
 
     def to_request_payload(self) -> Dict[str, Any]:
         """Convert to API JSON payload for POST /mt/manage/5g/tenantUEInfo."""
