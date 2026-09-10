@@ -27,29 +27,59 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 - **Automated Lifecycle Runner**:
   - Interactive 8-step pipeline with live terminal log for end-to-end testing.
 - **Production-Ready & CI/CD**:
-  - Containerized with Docker (`jsuzanne/prisma-5g-sase:latest`), verified with 25 unit tests on GitHub Actions.
+  - Containerized with Docker (`jsuzanne/prisma-5g-sase:latest`), verified with 32 unit tests on GitHub Actions.
 
 ---
 
-## 🚀 Quick Start with Docker
+## 🚀 Quick Start with Docker Compose
 
-The fastest way to run the portal:
+The easiest way to run the portal on any machine:
+
+### Option A: 1-Click Launch with `docker-compose.yml`
+
+Create a `docker-compose.yml` file with the following contents:
+
+```yaml
+services:
+  prisma-sase-5g:
+    image: jsuzanne/prisma-5g-sase:latest
+    container_name: prisma-sase-5g
+    ports:
+      - "8000:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+```
+
+Then start the container:
+
+```bash
+# Start in detached mode
+docker compose up -d
+```
+
+### Option B: Clone Repository & Run
 
 ```bash
 # 1. Clone repository
 git clone git@github.com:jsuzanne/Prisma-Access-SASE-5G.git
 cd Prisma-Access-SASE-5G
 
-# 2. Run with Docker (pulled from Docker Hub)
-docker run -d -p 8000:8000 --name prisma-5g-sase jsuzanne/prisma-5g-sase:latest
+# 2. Start container with Docker Compose
+docker compose up -d
 ```
 
-Or build locally with Docker Compose:
+### Option C: Direct `docker run`
+
 ```bash
-docker compose up --build
+docker run -d -p 8000:8000 --name prisma-sase-5g jsuzanne/prisma-5g-sase:latest
 ```
 
-Open your browser at **[http://localhost:8000](http://localhost:8000)**.
+Once running, open your browser at **[http://localhost:8000](http://localhost:8000)**.
+Credentials and tenant settings can be configured directly via the Web UI in the **Settings** tab or in a local `.env` file.
 
 ---
 
