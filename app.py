@@ -564,6 +564,7 @@ def list_ues(tsg_id: Optional[str] = None):
                 "device_type": meta.get("device_type"),
                 "custom_label": meta.get("custom_label"),
                 "icon": meta.get("icon"),
+                "last_ip": meta.get("last_ip") or ipv4 or (sess_info.get("ipv4_addr") if sess_info else None),
             })
 
         return {
@@ -636,6 +637,7 @@ def create_ue(payload: CreateUEModel):
                     ipv4_addr=payload.session_ip,
                 )
                 sess_resp = client.register_ue_session(sess)
+                update_single_sim_metadata(str(payload.imsi), {"last_ip": payload.session_ip})
                 update_single_active_session(str(payload.imsi), {
                     "ipv4_addr": payload.session_ip,
                     "imei": payload.imei,
@@ -980,6 +982,8 @@ def register_session(payload: RegisterSessionModel):
             msisdn=payload.msisdn,
         )
         resp = client.register_ue_session(session)
+        if payload.ipv4_addr:
+            update_single_sim_metadata(str(payload.imsi), {"last_ip": payload.ipv4_addr})
         update_single_active_session(str(payload.imsi), {
             "ipv4_addr": payload.ipv4_addr,
             "imei": payload.imei,
@@ -1013,6 +1017,8 @@ def deregister_session(payload: DeregisterSessionModel):
             ipv4_addr=payload.ipv4_addr,
         )
         resp = client.deregister_ue_session(session)
+        if payload.ipv4_addr:
+            update_single_sim_metadata(str(payload.imsi), {"last_ip": payload.ipv4_addr})
         delete_single_active_session(str(payload.imsi))
         return {
             "success": True,
