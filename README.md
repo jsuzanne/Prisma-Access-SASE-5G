@@ -183,9 +183,9 @@ pip install -r requirements.txt
 You can configure credentials directly in the Web UI (**Settings** tab), or create a local `.env`:
 
 ```ini
-PANW_CLIENT_ID=5g-ue-registration@1965438697.iam.panserviceaccount.com
+PANW_CLIENT_ID=5g-sase-service@2000000001.iam.panserviceaccount.com
 PANW_CLIENT_SECRET=your-secret-here
-PANW_TSG_ID=1965438697
+PANW_TSG_ID=2000000001
 PANW_API_BASE_URL=https://api.sase.paloaltonetworks.com
 PANW_AUTH_URL=https://auth.apps.paloaltonetworks.com/am/oauth2/access_token
 DEFAULT_APN=sasetest
@@ -262,7 +262,7 @@ Inspect or create subscriber security groups that hold Zero-Trust policy profile
 | Method | How to Perform / Where to View |
 | :--- | :--- |
 | 🌐 **Web UI** | In the **"Groups & Policies"** tab, click **"+ Add Group"** to define a new policy group with interactive SIM assignment. |
-| 💻 **CLI** | `python3 manage_5g.py groups`<br>`python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 1291887562` |
+| 💻 **CLI** | `python3 manage_5g.py groups`<br>`python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 2000000002` |
 
 ---
 
@@ -354,7 +354,7 @@ python3 manage_5g.py bulk-delete <ID_1> <ID_2>
 # 5G Subscriber Groups
 python3 manage_5g.py groups
 python3 manage_5g.py group-get <GROUP_ID>
-python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 1291887562
+python3 manage_5g.py group-create --name "VIP-Sensors" --tsg-id 2000000002
 python3 manage_5g.py assign-group --ue-id <IDENTITY_ID> --group-name "Permissive"
 python3 manage_5g.py group-delete <CUSTOM_GROUP_ID>
 
