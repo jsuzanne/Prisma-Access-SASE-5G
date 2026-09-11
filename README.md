@@ -5,7 +5,11 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg?logo=python)](https://www.python.org/)
 [![Strata Cloud Manager](https://img.shields.io/badge/Palo%20Alto%20Networks-Strata%20Cloud%20Manager-orange?logo=paloaltonetworks)](https://stratacloudmanager.paloaltonetworks.com)
 
-A modern, high-performance Web Application, REST API, CLI toolkit, and automated test suite for **Palo Alto Networks Prisma SASE 5G** (Strata Cloud Manager & Telecom 5G Core Integration).
+> [!NOTE]
+> **🚀 Demonstration & Proof-of-Concept (PoC) Prototype**
+> This application is a demo prototype designed for trade shows (such as **SIDO Lyon**), customer innovation centers, and executive briefings to showcase **Palo Alto Networks Prisma SASE 5G** integrated with **Transatel (NTT) 5G Core**. It highlights agentless Zero-Trust mobile security, multi-industry IoT fleet simulation, and real-time UPF session telemetry correlation.
+
+A modern, high-performance **Demo & PoC Prototype** Web Application, REST API, CLI toolkit, and automated test suite for **Palo Alto Networks Prisma SASE 5G** (Strata Cloud Manager & Telecom 5G Core Integration).
 
 Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry correlation, subscriber user groups, SCM monitoring KPI metrics, live API debugging, and multi-carrier co-branding.
 
