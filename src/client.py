@@ -147,7 +147,7 @@ class Prisma5GClient:
         self,
         tsg_id: Optional[str] = None,
         page: int = 0,
-        size: int = 50,
+        size: int = 100,
         filter_query: Optional[str] = None,
         order_query: Optional[str] = None,
         all_tenants: bool = True,

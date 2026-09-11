@@ -531,17 +531,27 @@
                     </div>
 
                     <!-- SCM Pagination Bar -->
-                    <div class="flex items-center justify-between pt-3 border-t border-white/10 text-xs text-gray-400 font-sans">
+                    <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-3 border-t border-white/10 text-xs text-gray-400 font-sans">
                         <div class="flex items-center gap-2">
-                            <span>10 Rows</span>
-                            <i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
+                            <span class="text-gray-400">Show:</span>
+                            <select id="summary-ue-page-size" onchange="onSummaryPageSizeChange()" class="bg-gray-900 border border-white/10 text-gray-200 text-xs rounded-lg px-2.5 py-1 focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="10">10 Rows</option>
+                                <option value="25">25 Rows</option>
+                                <option value="50">50 Rows</option>
+                                <option value="100" selected>100 Rows</option>
+                                <option value="1000">All Rows</option>
+                            </select>
                         </div>
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2.5">
                             <span>Page</span>
-                            <button class="p-1 rounded hover:bg-white/10 disabled:opacity-30" disabled><i data-lucide="chevron-left" class="w-4 h-4"></i></button>
-                            <span class="px-2 py-0.5 rounded bg-white/10 text-white font-mono">1</span>
-                            <button class="p-1 rounded hover:bg-white/10 disabled:opacity-30" disabled><i data-lucide="chevron-right" class="w-4 h-4"></i></button>
-                            <span>of 1</span>
+                            <button id="summary-ue-prev-btn" onclick="changeSummaryPage(-1)" class="p-1.5 rounded-lg glass-panel hover:bg-white/10 text-gray-300 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer" title="Previous Page">
+                                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                            </button>
+                            <span id="summary-ue-current-page" class="px-2.5 py-0.5 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 font-mono font-bold">1</span>
+                            <button id="summary-ue-next-btn" onclick="changeSummaryPage(1)" class="p-1.5 rounded-lg glass-panel hover:bg-white/10 text-gray-300 disabled:opacity-30 disabled:pointer-events-none transition cursor-pointer" title="Next Page">
+                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                            </button>
+                            <span id="summary-ue-total-pages" class="text-gray-400">of 1</span>
                         </div>
                     </div>
                 </div>
@@ -4286,13 +4296,29 @@
         }
 
         let allSummarySIMs = [];
+        let filteredSummarySIMs = [];
+        let summaryUEMappingsPage = 1;
+        let summaryUEMappingsPageSize = 100;
+
+        function onSummaryPageSizeChange() {
+            const select = document.getElementById('summary-ue-page-size');
+            summaryUEMappingsPageSize = parseInt(select ? select.value : '100', 10) || 100;
+            summaryUEMappingsPage = 1;
+            renderPaginatedSummaryUEMappings();
+        }
+
+        function changeSummaryPage(delta) {
+            const totalPages = Math.max(1, Math.ceil(filteredSummarySIMs.length / summaryUEMappingsPageSize));
+            summaryUEMappingsPage = Math.max(1, Math.min(totalPages, summaryUEMappingsPage + delta));
+            renderPaginatedSummaryUEMappings();
+        }
 
         function filterSummaryUEMappings() {
             const q = (document.getElementById('search-summary-ues')?.value || '').toLowerCase().trim();
             const tenantFilter = document.getElementById('summary-ue-tenant-filter')?.value || 'all';
             const regionFilter = document.getElementById('summary-ue-region-filter')?.value || 'all';
 
-            const filtered = allSummarySIMs.filter(s => {
+            filteredSummarySIMs = allSummarySIMs.filter(s => {
                 const imsi = (s.imsi || '').toLowerCase();
                 const imei = (s.imei || '').toLowerCase();
                 const ip = (s.ipv4_addr || '').toLowerCase();
@@ -4307,7 +4333,29 @@
                 return matchQuery && matchTenant && matchRegion;
             });
 
-            renderSummaryUETableRows(filtered);
+            summaryUEMappingsPage = 1;
+            renderPaginatedSummaryUEMappings();
+        }
+
+        function renderPaginatedSummaryUEMappings() {
+            const totalItems = filteredSummarySIMs.length;
+            const totalPages = Math.max(1, Math.ceil(totalItems / summaryUEMappingsPageSize));
+            if (summaryUEMappingsPage > totalPages) summaryUEMappingsPage = totalPages;
+
+            const startIdx = (summaryUEMappingsPage - 1) * summaryUEMappingsPageSize;
+            const pageItems = filteredSummarySIMs.slice(startIdx, startIdx + summaryUEMappingsPageSize);
+
+            const pageBadge = document.getElementById('summary-ue-current-page');
+            const totalPagesBadge = document.getElementById('summary-ue-total-pages');
+            const prevBtn = document.getElementById('summary-ue-prev-btn');
+            const nextBtn = document.getElementById('summary-ue-next-btn');
+
+            if (pageBadge) pageBadge.innerText = String(summaryUEMappingsPage);
+            if (totalPagesBadge) totalPagesBadge.innerText = `of ${totalPages}`;
+            if (prevBtn) prevBtn.disabled = (summaryUEMappingsPage <= 1);
+            if (nextBtn) nextBtn.disabled = (summaryUEMappingsPage >= totalPages);
+
+            renderSummaryUETableRows(pageItems, totalItems);
         }
 
         function formatTime(timestamp) {
@@ -4327,10 +4375,10 @@
             filterSummaryUEMappings();
         }
 
-        function renderSummaryUETableRows(sims) {
+        function renderSummaryUETableRows(sims, totalCount) {
             const tbody = document.getElementById('summary-ue-table-body');
             const countBadge = document.getElementById('summary-ue-count-badge');
-            if (countBadge) countBadge.innerText = `${sims ? sims.length : 0} mapping(s)`;
+            if (countBadge) countBadge.innerText = `${typeof totalCount === 'number' ? totalCount : (sims ? sims.length : 0)} mapping(s)`;
             if (!tbody) return;
 
             if (!sims || sims.length === 0) {
