@@ -332,3 +332,60 @@ def clear_all_sim_metadata(target_dir: Optional[Union[str, Path]] = None) -> Non
             meta_file.write_text(json.dumps({}, indent=2), encoding="utf-8")
         except Exception:
             pass
+
+
+# -----------------------------------------------------------------------------
+# Local Group Metadata Storage (Name, Description, Policies)
+# -----------------------------------------------------------------------------
+
+DEFAULT_GROUP_DESCRIPTIONS = {
+    "restrictive": "Strictly isolated IoT telemetry profile. High-security zero-trust policy blocking unauthorized external egress and non-industrial traffic.",
+    "permissive": "Standard corporate / fleet profile. Permissive access allowing broad cloud connectivity, diagnostics, and standard enterprise applications."
+}
+
+
+def get_group_metadata_file(target_dir: Optional[Union[str, Path]] = None) -> Path:
+    cfg_dir = get_config_dir(target_dir)
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir / "group_metadata.json"
+
+
+def load_group_metadata(target_dir: Optional[Union[str, Path]] = None) -> Dict[str, Dict[str, Any]]:
+    """Load local group metadata dictionary keyed by group_id or group_name."""
+    meta_file = get_group_metadata_file(target_dir)
+    if meta_file.exists():
+        try:
+            data = json.loads(meta_file.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    return {}
+
+
+def save_group_metadata(metadata: Dict[str, Dict[str, Any]], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Persist local group metadata dictionary to group_metadata.json."""
+    meta_file = get_group_metadata_file(target_dir)
+    meta_file.write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+
+def update_single_group_metadata(group_key: str, data: Dict[str, Any], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Update or insert metadata for a specific group_id or group_name."""
+    if not group_key:
+        return
+    current = load_group_metadata(target_dir)
+    if group_key not in current:
+        current[group_key] = {}
+    current[group_key].update(data)
+    save_group_metadata(current, target_dir)
+
+
+def delete_single_group_metadata(group_key: str, target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Remove metadata for a specific group."""
+    if not group_key:
+        return
+    current = load_group_metadata(target_dir)
+    if group_key in current:
+        del current[group_key]
+        save_group_metadata(current, target_dir)
+

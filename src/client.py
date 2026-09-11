@@ -540,24 +540,19 @@ class Prisma5GClient:
         
         API: PUT /mt/manage/5g/userGroup/{group_id}
         """
-        target_tsg = str(tsg_id or self.config.tsg_id)
-
-        # If group_name or identity_ids is not provided, fetch current group details
-        if group_name is None or identity_ids is None:
-            curr = self.get_user_group(group_id)
-            data_arr = curr.get("data", [])
-            curr_obj = data_arr[0] if data_arr and isinstance(data_arr, list) else curr.get("data", {})
-            if group_name is None:
-                group_name = curr_obj.get("group_name") or curr_obj.get("name", "")
-            if identity_ids is None:
-                identity_ids = curr_obj.get("identity_id") or []
-            if not target_tsg and curr_obj.get("tsg_id"):
-                target_tsg = curr_obj.get("tsg_id")
+        # Fetch current group details to fill any missing parameters
+        curr = self.get_user_group(group_id)
+        data_arr = curr.get("data", [])
+        curr_obj = data_arr[0] if data_arr and isinstance(data_arr, list) else curr.get("data", {})
+        
+        actual_tsg = str(tsg_id) if tsg_id else (curr_obj.get("tsg_id") or str(self.config.tsg_id))
+        actual_name = group_name if group_name is not None else (curr_obj.get("group_name") or curr_obj.get("name", ""))
+        actual_identities = identity_ids if identity_ids is not None else (curr_obj.get("identity_id") or [])
 
         payload = {
-            "group_name": group_name,
-            "tsg_id": str(target_tsg),
-            "identity_id": identity_ids if identity_ids is not None else [],
+            "group_name": actual_name,
+            "tsg_id": str(actual_tsg),
+            "identity_id": actual_identities,
         }
 
         resp = self._request("PUT", f"/mt/manage/5g/userGroup/{group_id}", json_data=payload)

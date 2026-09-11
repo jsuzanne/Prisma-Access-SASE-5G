@@ -145,6 +145,47 @@ class TestPresetsAndMetadata(unittest.TestCase):
             clear_all_sim_metadata(tmp_path)
             self.assertEqual(len(load_sim_metadata(tmp_path)), 0)
 
+    def test_group_metadata_persistence(self):
+        from src.config import (
+            load_group_metadata,
+            save_group_metadata,
+            update_single_group_metadata,
+            delete_single_group_metadata,
+            DEFAULT_GROUP_DESCRIPTIONS,
+        )
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            tmp_path = Path(tmp_dir)
+
+            self.assertIn("restrictive", DEFAULT_GROUP_DESCRIPTIONS)
+            self.assertIn("permissive", DEFAULT_GROUP_DESCRIPTIONS)
+
+            # Initially empty
+            loaded = load_group_metadata(tmp_path)
+            self.assertEqual(loaded, {})
+
+            # Update single group metadata
+            grp_id = "test-group-uuid"
+            update_single_group_metadata(
+                grp_id,
+                {
+                    "name": "Custom IoT Group",
+                    "description": "Custom isolation policy for factory robots",
+                },
+                target_dir=tmp_path,
+            )
+
+            loaded = load_group_metadata(tmp_path)
+            self.assertIn(grp_id, loaded)
+            self.assertEqual(loaded[grp_id]["name"], "Custom IoT Group")
+            self.assertEqual(loaded[grp_id]["description"], "Custom isolation policy for factory robots")
+
+            # Delete single group metadata
+            delete_single_group_metadata(grp_id, target_dir=tmp_path)
+            loaded_after_del = load_group_metadata(tmp_path)
+            self.assertNotIn(grp_id, loaded_after_del)
+
 
 if __name__ == "__main__":
     unittest.main()
+

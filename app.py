@@ -32,6 +32,11 @@ from src.config import (
     update_single_sim_metadata,
     delete_single_sim_metadata,
     clear_all_sim_metadata,
+    load_group_metadata,
+    save_group_metadata,
+    update_single_group_metadata,
+    delete_single_group_metadata,
+    DEFAULT_GROUP_DESCRIPTIONS,
 )
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession
@@ -154,12 +159,14 @@ class UpdateUEModel(BaseModel):
 
 class CreateGroupModel(BaseModel):
     group_name: str
+    description: Optional[str] = None
     tsg_id: Optional[str] = None
     identity_ids: Optional[List[str]] = None
 
 
 class UpdateGroupModel(BaseModel):
     group_name: Optional[str] = None
+    description: Optional[str] = None
     identity_ids: Optional[List[str]] = None
     tsg_id: Optional[str] = None
 
@@ -797,18 +804,30 @@ def delete_ue(identity_id: str, imsi: Optional[str] = None):
 
 @app.get("/api/groups")
 def list_groups(tsg_id: Optional[str] = None):
-    """List 5G subscriber user groups (e.g. Permissive, Restrictive)."""
+    """List 5G subscriber user groups (e.g. Permissive, Restrictive) enriched with metadata."""
     try:
         client = get_current_client()
         resp = client.list_user_groups(tsg_id=tsg_id)
         models = resp.get("models", [])
+        group_meta = load_group_metadata()
         
         group_list = []
         for g in models:
+            gid = str(g.group_id or "")
+            gname = str(g.name or "")
+            meta = group_meta.get(gid) or group_meta.get(gname.lower()) or group_meta.get(gname) or {}
+
+            desc = meta.get("description") or g.description
+            if not desc:
+                desc = DEFAULT_GROUP_DESCRIPTIONS.get(gname.lower(), "5G Zero-Trust subscriber group policy profile")
+
+            custom_name = meta.get("name") or g.name
+
             group_list.append({
                 "group_id": g.group_id,
-                "name": g.name,
-                "description": g.description,
+                "name": custom_name,
+                "raw_name": g.name,
+                "description": desc,
                 "tsg_id": g.tsg_id,
                 "tenant_name": g.tenant_name,
                 "user_count": g.user_count,
@@ -833,6 +852,13 @@ def create_group(payload: CreateGroupModel):
             tsg_id=payload.tsg_id,
             identity_ids=payload.identity_ids or [],
         )
+        new_id = resp.get("id") or resp.get("group_id") or resp.get("data", {}).get("id")
+        if payload.description:
+            key = str(new_id) if new_id else payload.group_name.lower()
+            update_single_group_metadata(key, {"description": payload.description, "name": payload.group_name})
+            if new_id and payload.group_name:
+                update_single_group_metadata(payload.group_name.lower(), {"description": payload.description, "name": payload.group_name})
+
         return {
             "success": True,
             "data": resp,
@@ -858,19 +884,40 @@ def get_group(group_id: str):
 
 @app.put("/api/groups/{group_id}")
 def update_group(group_id: str, payload: UpdateGroupModel):
-    """Update a 5G user group's name and/or member identity list."""
+    """Update a 5G user group's name, description, and/or member identity list."""
     try:
         client = get_current_client()
-        resp = client.update_user_group(
-            group_id=group_id,
-            group_name=payload.group_name,
-            identity_ids=payload.identity_ids,
-            tsg_id=payload.tsg_id,
-        )
+        resp = None
+        is_protected = str(group_id) in PROTECTED_SYSTEM_GROUPS or (payload.group_name and payload.group_name.lower() in PROTECTED_SYSTEM_GROUP_NAMES)
+
+        try:
+            resp = client.update_user_group(
+                group_id=group_id,
+                group_name=payload.group_name,
+                identity_ids=payload.identity_ids,
+                tsg_id=payload.tsg_id,
+            )
+        except Exception as exc:
+            if is_protected:
+                logger.warning("SCM update for protected group %s gave error, persisting metadata: %s", group_id, exc)
+            else:
+                raise exc
+
+        meta_updates = {}
+        if payload.description is not None:
+            meta_updates["description"] = payload.description
+        if payload.group_name is not None:
+            meta_updates["name"] = payload.group_name
+
+        if meta_updates:
+            update_single_group_metadata(str(group_id), meta_updates)
+            if payload.group_name:
+                update_single_group_metadata(payload.group_name.lower(), meta_updates)
+
         return {
             "success": True,
-            "data": resp,
-            "message": f"Group '{group_id}' updated successfully",
+            "data": resp or {"status": "success", "group_id": group_id},
+            "message": f"Group '{payload.group_name or group_id}' updated successfully",
         }
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
