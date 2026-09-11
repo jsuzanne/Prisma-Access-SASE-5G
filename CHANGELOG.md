@@ -10,11 +10,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [2.1.0] - 2026-09-11
 
 ### Added
+- **Interactive 5G Session Modal & Navbar Streamlining**:
+  - Removed standalone 5G Sessions tab to streamline navigation into 5 clean core views (*5G Summary*, *SIM Inventory*, *Groups & Policies*, *Lifecycle*, *Settings*).
+  - Transformed 5G Session control into an on-demand modal popup (`#modal-session`) accessible directly from any SIM card in the SIM Inventory via `[⚡ Attach]` / `[⏻ Detach]`.
+  - Added live 3-node architecture flow (*IoT Device ➔ Telecom 5G Core UPF ➔ Prisma SASE*) and real-time **Session Event Console** directly inside the modal.
+  - Automatically re-suggests the last-used IP address when re-attaching a detached SIM.
+- **Configurable UE CIDR IP Pool Allocation**:
+  - Configurable UE CIDR block settings (`config/config.json` and Settings tab) enforcing valid IP ranges (e.g. `10.56.0.192/27, 10.56.0.224/27`).
+  - Added real-time frontend CIDR validator and *"Next Free IP"* selector during SIM creation and session registration.
+- **Subscriber Policy Group Descriptions & Editing**:
+  - Dedicated Group Edit Modal to update group names, descriptions, and member SIM assignments.
+  - Clear group purpose & description visible directly in the Groups & Policies list table.
+  - Default SIM selection starts unchecked in Add Group modal.
 - **Dynamic Session-Correlated 5G Throughput & Telemetry**:
   - Dynamically scale 5G SASE Summary throughput curve (Ingress / Egress Kbps) and peak bandwidth based on live active SIM sessions.
   - Added real-time active SIM session counter badge in SVG throughput trend crosshair tooltip.
   - Automatic throughput chart re-rendering when sessions attach, terminate, or when running the automated 8-stage lifecycle test.
   - Idle baseline keepalives (~0 Kbps) displayed when no active subscriber sessions are connected.
+
+### Fixed
+- Fixed tab container nesting in `templates/index.html` ensuring reliable tab switching across all views.
 
 ---
 

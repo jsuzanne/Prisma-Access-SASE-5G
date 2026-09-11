@@ -261,7 +261,7 @@ When the IoT device connects to the 5G Core network, the carrier network assigns
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |
-| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"Connect 5G"** next to the SIM (or use the form in the **"5G Sessions"** tab). |
+| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"⚡ Attach"** next to the SIM to open the **5G Session Control** modal. The last-used IP address and CIDR pool are auto-suggested, and the real-time Session Event Console logs the UPF telemetry stream. |
 | 💻 **CLI** | `python3 manage_5g.py session-register --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.200` |
 
 ---
@@ -283,7 +283,7 @@ When the subscriber disconnects or changes cell/IP, a deregistration event is em
 
 | Method | How to Perform / Where to View |
 | :--- | :--- |
-| 🌐 **Web UI** | In the **"5G Sessions"** tab, send a session termination event. |
+| 🌐 **Web UI** | In the **"SIM Inventory"** tab, click **"⏻ Detach"** next to the active SIM (or trigger termination from the 5G Session Control modal). |
 | 💻 **CLI** | `python3 manage_5g.py session-terminate --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ipv4 10.56.0.200` |
 
 ---
