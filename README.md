@@ -12,8 +12,15 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 ---
 
 <p align="center">
-  <img src="static/img/dashboard_preview.png" alt="Prisma SASE 5G Manager UI with Industry Fleet Enrichment" width="100%">
+  <img src="static/img/sim_inventory_fleet.png" alt="Prisma SASE 5G SIM Inventory & Fleet View" width="100%">
 </p>
+
+### 📸 Visual Tour & Key Modules
+
+| **5G Session Telemetry & UPF Console** | **1-Click IoT Fleet & eSIM Presets** |
+| :---: | :---: |
+| <img src="static/img/session_modal_attached.png" alt="5G Session Control & IP Telemetry" width="100%"> | <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%"> |
+| *Real-time REST UPF user plane telemetry injection with live event console output.* | *Instant 1-click industry presets with CIDR block validation & 3GPP IMEI generation.* |
 
 ---
 
