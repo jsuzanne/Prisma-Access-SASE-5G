@@ -267,11 +267,8 @@
                         <div class="text-xs text-gray-400">Default Test APN</div>
                         <div id="default-apn-badge" class="text-xs font-mono text-cyan-400 font-bold">sasetest</div>
                     </div>
-                    <button onclick="refreshAll(this)" class="px-3 py-1.5 rounded-xl glass-panel hover:bg-white/10 text-xs font-medium text-gray-300 flex items-center gap-1.5 transition">
+                    <button onclick="refreshAll(this)" class="px-3.5 py-2 rounded-xl glass-panel hover:bg-white/10 text-xs font-medium text-gray-300 flex items-center gap-1.5 transition cursor-pointer" title="Refresh All Data from Strata Cloud Manager">
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
-                    </button>
-                    <button onclick="openAddSimModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs shadow-lg glow-cyan flex items-center gap-2 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Add New SIM
                     </button>
                 </div>
             </div>
@@ -610,9 +607,6 @@
                         <button onclick="handleClearMetadata()" class="px-2.5 py-1.5 rounded-xl glass-panel hover:border-red-500/40 text-[11px] text-gray-400 hover:text-red-300 transition" title="Clear all local SIM metadata (Return to 100% Raw SCM view)">
                             <i data-lucide="rotate-ccw" class="w-3.5 h-3.5 inline"></i> Reset Metadata
                         </button>
-                        <button onclick="switchTab('tab-matrix')" class="px-3 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-[11px] text-orange-300 font-medium flex items-center gap-1.5 transition" title="Compare Web UI, CLI & Strata Cloud Manager">
-                            <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM Guide
-                        </button>
                         <button onclick="openAutoPopulateModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer" title="Enrich existing SIMs with realistic IoT equipment names and verticals">
                             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Auto-Enrich Fleet
                         </button>
@@ -791,9 +785,6 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end text-xs">
-                        <button onclick="switchTab('tab-matrix')" class="px-3.5 py-1.5 rounded-xl glass-panel hover:border-orange-500/40 text-xs text-orange-300 font-medium flex items-center gap-1.5 transition" title="Where to see Groups & Policies in Strata Cloud Manager">
-                            <i data-lucide="compass" class="w-3.5 h-3.5 text-orange-400"></i> SCM Guide
-                        </button>
                         <button onclick="openAddGroupModal()" class="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Group
                         </button>
@@ -4928,12 +4919,39 @@
         }
 
         function copyToClipboard(text, itemDesc) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast("Copied to Clipboard", `${itemDesc} copied successfully!`);
-            }).catch(err => {
-                console.error("Failed to copy", err);
-                showToast("Copy Failed", "Could not copy to clipboard", true);
-            });
+            const label = itemDesc || 'Content';
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast("Copied to Clipboard", `${label} copied successfully!`);
+                }).catch(() => {
+                    fallbackCopyTextToClipboard(text, label);
+                });
+            } else {
+                fallbackCopyTextToClipboard(text, label);
+            }
+        }
+
+        function fallbackCopyTextToClipboard(text, label) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.top = "-9999px";
+                textArea.style.left = "-9999px";
+                textArea.style.opacity = "0";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                const successful = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                if (successful) {
+                    showToast("Copied to Clipboard", `${label} copied successfully!`);
+                } else {
+                    showToast("Copy Failed", "Could not copy to clipboard", "error");
+                }
+            } catch (err) {
+                showToast("Copy Failed", "Could not copy to clipboard", "error");
+            }
         }
 
         function escapeJsString(str) {

@@ -389,3 +389,94 @@ def delete_single_group_metadata(group_key: str, target_dir: Optional[Union[str,
         del current[group_key]
         save_group_metadata(current, target_dir)
 
+
+# -----------------------------------------------------------------------------
+# Active 5G Sessions Storage (Persistent IP allocations & Telemetry)
+# -----------------------------------------------------------------------------
+
+DEFAULT_ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
+    "901370007299138": {
+        "ipv4_addr": "10.56.0.202",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "208956167163949": {
+        "ipv4_addr": "10.56.0.193",
+        "apn": "sasetest",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "901370007299137": {
+        "ipv4_addr": "10.56.0.201",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "901370007299147": {
+        "ipv4_addr": "10.56.0.200",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "901370007299136": {
+        "ipv4_addr": "10.56.0.199",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+}
+
+
+def get_active_sessions_file(target_dir: Optional[Union[str, Path]] = None) -> Path:
+    cfg_dir = get_config_dir(target_dir)
+    cfg_dir.mkdir(parents=True, exist_ok=True)
+    return cfg_dir / "active_sessions.json"
+
+
+def load_active_sessions(target_dir: Optional[Union[str, Path]] = None) -> Dict[str, Dict[str, Any]]:
+    """Load persistent active 5G sessions dictionary keyed by IMSI."""
+    sess_file = get_active_sessions_file(target_dir)
+    if sess_file.exists():
+        try:
+            data = json.loads(sess_file.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    # Initialize and return defaults
+    save_active_sessions(DEFAULT_ACTIVE_5G_SESSIONS, target_dir)
+    return dict(DEFAULT_ACTIVE_5G_SESSIONS)
+
+
+def save_active_sessions(sessions: Dict[str, Dict[str, Any]], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Persist active 5G sessions dictionary to active_sessions.json."""
+    sess_file = get_active_sessions_file(target_dir)
+    sess_file.write_text(json.dumps(sessions, indent=2), encoding="utf-8")
+
+
+def update_single_active_session(imsi: str, data: Dict[str, Any], target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Update or record an active 5G session for a given IMSI."""
+    if not imsi:
+        return
+    current = load_active_sessions(target_dir)
+    if imsi not in current:
+        current[imsi] = {}
+    current[imsi].update(data)
+    save_active_sessions(current, target_dir)
+
+
+def delete_single_active_session(imsi: str, target_dir: Optional[Union[str, Path]] = None) -> None:
+    """Remove / terminate an active 5G session for a given IMSI."""
+    if not imsi:
+        return
+    current = load_active_sessions(target_dir)
+    if imsi in current:
+        del current[imsi]
+        save_active_sessions(current, target_dir)
+

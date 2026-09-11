@@ -37,6 +37,10 @@ from src.config import (
     update_single_group_metadata,
     delete_single_group_metadata,
     DEFAULT_GROUP_DESCRIPTIONS,
+    load_active_sessions,
+    save_active_sessions,
+    update_single_active_session,
+    delete_single_active_session,
 )
 from src.auth import PANWAuthManager
 from src.models import TenantUEMapping, UESession
@@ -208,31 +212,8 @@ class EnrichFleetModel(BaseModel):
 
 
 
-# Active 5G subscriber session state tracking (IMSI -> Session IP telemetry)
-ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
-    # Active demo mappings matching live Strata Cloud Manager 5G telemetry
-    "901370007299137": {
-        "ipv4_addr": "10.56.0.201",
-        "apn": "sase",
-        "status": "Active",
-        "region": "europe-west9",
-        "tenant_status": "Yes",
-    },
-    "901370007299147": {
-        "ipv4_addr": "10.56.0.200",
-        "apn": "sase",
-        "status": "Active",
-        "region": "europe-west9",
-        "tenant_status": "Yes",
-    },
-    "901370007299136": {
-        "ipv4_addr": "10.56.0.199",
-        "apn": "sase",
-        "status": "Active",
-        "region": "europe-west9",
-        "tenant_status": "Yes",
-    },
-}
+# Active 5G subscriber session state tracking (backed by persistent active_sessions.json)
+
 
 
 @app.get("/api/version")
@@ -366,7 +347,8 @@ def get_cidr_info():
     """Get active UE CIDR blocks, allocatable IPs, and next suggested IP."""
     try:
         cfg = load_config()
-        used_ips = {s.get("ipv4_addr") for s in ACTIVE_5G_SESSIONS.values() if s.get("ipv4_addr")}
+        active_sess = load_active_sessions()
+        used_ips = {s.get("ipv4_addr") for s in active_sess.values() if s.get("ipv4_addr")}
         allocatable = get_allocatable_ips(cfg.ue_cidr_blocks, limit=100)
         next_ip = get_next_available_ip(cfg.ue_cidr_blocks, used_ips)
         return {
@@ -548,12 +530,14 @@ def list_ues(tsg_id: Optional[str] = None):
         items = resp.get("data", [])
         models = resp.get("models", [])
         local_meta = load_sim_metadata()
+        active_sess = load_active_sessions()
         
         # Convert models to rich json list
         res_data = []
         for m in models:
             imsi_str = str(m.imsi)
-            sess_info = ACTIVE_5G_SESSIONS.get(imsi_str)
+            imei_str = str(m.imei) if m.imei else ""
+            sess_info = active_sess.get(imsi_str) or (active_sess.get(imei_str) if imei_str else None)
             ipv4 = m.ipv4_addr or (sess_info["ipv4_addr"] if sess_info else None)
             status = m.status if (m.ipv4_addr and m.status) else (sess_info["status"] if sess_info else ("Active" if ipv4 else "Inactive"))
             region = m.region or (sess_info["region"] if sess_info else ("europe-west9" if status == "Active" else None))
@@ -652,13 +636,14 @@ def create_ue(payload: CreateUEModel):
                     ipv4_addr=payload.session_ip,
                 )
                 sess_resp = client.register_ue_session(sess)
-                ACTIVE_5G_SESSIONS[str(payload.imsi)] = {
+                update_single_active_session(str(payload.imsi), {
                     "ipv4_addr": payload.session_ip,
+                    "imei": payload.imei,
                     "apn": payload.apn,
                     "status": "Active",
                     "region": "europe-west9",
                     "tenant_status": "Yes",
-                }
+                })
                 session_result = {
                     "registered": True,
                     "status_code": sess_resp.get("status_code"),
@@ -786,7 +771,7 @@ def delete_ue(identity_id: str, imsi: Optional[str] = None):
         resp = client.delete_tenant_ue(identity_id)
         if imsi:
             delete_single_sim_metadata(str(imsi))
-            ACTIVE_5G_SESSIONS.pop(str(imsi), None)
+            delete_single_active_session(str(imsi))
             
         return {
             "success": True,
@@ -995,13 +980,14 @@ def register_session(payload: RegisterSessionModel):
             msisdn=payload.msisdn,
         )
         resp = client.register_ue_session(session)
-        ACTIVE_5G_SESSIONS[str(payload.imsi)] = {
+        update_single_active_session(str(payload.imsi), {
             "ipv4_addr": payload.ipv4_addr,
+            "imei": payload.imei,
             "apn": payload.apn,
             "status": "Active",
             "region": "europe-west9",
             "tenant_status": "Yes",
-        }
+        })
         return {
             "success": True,
             "status_code": resp.get("status_code"),
@@ -1027,7 +1013,7 @@ def deregister_session(payload: DeregisterSessionModel):
             ipv4_addr=payload.ipv4_addr,
         )
         resp = client.deregister_ue_session(session)
-        ACTIVE_5G_SESSIONS.pop(str(payload.imsi), None)
+        delete_single_active_session(str(payload.imsi))
         return {
             "success": True,
             "status_code": resp.get("status_code"),
@@ -1235,7 +1221,8 @@ def get_throughput_metrics(
     """Get Ingress and Egress throughput time-series points dynamically scaled by active 5G sessions."""
     try:
         # Live active session count
-        active_count = len(ACTIVE_5G_SESSIONS)
+        active_sess = load_active_sessions()
+        active_count = len(active_sess)
         
         # Scaling model:
         # When active_count == 0: idle baseline keepalives (~0.0 - 0.2 Kbps)

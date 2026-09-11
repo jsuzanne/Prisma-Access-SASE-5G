@@ -3,6 +3,8 @@ import logging
 from typing import List, Dict, Any, Optional, Union
 import requests
 
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
 from .config import Config, load_config
 from .auth import PANWAuthManager
 from .models import TenantUEMapping, UESession, UserGroup
@@ -25,6 +27,8 @@ class Prisma5GClient:
         self.auth = PANWAuthManager(self.config)
         self.base_url = self.config.api_base_url.rstrip("/")
         self.session = requests.Session()
+        self._tenant_cache: Optional[List[Dict[str, Any]]] = None
+        self._tenant_cache_time: float = 0.0
 
     def _request(
         self,
@@ -103,21 +107,23 @@ class Prisma5GClient:
     # 0. Multitenant & Hierarchy Discovery
     # --------------------------------------------------------------------------
 
-    def list_tenants(self, tsg_id: Optional[str] = None) -> List[Dict[str, Any]]:
-        """List all Tenant Service Groups (Root & Child Tenants).
-        
-        API: GET /tenancy/v1/tenant_service_groups or POST /tenancy/v1/tenant_service_groups/{id}/operations/list_children
-        """
+    def list_tenants(self, tsg_id: Optional[str] = None, force_refresh: bool = False) -> List[Dict[str, Any]]:
+        """List all Tenant Service Groups (Root & Child Tenants) with 60s memory caching."""
+        now = time.time()
+        if not force_refresh and self._tenant_cache is not None and (now - self._tenant_cache_time) < 60.0:
+            return self._tenant_cache
+
         root_tsg = tsg_id or self.config.tsg_id
+        items: List[Dict[str, Any]] = []
+
         # First try listing all TSGs
         resp = self._request("GET", "/tenancy/v1/tenant_service_groups")
         if resp.status_code == 200:
             data = resp.json()
             items = data.get("items", []) if isinstance(data, dict) else []
-            return items
 
-        # Fallback to list_children
-        if root_tsg:
+        # Fallback to list_children if empty
+        if not items and root_tsg:
             resp_children = self._request(
                 "POST",
                 f"/tenancy/v1/tenant_service_groups/{root_tsg}/operations/list_children",
@@ -125,9 +131,13 @@ class Prisma5GClient:
             )
             if resp_children.status_code == 200:
                 data = resp_children.json()
-                return data.get("items", [])
+                items = data.get("items", [])
 
-        return []
+        if items:
+            self._tenant_cache = items
+            self._tenant_cache_time = now
+
+        return items
 
     # --------------------------------------------------------------------------
     # 1. Tenant UE Info Management (Hardware SIM Mapping)
@@ -178,7 +188,7 @@ class Prisma5GClient:
                 return []
 
         # If explicit tsg_id passed, query only that TSG
-        if tsg_id:
+        if tsg_id and str(tsg_id).lower() != "all":
             items = _query_single_tsg(tsg_id)
             models = [TenantUEMapping.from_api_dict(item) for item in items]
             return {"totalItems": len(items), "data": items, "models": models}
@@ -189,13 +199,19 @@ class Prisma5GClient:
 
         all_items: List[Dict[str, Any]] = []
 
-        # Query child tenants (and root)
+        # Query child tenants in parallel for maximum speed
         if tenants:
-            for t in tenants:
-                tid = str(t.get("id"))
-                tname = t.get("display_name", tid)
-                t_items = _query_single_tsg(tid, tenant_name=tname)
-                all_items.extend(t_items)
+            with ThreadPoolExecutor(max_workers=min(len(tenants), 4)) as executor:
+                future_to_tenant = {
+                    executor.submit(_query_single_tsg, str(t.get("id")), t.get("display_name", str(t.get("id")))): t
+                    for t in tenants
+                }
+                for future in as_completed(future_to_tenant):
+                    try:
+                        t_items = future.result()
+                        all_items.extend(t_items)
+                    except Exception:
+                        pass
         else:
             all_items = _query_single_tsg(target_tsg)
 
