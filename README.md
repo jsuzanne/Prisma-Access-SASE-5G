@@ -17,10 +17,15 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ### 📸 Visual Tour & Key Modules
 
-| **5G Session Telemetry & UPF Console** | **1-Click IoT Fleet & eSIM Presets** |
+| **5G SIM Inventory & Multi-Vertical Fleet** | **5G Session Telemetry & UPF Console** |
 | :---: | :---: |
-| <img src="static/img/session_modal_attached.png" alt="5G Session Control & IP Telemetry" width="100%"> | <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%"> |
-| *Real-time REST UPF user plane telemetry injection with live event console output.* | *Instant 1-click industry presets with CIDR block validation & 3GPP IMEI generation.* |
+| <img src="static/img/sim_inventory_fleet.png" alt="Prisma SASE 5G SIM Inventory & Fleet View" width="100%"> | <img src="static/img/session_modal_attached.png" alt="5G Session Control & IP Telemetry" width="100%"> |
+| *Multi-vertical IoT fleet management with live session status, IP indicators, group tags, and instant action triggers.* | *Real-time REST UPF user plane telemetry injection with 3-node architecture flow and live streaming event console.* |
+
+| **1-Click IoT Fleet & eSIM Presets** | **Live API Inspector & Debug Console** |
+| :---: | :---: |
+| <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%"> | <img src="static/img/api_inspector_console.png" alt="Live API Inspector & Debug Console" width="100%"> |
+| *Instant 1-click industry vertical presets with automated CIDR pool validation & 3GPP IMEI generation.* | *Real-time SCM 5G REST API transactions, request/response JSON payloads, latencies, and 1-click copy cURL commands.* |
 
 ---
 
