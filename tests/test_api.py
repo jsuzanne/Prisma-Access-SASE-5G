@@ -151,6 +151,30 @@ class TestAppEndpoints(unittest.TestCase):
         data = response.json()
         self.assertTrue(data["success"])
 
+    @patch("app.Prisma5GClient.update_user_group")
+    @patch("app.Prisma5GClient.get_user_group")
+    @patch("app.Prisma5GClient.list_user_groups")
+    def test_set_ue_groups_endpoint(self, mock_list_grps, mock_get_grp, mock_upd_grp):
+        from src.models import UserGroup
+        mock_list_grps.return_value = {
+            "models": [
+                UserGroup(group_id="grp-1", name="Restrictive", identity_ids=["uuid-1"]),
+                UserGroup(group_id="grp-2", name="IT-Engineering", identity_ids=[]),
+            ]
+        }
+        mock_get_grp.side_effect = [
+            {"data": [{"group_name": "Restrictive", "identity_id": ["uuid-1"]}]},
+            {"data": [{"group_name": "IT-Engineering", "identity_id": []}]},
+        ]
+        mock_upd_grp.return_value = {"status": "success"}
+
+        payload = {"group_ids": ["grp-2"], "tsg_id": "1291887562"}
+        response = client.put("/api/ues/uuid-1/groups", json=payload)
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertEqual(len(data["changes"]), 2)  # removed from grp-1, added to grp-2
+
     @patch("app.Prisma5GClient.create_user_group")
     def test_create_group_endpoint(self, mock_create_grp):
         mock_create_grp.return_value = {"data": {"id": "new-grp-id", "group_name": "VIP-Sensors"}}

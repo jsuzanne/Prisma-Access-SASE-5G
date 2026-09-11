@@ -180,6 +180,11 @@ class AssignGroupModel(BaseModel):
     tsg_id: Optional[str] = None
 
 
+class UpdateUEGroupsModel(BaseModel):
+    group_ids: List[str] = Field(default_factory=list, description="Target list of group IDs this SIM should belong to")
+    tsg_id: Optional[str] = None
+
+
 class RegisterSessionModel(BaseModel):
     imsi: str
     imei: str
@@ -751,6 +756,69 @@ def assign_ue_group(identity_id: str, payload: AssignGroupModel):
             "identity_id": identity_id,
             "data": res,
             "message": f"SIM {identity_id} group membership updated",
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+
+
+@app.put("/api/ues/{identity_id}/groups")
+def set_ue_groups(identity_id: str, payload: UpdateUEGroupsModel):
+    """Set the exact list of subscriber groups a SIM belongs to, adding/removing as needed."""
+    try:
+        client = get_current_client()
+        target_group_ids = set(payload.group_ids or [])
+
+        # Query all groups for the TSG
+        groups_resp = client.list_user_groups(tsg_id=payload.tsg_id)
+        all_groups = groups_resp.get("models", [])
+
+        changes = []
+        for g in all_groups:
+            gid = str(g.group_id)
+            if not gid:
+                continue
+
+            # Fetch current members
+            try:
+                g_detail = client.get_user_group(gid)
+                d_arr = g_detail.get("data", [])
+                g_data = d_arr[0] if d_arr and isinstance(d_arr, list) else g_detail.get("data", {})
+                current_members = list(g_data.get("identity_id") or [])
+                g_name = g_data.get("group_name") or g.name
+                g_tsg = g_data.get("tsg_id") or g.tsg_id
+            except Exception:
+                current_members = list(g.identity_ids or [])
+                g_name = g.name
+                g_tsg = g.tsg_id
+
+            should_be_member = gid in target_group_ids or (g_name and g_name.lower() in [x.lower() for x in target_group_ids])
+            is_current_member = identity_id in current_members
+
+            if should_be_member and not is_current_member:
+                current_members.append(identity_id)
+                res = client.update_user_group(
+                    group_id=gid,
+                    group_name=g_name,
+                    identity_ids=current_members,
+                    tsg_id=g_tsg,
+                )
+                changes.append({"group_id": gid, "action": "added", "result": res})
+            elif not should_be_member and is_current_member:
+                current_members = [i for i in current_members if i != identity_id]
+                res = client.update_user_group(
+                    group_id=gid,
+                    group_name=g_name,
+                    identity_ids=current_members,
+                    tsg_id=g_tsg,
+                )
+                changes.append({"group_id": gid, "action": "removed", "result": res})
+
+        return {
+            "success": True,
+            "identity_id": identity_id,
+            "target_groups": list(target_group_ids),
+            "changes": changes,
+            "message": f"Updated group memberships for SIM {identity_id}"
         }
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))

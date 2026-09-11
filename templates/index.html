@@ -1850,16 +1850,20 @@
                         <input type="text" id="edit-sim-apn" required placeholder="sase" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-400 font-mono focus:border-cyan-400 focus:outline-none">
                     </div>
                     <div>
-                        <label class="block text-gray-300 mb-1 font-medium">Subscriber Group (Dynamic)</label>
-                        <select id="edit-sim-group" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
-                            <option value="">-- None (Unassigned) --</option>
-                        </select>
+                        <label class="block text-gray-300 mb-1 font-medium">Tenant Service Group (TSG)</label>
+                        <input type="text" id="edit-sim-tsg" readonly class="w-full px-3.5 py-2 bg-gray-900/50 border border-white/5 rounded-xl text-gray-400 font-mono">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-gray-300 mb-1 font-medium">Tenant Service Group (TSG)</label>
-                    <input type="text" id="edit-sim-tsg" readonly class="w-full px-3.5 py-2 bg-gray-900/50 border border-white/5 rounded-xl text-gray-400 font-mono">
+                    <div class="flex items-center justify-between mb-1">
+                        <label class="block text-gray-300 font-medium">Subscriber Security Groups (Dynamic Zero-Trust)</label>
+                        <span id="edit-sim-groups-count" class="text-[10px] text-cyan-400 font-mono">0 group(s) selected</span>
+                    </div>
+                    <div id="edit-sim-groups-container" class="max-h-36 overflow-y-auto custom-scrollbar p-2 bg-gray-900/90 border border-white/10 rounded-xl space-y-1">
+                        <!-- Populated dynamically via openEditSimModal() -->
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1">Check or uncheck groups to add or remove this SIM card from Zero-Trust policies.</p>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-3 border-t border-white/10">
@@ -3190,16 +3194,16 @@
             renderGroups(filtered);
         }
 
-        // Edit SIM Modal Functions (SCM Drawer Replica + Industry Fields)
+        // Edit SIM Modal Functions (SCM Drawer Replica + Multi-Group Selection)
         function openEditSimModal(identityId) {
-            const sim = allSIMs.find(s => s.identity_id === identityId);
+            const sim = allSIMs.find(s => s.identity_id === identityId || s.id === identityId);
             if (!sim) {
                 showToast("Error", "SIM identity not found", true);
                 return;
             }
 
-            document.getElementById('edit-sim-identity-id').value = sim.identity_id || '';
-            document.getElementById('edit-sim-id-label').innerText = `Identity ID: ${sim.identity_id || 'N/A'}`;
+            document.getElementById('edit-sim-identity-id').value = sim.identity_id || sim.id || '';
+            document.getElementById('edit-sim-id-label').innerText = `Identity ID: ${sim.identity_id || sim.id || 'N/A'}`;
             document.getElementById('edit-sim-imsi').value = sim.imsi || '';
             document.getElementById('edit-sim-imei').value = sim.imei || '';
             document.getElementById('edit-sim-apn').value = sim.apn || '';
@@ -3209,17 +3213,41 @@
             document.getElementById('edit-sim-vertical').value = sim.vertical || '';
             updateDeviceTypeSelect('edit-sim-device-type', sim.vertical || '', sim.device_type || '');
 
-            // Populate group dropdown dynamically
-            const groupSelect = document.getElementById('edit-sim-group');
-            const currentGroup = (sim.groups && sim.groups.length > 0) ? (sim.groups[0].id || sim.groups[0].group_id || sim.groups[0].group_name || sim.groups[0].name) : '';
-
-            groupSelect.innerHTML = `<option value="">-- None (Unassigned) --</option>` + allGroups.map(g => {
-                const selected = (currentGroup && (currentGroup === g.group_id || currentGroup === g.name)) ? 'selected' : '';
-                return `<option value="${g.group_id}" ${selected}>${g.name} (${g.user_count || 0} members)</option>`;
-            }).join('');
+            // Populate multi-group checkboxes dynamically
+            const simGroupIds = new Set((sim.groups || []).map(g => String(g.id || g.group_id || '')));
+            const simGroupNames = new Set((sim.groups || []).map(g => (g.name || g.group_name || '').toLowerCase()));
+            
+            const container = document.getElementById('edit-sim-groups-container');
+            if (container) {
+                if (allGroups.length === 0) {
+                    container.innerHTML = `<div class="p-2 text-center text-gray-500 text-xs">No security groups found.</div>`;
+                } else {
+                    container.innerHTML = allGroups.map(g => {
+                        const isChecked = simGroupIds.has(String(g.group_id)) || simGroupNames.has((g.raw_name || g.name || '').toLowerCase());
+                        const colorClass = (g.name || '').toLowerCase().includes('restrict') ? 'text-purple-400' : 'text-emerald-400';
+                        return `
+                            <label class="flex items-center justify-between p-2 rounded-lg bg-gray-950/70 hover:bg-gray-800/60 border border-white/5 cursor-pointer text-xs transition">
+                                <div class="flex items-center gap-2">
+                                    <input type="checkbox" name="edit-sim-group-chk" value="${g.group_id}" ${isChecked ? 'checked' : ''} onchange="updateEditSimGroupsCount()" class="rounded border-gray-700 text-cyan-500 focus:ring-0">
+                                    <span class="font-semibold text-white">${g.name}</span>
+                                    <span class="text-[10px] ${colorClass} font-mono font-medium">(${g.user_count || 0} members)</span>
+                                </div>
+                                <span class="text-[9px] text-gray-500 font-mono truncate max-w-[140px]">${g.description || ''}</span>
+                            </label>
+                        `;
+                    }).join('');
+                }
+            }
+            updateEditSimGroupsCount();
 
             document.getElementById('modal-edit-sim').classList.remove('hidden');
             lucide.createIcons();
+        }
+
+        function updateEditSimGroupsCount() {
+            const count = document.querySelectorAll('input[name="edit-sim-group-chk"]:checked').length;
+            const countLabel = document.getElementById('edit-sim-groups-count');
+            if (countLabel) countLabel.innerText = `${count} group(s) selected`;
         }
 
         function closeEditSimModal() {
@@ -3238,10 +3266,12 @@
             const imei = document.getElementById('edit-sim-imei').value.trim();
             const apn = document.getElementById('edit-sim-apn').value.trim();
             const tsg_id = document.getElementById('edit-sim-tsg').value;
-            const group_id = document.getElementById('edit-sim-group').value;
             const custom_label = document.getElementById('edit-sim-memo').value.trim();
             const vertical = document.getElementById('edit-sim-vertical').value;
             const device_type = document.getElementById('edit-sim-device-type').value.trim();
+
+            const checkedGroupBoxes = document.querySelectorAll('input[name="edit-sim-group-chk"]:checked');
+            const selectedGroupIds = Array.from(checkedGroupBoxes).map(cb => cb.value);
 
             if (imsi.length !== 15 || !/^\d{15}$/.test(imsi)) {
                 showToast("Invalid IMSI Format", `IMSI must be exactly 15 digits (currently ${imsi.length} digits).`, true);
@@ -3260,6 +3290,7 @@
             }
 
             try {
+                // 1. Update SIM metadata and parameters
                 const res = await fetch(`/api/ues/${identityId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -3268,7 +3299,6 @@
                         imei,
                         apn,
                         tsg_id,
-                        group_id: group_id || "none",
                         custom_label,
                         vertical,
                         device_type,
@@ -3276,8 +3306,19 @@
                     })
                 });
                 const data = await res.json();
+
+                // 2. Update multi-group assignments
+                await fetch(`/api/ues/${identityId}/groups`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        group_ids: selectedGroupIds,
+                        tsg_id: tsg_id
+                    })
+                });
+
                 if (res.ok && data.success) {
-                    showToast("5G Identity Saved", `Updated SIM ${imsi} and metadata successfully.`);
+                    showToast("5G Identity & Groups Saved", `Updated SIM ${imsi} and group memberships successfully.`);
                     closeEditSimModal();
                     await fetchSIMs();
                     await fetchGroups();
@@ -3402,23 +3443,32 @@
             document.getElementById('edit-group-name').value = grp.name || '';
             document.getElementById('edit-group-desc').value = grp.description || '';
 
-            const memberIdentities = new Set(grp.identity_ids || []);
+            const memberIdentities = new Set((grp.identity_ids || []).map(id => String(id)));
+            const grpIdStr = String(grp.group_id);
+            const grpNameLower = (grp.raw_name || grp.name || '').toLowerCase();
+
+            function isSimInGroup(sim) {
+                if (memberIdentities.has(String(sim.id)) || memberIdentities.has(String(sim.identity_id)) || memberIdentities.has(String(sim.imsi))) {
+                    return true;
+                }
+                if (sim.groups && Array.isArray(sim.groups)) {
+                    return sim.groups.some(g => String(g.id || g.group_id) === grpIdStr || (g.name && g.name.toLowerCase() === grpNameLower));
+                }
+                return false;
+            }
+
             const container = document.getElementById('edit-group-sims-container');
-            const countLabel = document.getElementById('edit-group-sims-count');
-
-            const assignedSimsCount = allSIMs.filter(s => memberIdentities.has(s.id) || memberIdentities.has(s.identity_id) || memberIdentities.has(s.imsi)).length;
-            if (countLabel) countLabel.innerText = `${assignedSimsCount} SIM(s) assigned`;
-
             if (container) {
                 if (allSIMs.length === 0) {
                     container.innerHTML = `<div class="p-3 text-center text-gray-500 text-xs">No registered SIM cards found.</div>`;
                 } else {
                     container.innerHTML = allSIMs.map(sim => {
-                        const isMember = memberIdentities.has(sim.id) || memberIdentities.has(sim.identity_id) || memberIdentities.has(sim.imsi);
+                        const isMember = isSimInGroup(sim);
+                        const simVal = sim.identity_id || sim.id || sim.imsi;
                         return `
                             <label class="flex items-center justify-between p-2 rounded-lg bg-gray-950/70 hover:bg-gray-800/60 border border-white/5 cursor-pointer text-xs transition">
                                 <div class="flex items-center gap-2">
-                                    <input type="checkbox" name="edit-group-sim-chk" value="${sim.id || sim.identity_id || sim.imsi}" ${isMember ? 'checked' : ''} class="rounded border-gray-700 text-blue-500 focus:ring-0">
+                                    <input type="checkbox" name="edit-group-sim-chk" value="${simVal}" ${isMember ? 'checked' : ''} onchange="updateEditGroupMemberCount()" class="rounded border-gray-700 text-blue-500 focus:ring-0">
                                     <span class="font-mono text-white font-semibold">${sim.imsi}</span>
                                     ${sim.custom_label ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-sans bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">${sim.custom_label}</span>` : ''}
                                 </div>
@@ -3429,8 +3479,15 @@
                 }
             }
 
+            updateEditGroupMemberCount();
             document.getElementById('modal-edit-group').classList.remove('hidden');
             lucide.createIcons();
+        }
+
+        function updateEditGroupMemberCount() {
+            const count = document.querySelectorAll('input[name="edit-group-sim-chk"]:checked').length;
+            const countLabel = document.getElementById('edit-group-sims-count');
+            if (countLabel) countLabel.innerText = `${count} SIM(s) assigned`;
         }
 
         function closeEditGroupModal() {
