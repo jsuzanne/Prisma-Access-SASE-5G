@@ -112,7 +112,7 @@ class TestPresetsAndMetadata(unittest.TestCase):
                 {
                     "vertical": "ev_infrastructure",
                     "device_type": "EVSE Fast-Charger OCPI Gateway",
-                    "custom_label": "Borne Démo Stand SIDO #1",
+                    "custom_label": "EV Fast-Charger Demo #1",
                     "icon": "zap",
                 },
                 target_dir=tmp_path,
@@ -120,7 +120,7 @@ class TestPresetsAndMetadata(unittest.TestCase):
 
             loaded = load_sim_metadata(tmp_path)
             self.assertIn(imsi, loaded)
-            self.assertEqual(loaded[imsi]["custom_label"], "Borne Démo Stand SIDO #1")
+            self.assertEqual(loaded[imsi]["custom_label"], "EV Fast-Charger Demo #1")
             self.assertEqual(loaded[imsi]["device_type"], "EVSE Fast-Charger OCPI Gateway")
 
             # Model creation with metadata
@@ -132,7 +132,7 @@ class TestPresetsAndMetadata(unittest.TestCase):
                 vertical=loaded[imsi]["vertical"],
                 device_type=loaded[imsi]["device_type"],
             )
-            self.assertEqual(ue.custom_label, "Borne Démo Stand SIDO #1")
+            self.assertEqual(ue.custom_label, "EV Fast-Charger Demo #1")
 
             # Delete single metadata
             delete_single_sim_metadata(imsi, target_dir=tmp_path)

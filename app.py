@@ -399,7 +399,7 @@ def list_tenants():
 
 
 # -----------------------------------------------------------------------------
-# API Endpoints: Presets & Vertical Metadata (SIDO Demo)
+# API Endpoints: Presets & Vertical Metadata (Enterprise IoT Fleet Demo)
 # -----------------------------------------------------------------------------
 
 @app.get("/api/presets/verticals")

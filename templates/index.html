@@ -271,7 +271,7 @@
                         <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
                     </button>
                     <button onclick="openAddSimModal()" class="px-4 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-xs shadow-lg glow-cyan flex items-center gap-2 transition">
-                        <i data-lucide="plus" class="w-4 h-4"></i> Add Test SIM
+                        <i data-lucide="plus" class="w-4 h-4"></i> Add New SIM
                     </button>
                 </div>
             </div>
@@ -589,7 +589,7 @@
                             <input type="text" id="search-sims" oninput="filterSIMs()" placeholder="Search by Memo, Equipment, IMSI, APN, Vertical..." class="w-full pl-10 pr-4 py-2 bg-gray-900/60 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 transition">
                         </div>
 
-                        <!-- View Mode Toggle (Enriched IoT / SIDO vs Raw SCM) -->
+                        <!-- View Mode Toggle (Enriched IoT / Fleet vs Raw SCM) -->
                         <div class="flex items-center p-0.5 bg-gray-950/80 rounded-xl border border-white/10 text-[11px] font-medium shrink-0">
                             <button type="button" id="btn-mode-enriched" onclick="setInventoryViewMode('enriched')" class="px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 text-white bg-cyan-500/20 border border-cyan-500/30 shadow-sm" title="Enriched Industry Fleet View (Verticals, Device Types, Demo Memos)">
                                 <i data-lucide="sparkles" class="w-3.5 h-3.5 text-cyan-400"></i>
@@ -995,7 +995,7 @@
                                     <i data-lucide="layout" class="w-4 h-4"></i> 1. Web UI Portal
                                 </div>
                                 <p class="text-gray-300 text-[11px] leading-relaxed">
-                                    Click <strong class="text-white">"Add Test SIM"</strong> button in the top banner, generate or input IMSI/IMEI, select APN <code class="text-cyan-300">sasetest</code>, and click <strong class="text-white">"Create SIM"</strong>.
+                                    Click <strong class="text-white">"Add New SIM"</strong> button in the top banner, generate or input IMSI/IMEI, select APN <code class="text-cyan-300">sasetest</code>, and click <strong class="text-white">"Create SIM"</strong>.
                                 </p>
                             </div>
                             <!-- CLI -->
@@ -1596,7 +1596,7 @@
         </div>
     </div>
 
-    <!-- MODAL 1: Add SIM Modal (Enriched SIDO Presets & Manual) -->
+    <!-- MODAL 1: Add SIM Modal (Enriched Fleet Presets & Manual) -->
     <div id="modal-add-sim" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass-panel rounded-2xl max-w-lg w-full p-6 space-y-4 border border-cyan-500/30 glow-cyan max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
@@ -1618,7 +1618,7 @@
                     <span class="font-semibold text-cyan-300 flex items-center gap-1">
                         <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> 1-Click Industry Presets:
                     </span>
-                    <span class="text-gray-400 text-[10px]">Quick SIDO fleet fill</span>
+                    <span class="text-gray-400 text-[10px]">1-Click Quick Fill</span>
                 </div>
                 <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 pt-0.5">
                     <button type="button" onclick="selectPresetInModal('ev_infrastructure')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-medium shrink-0 transition" title="Ultra-Fast EV Charger">
@@ -1663,10 +1663,9 @@
                     </div>
                     <div>
                         <label class="block text-gray-300 mb-1 font-medium">Equipment / Device Type</label>
-                        <div class="relative">
-                            <input type="text" id="add-sim-device-type" placeholder="e.g. EV Fast-Charger OCPI Gateway" list="add-sim-device-options" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
-                            <datalist id="add-sim-device-options"></datalist>
-                        </div>
+                        <select id="add-sim-device-type" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- Select Equipment / Device Type --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -1847,7 +1846,7 @@
         </div>
     </div>
 
-    <!-- MODAL 3: Edit 5G Identity & Metadata (SCM Style + SIDO Fields) -->
+    <!-- MODAL 3: Edit 5G Identity & Metadata (SCM Style + Industry Fields) -->
     <div id="modal-edit-sim" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass-panel rounded-2xl max-w-lg w-full p-6 space-y-4 border border-cyan-500/30 glow-cyan max-h-[90vh] overflow-y-auto custom-scrollbar">
             <div class="flex items-center justify-between pb-3 border-b border-white/10">
@@ -1888,8 +1887,9 @@
                     </div>
                     <div>
                         <label class="block text-gray-300 mb-1 font-medium">Equipment / Device Type</label>
-                        <input type="text" id="edit-sim-device-type" placeholder="e.g. EV Fast-Charger OCPI Gateway" list="edit-sim-device-options" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
-                        <datalist id="edit-sim-device-options"></datalist>
+                        <select id="edit-sim-device-type" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans focus:border-cyan-400 focus:outline-none">
+                            <option value="">-- Select Equipment / Device Type --</option>
+                        </select>
                     </div>
                 </div>
 
@@ -2549,16 +2549,16 @@
                 const res = await fetch('/api/presets/verticals');
                 const data = await res.json();
                 allVerticals = data.data || [];
-                updateDatalistOptions('add-sim-device-options', '');
-                updateDatalistOptions('edit-sim-device-options', '');
+                updateDeviceTypeSelect('add-sim-device-type', '');
+                updateDeviceTypeSelect('edit-sim-device-type', '');
             } catch (e) {
                 console.warn("Could not load vertical presets catalog", e);
             }
         }
 
-        function updateDatalistOptions(datalistId, selectedVertical) {
-            const dl = document.getElementById(datalistId);
-            if (!dl) return;
+        function updateDeviceTypeSelect(selectId, selectedVertical, currentVal = '') {
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
             let options = [];
             if (selectedVertical) {
                 const v = allVerticals.find(item => item.id === selectedVertical);
@@ -2570,16 +2570,27 @@
                     if (v.equipment_types) options.push(...v.equipment_types);
                 });
             }
-            dl.innerHTML = options.map(opt => `<option value="${opt}"></option>`).join('');
+
+            let html = `<option value="">-- Select Equipment / Device Type --</option>`;
+            options.forEach(opt => {
+                const isSel = (currentVal && currentVal === opt) ? 'selected' : '';
+                html += `<option value="${opt}" ${isSel}>${opt}</option>`;
+            });
+            if (currentVal && !options.includes(currentVal)) {
+                html += `<option value="${currentVal}" selected>${currentVal} (Custom)</option>`;
+            }
+            sel.innerHTML = html;
+            if (currentVal && (options.includes(currentVal) || sel.querySelector(`option[value="${currentVal}"]`))) {
+                sel.value = currentVal;
+            } else if (options.length > 0 && selectedVertical) {
+                sel.value = options[0];
+            }
         }
 
         function onAddSimVerticalChange() {
             const v = document.getElementById('add-sim-vertical').value;
-            updateDatalistOptions('add-sim-device-options', v);
+            updateDeviceTypeSelect('add-sim-device-type', v);
             const found = allVerticals.find(item => item.id === v);
-            if (found && found.equipment_types && found.equipment_types.length > 0) {
-                document.getElementById('add-sim-device-type').value = found.equipment_types[0];
-            }
             // Suggest group if available
             if (found && found.suggested_group) {
                 const groupSelect = document.getElementById('add-sim-group');
@@ -2592,7 +2603,8 @@
 
         function onEditSimVerticalChange() {
             const v = document.getElementById('edit-sim-vertical').value;
-            updateDatalistOptions('edit-sim-device-options', v);
+            const current = document.getElementById('edit-sim-device-type').value;
+            updateDeviceTypeSelect('edit-sim-device-type', v, current);
         }
 
         // 1-Click Preset Selection in Add SIM Modal
@@ -2603,13 +2615,13 @@
             const vSelect = document.getElementById('add-sim-vertical');
             if (vSelect) {
                 vSelect.value = verticalId;
-                onAddSimVerticalChange();
             }
 
+            let chosenEq = '';
             if (v && v.equipment_types && v.equipment_types.length > 0) {
-                const randomEq = v.equipment_types[Math.floor(Math.random() * v.equipment_types.length)];
-                document.getElementById('add-sim-device-type').value = randomEq;
+                chosenEq = v.equipment_types[Math.floor(Math.random() * v.equipment_types.length)];
             }
+            updateDeviceTypeSelect('add-sim-device-type', verticalId, chosenEq);
 
             // Auto-select suggested group
             if (v && v.suggested_group) {
@@ -2830,7 +2842,7 @@
                     const deviceName = sim.device_type || '5G Connected Device';
                     const verticalName = getVerticalName(sim.vertical);
 
-                    const memoBadge = (sim.custom_label && !sim.custom_label.startsWith('SIDO '))
+                    const memoBadge = sim.custom_label
                         ? `<span class="px-2 py-0.5 rounded-md text-[10px] font-sans font-medium bg-amber-500/15 text-amber-300 border border-amber-500/30 flex items-center gap-1" title="Custom Memo"><i data-lucide="tag" class="w-3 h-3"></i> ${sim.custom_label}</span>`
                         : '';
 
@@ -3075,7 +3087,7 @@
             renderGroups(filtered);
         }
 
-        // Edit SIM Modal Functions (SCM Drawer Replica + SIDO Fields)
+        // Edit SIM Modal Functions (SCM Drawer Replica + Industry Fields)
         function openEditSimModal(identityId) {
             const sim = allSIMs.find(s => s.identity_id === identityId);
             if (!sim) {
@@ -3092,8 +3104,7 @@
             
             document.getElementById('edit-sim-memo').value = sim.custom_label || '';
             document.getElementById('edit-sim-vertical').value = sim.vertical || '';
-            document.getElementById('edit-sim-device-type').value = sim.device_type || '';
-            updateDatalistOptions('edit-sim-device-options', sim.vertical || '');
+            updateDeviceTypeSelect('edit-sim-device-type', sim.vertical || '', sim.device_type || '');
 
             // Populate group dropdown dynamically
             const groupSelect = document.getElementById('edit-sim-group');
@@ -3298,6 +3309,8 @@
         function openAddSimModal() {
             generateRandomIMSI();
             updateSimModalsGroupDropdowns();
+            const v = document.getElementById('add-sim-vertical').value;
+            updateDeviceTypeSelect('add-sim-device-type', v);
             document.getElementById('modal-add-sim').classList.remove('hidden');
             lucide.createIcons();
         }
