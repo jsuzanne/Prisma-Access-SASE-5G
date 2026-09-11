@@ -174,12 +174,12 @@
 
                     <!-- Dynamic MSSP / Carrier Co-Branding Badge (Strictly Constrained) -->
                     <div id="header-partner-badge" class="hidden md:flex items-center gap-2 px-2.5 py-1 rounded-xl bg-white/5 border border-white/10 hover:border-cyan-500/30 transition shadow-sm shrink-0" style="max-height: 36px;">
-                        <div id="header-partner-logo-box" class="px-1.5 py-0.5 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm overflow-hidden" style="height: 22px; max-height: 22px; min-width: 32px; max-width: 90px;">
-                            <img id="header-partner-logo-img" src="/static/img/transatel_logo.png" alt="Carrier Logo" style="height: 16px; max-height: 16px; width: auto; max-width: 80px; object-fit: contain; display: block;">
+                        <div id="header-partner-logo-box" class="px-1.5 py-0.5 bg-white rounded-md flex items-center justify-center shrink-0 shadow-sm overflow-hidden" style="height: 22px; max-height: 22px; min-width: 32px; max-width: 90px; display: none;">
+                            <img id="header-partner-logo-img" src="/static/img/transatel_logo.png" alt="Carrier Logo" style="height: 16px; max-height: 16px; width: auto; max-width: 80px; object-fit: contain; display: none;">
                         </div>
                         <div class="text-left leading-tight shrink-0">
-                            <div id="header-partner-name" class="text-xs font-bold text-white font-sans tracking-tight leading-none mb-0.5">Transatel (NTT)</div>
-                            <div id="header-partner-subtitle" class="text-[9px] text-cyan-400 font-mono font-medium leading-none">5G Partner</div>
+                            <div id="header-partner-name" class="text-xs font-bold text-white font-sans tracking-tight leading-none mb-0.5">Telecom 5G Core</div>
+                            <div id="header-partner-subtitle" class="text-[9px] text-cyan-400 font-mono font-medium leading-none">Universal 3GPP Partner</div>
                         </div>
                     </div>
                 </div>
@@ -1233,30 +1233,38 @@
                         <div class="space-y-3 lg:col-span-1">
                             <label class="block text-gray-300 font-semibold text-xs">Select Carrier / MSSP Preset</label>
                             <div class="space-y-2">
-                                <button type="button" onclick="selectBrandPreset('transatel')" id="preset-btn-transatel" class="w-full text-left p-2.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-white font-medium flex items-center justify-between transition">
+                                <button type="button" onclick="selectBrandPreset('universal')" id="preset-btn-universal" class="w-full text-left p-2.5 rounded-xl border border-cyan-500/40 bg-cyan-500/10 text-white font-medium flex items-center justify-between transition">
+                                    <div class="flex items-center gap-2.5">
+                                        <span class="px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold text-xs font-mono border border-cyan-500/30">Universal</span>
+                                        <span class="text-xs font-semibold">Universal 5G (Default)</span>
+                                    </div>
+                                    <i data-lucide="check" id="preset-icon-universal" class="w-4 h-4 text-cyan-400"></i>
+                                </button>
+
+                                <button type="button" onclick="selectBrandPreset('transatel')" id="preset-btn-transatel" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
                                     <div class="flex items-center gap-2.5">
                                         <div class="h-6 px-1.5 bg-white rounded flex items-center shadow-sm">
                                             <img src="/static/img/transatel_logo.png" alt="Transatel" class="h-4 w-auto object-contain">
                                         </div>
                                         <span class="text-xs font-semibold">Transatel (NTT)</span>
                                     </div>
-                                    <i data-lucide="check" id="preset-icon-transatel" class="w-4 h-4 text-cyan-400"></i>
+                                    <i data-lucide="circle" id="preset-icon-transatel" class="w-4 h-4 text-gray-600"></i>
                                 </button>
 
-                                <button type="button" onclick="selectBrandPreset('mssp2')" id="preset-btn-mssp2" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
+                                <button type="button" onclick="selectBrandPreset('orange')" id="preset-btn-orange" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 font-bold text-xs font-mono border border-blue-500/30">MSSP 2</span>
-                                        <span class="text-xs font-semibold">MSSP 2 (Partner B)</span>
+                                        <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-bold text-xs font-mono border border-orange-500/30">Telco MNO</span>
+                                        <span class="text-xs font-semibold">Tier-1 Telecom MNO</span>
                                     </div>
-                                    <i data-lucide="circle" id="preset-icon-mssp2" class="w-4 h-4 text-gray-600"></i>
+                                    <i data-lucide="circle" id="preset-icon-orange" class="w-4 h-4 text-gray-600"></i>
                                 </button>
 
-                                <button type="button" onclick="selectBrandPreset('mssp3')" id="preset-btn-mssp3" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
+                                <button type="button" onclick="selectBrandPreset('private5g')" id="preset-btn-private5g" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
                                     <div class="flex items-center gap-2.5">
-                                        <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold text-xs font-mono border border-purple-500/30">MSSP 3</span>
-                                        <span class="text-xs font-semibold">MSSP 3 (Partner C)</span>
+                                        <span class="px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 font-bold text-xs font-mono border border-purple-500/30">Private 5G</span>
+                                        <span class="text-xs font-semibold">Enterprise Private 5G</span>
                                     </div>
-                                    <i data-lucide="circle" id="preset-icon-mssp3" class="w-4 h-4 text-gray-600"></i>
+                                    <i data-lucide="circle" id="preset-icon-private5g" class="w-4 h-4 text-gray-600"></i>
                                 </button>
 
                                 <button type="button" onclick="selectBrandPreset('custom')" id="preset-btn-custom" class="w-full text-left p-2.5 rounded-xl border border-white/10 bg-gray-900/60 hover:bg-white/5 text-gray-300 font-medium flex items-center justify-between transition">
@@ -2324,22 +2332,28 @@
 
         // Carrier & MSSP Co-Branding State & Logic
         const BRAND_PRESETS = {
+            universal: {
+                id: 'universal',
+                name: 'Telecom 5G Core',
+                subtitle: 'Universal 3GPP Partner',
+                logo: ''
+            },
             transatel: {
                 id: 'transatel',
                 name: 'Transatel (NTT)',
                 subtitle: '5G Connectivity Partner',
                 logo: '/static/img/transatel_logo.png'
             },
-            mssp2: {
-                id: 'mssp2',
-                name: 'MSSP 2 (Partner B)',
-                subtitle: 'Managed 5G SASE Partner',
+            orange: {
+                id: 'orange',
+                name: 'Tier-1 Telecom MNO',
+                subtitle: '5G Core Network Partner',
                 logo: ''
             },
-            mssp3: {
-                id: 'mssp3',
-                name: 'MSSP 3 (Partner C)',
-                subtitle: 'Enterprise 5G Connectivity',
+            private5g: {
+                id: 'private5g',
+                name: 'Enterprise Private 5G',
+                subtitle: 'On-Premises UPF SASE',
                 logo: ''
             },
             custom: {
@@ -2350,7 +2364,7 @@
             }
         };
 
-        let currentBrand = JSON.parse(localStorage.getItem('prisma_5g_brand')) || BRAND_PRESETS.transatel;
+        let currentBrand = JSON.parse(localStorage.getItem('prisma_5g_brand')) || BRAND_PRESETS.universal;
 
         function applyBrandToUI(brand) {
             const hName = document.getElementById('header-partner-name');
@@ -2376,7 +2390,7 @@
         }
 
         function selectBrandPreset(presetKey) {
-            const preset = BRAND_PRESETS[presetKey] || BRAND_PRESETS.transatel;
+            const preset = BRAND_PRESETS[presetKey] || BRAND_PRESETS.universal;
             const nameInput = document.getElementById('brand-name-input');
             const subInput = document.getElementById('brand-subtitle-input');
             const logoInput = document.getElementById('brand-logo-input');
@@ -2385,7 +2399,7 @@
             if (subInput) subInput.value = preset.subtitle;
             if (logoInput) logoInput.value = preset.logo;
 
-            ['transatel', 'mssp2', 'mssp3', 'custom'].forEach(k => {
+            ['universal', 'transatel', 'orange', 'private5g', 'custom'].forEach(k => {
                 const btn = document.getElementById('preset-btn-' + k);
                 const icon = document.getElementById('preset-icon-' + k);
                 if (btn) {
@@ -2410,8 +2424,8 @@
         }
 
         function updateBrandPreview() {
-            const name = document.getElementById('brand-name-input')?.value || 'Transatel (NTT)';
-            const sub = document.getElementById('brand-subtitle-input')?.value || '5G Connectivity Partner';
+            const name = document.getElementById('brand-name-input')?.value || 'Telecom 5G Core';
+            const sub = document.getElementById('brand-subtitle-input')?.value || 'Universal 3GPP Partner';
             const logo = document.getElementById('brand-logo-input')?.value || '';
 
             const pName = document.getElementById('preview-name');

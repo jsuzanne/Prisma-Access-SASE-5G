@@ -7,9 +7,9 @@
 
 > [!NOTE]
 > **🚀 Demonstration & Proof-of-Concept (PoC) Prototype**
-> This application is a demo prototype designed for trade shows (such as **SIDO Lyon**), customer innovation centers, and executive briefings to showcase **Palo Alto Networks Prisma SASE 5G** integrated with **Transatel (NTT) 5G Core**. It highlights agentless Zero-Trust mobile security, multi-industry IoT fleet simulation, and real-time UPF session telemetry correlation.
+> This application is a demo prototype designed for trade shows (such as **SIDO Lyon**), customer innovation centers, and executive briefings to showcase **Palo Alto Networks Prisma SASE 5G** integrated with **Universal 5G Core networks (Public Telco MNOs, MVNOs, or Enterprise Private 5G)**. It highlights agentless Zero-Trust mobile security, multi-industry IoT fleet simulation, and real-time UPF session telemetry correlation.
 
-A modern, high-performance **Demo & PoC Prototype** Web Application, REST API, CLI toolkit, and automated test suite for **Palo Alto Networks Prisma SASE 5G** (Strata Cloud Manager & Telecom 5G Core Integration).
+A modern, high-performance **Demo & PoC Prototype** Web Application, REST API, CLI toolkit, and automated test suite for **Palo Alto Networks Prisma SASE 5G** (Strata Cloud Manager & Universal 5G Core Integration).
 
 Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards), real-time 5G session telemetry correlation, subscriber user groups, SCM monitoring KPI metrics, live API debugging, and multi-carrier co-branding.
 
@@ -39,7 +39,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ### 3. 🎯 1-Click IoT Fleet Generator & eSIM Registration
 > **Instant 1-click industry vertical presets with automated CIDR pool validation & 3GPP IMEI generation.**
-> Select a preset (*EVSE Charger, Factory Robot, Retail POS, Avionics iPad, Connected Bus*) to automatically generate Transatel NTT IMSIs (`20895...`), Luhn-compliant IMEIs, and dynamic security group assignments.
+> Select a preset (*EVSE Charger, Factory Robot, Retail POS, Avionics iPad, Connected Bus*) to automatically generate valid 3GPP IMSIs (`20895...`), Luhn-compliant IMEIs, and dynamic security group assignments.
 
 <p align="center">
   <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%">
@@ -62,7 +62,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 - **🏭 7 Industry Verticals & Enterprise IoT Fleet Simulation**:
   - **7 Industry Verticals**: *Smart City & Utilities*, *Industrial IoT & Robotics*, *Connected Healthcare*, *Logistics & Fleet Tracking*, *Retail & Smart POS*, *Agritech & Environmental*, and *Energy & Smart Grid*.
   - **Auto-Enrich Fleet**: Automatically assign realistic IoT equipment profiles, industry badges, and icons to existing SIMs in SCM inventory with a single click—no duplicate SIMs or manual data entry needed.
-  - **1-Click Quick Presets**: Instant form population in the Add SIM modal with realistic Transatel NTT IMSIs (`20895...`) and Luhn-compliant IMEIs.
+  - **1-Click Quick Presets**: Instant form population in the Add SIM modal with realistic 3GPP IMSIs and Luhn-compliant IMEIs.
   - **Dual View Mode**: Switch seamlessly between **Industry Fleet View** (rich equipment names, vertical badges, icons) and **Raw SCM View** (unfiltered hardware identifiers).
   - **Clean Typography**: High-contrast, scannable layout designed specifically for live demonstrations on laptops, tablets, and 2K/4K presentation screens.
 - **📊 5G SASE Summary Dashboard (Strata Cloud Manager Alignment)**:
@@ -82,9 +82,9 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - Real-time request/response payload viewer with timestamped transaction logs.
   - **1-Click Copy cURL Command** and **Copy JSON Response** buttons for instant API troubleshooting.
   - Filter by HTTP method (`GET`, `POST`, `PUT`, `DELETE`), search by endpoint path/status, and export full JSON debug logs.
-- **🎨 Carrier & MSSP Co-Branding Customizer**:
-  - Switch dynamically between presets: **Transatel (NTT)** (active default), **MSSP 2**, **MSSP 3**, or **Custom Carrier**.
-  - Upload custom PNG logos and customize header partner taglines with real-time preview and persistence.
+- **🎨 Universal Carrier & Private 5G Co-Branding Customizer**:
+  - Switch dynamically between presets: **Universal 5G (Default)**, **Transatel (NTT)**, **Tier-1 MNO (Orange/Vodafone/DT)**, **Enterprise Private 5G (Celona/AWS/Cisco)**, or **Custom Carrier**.
+  - Upload custom carrier logos and customize header partner taglines with real-time preview and persistence.
 - **🔍 Display & Typography Scaling for 2K/4K Displays**:
   - Fluid responsive scaling designed for large 2K / 2560px / 4K screens and stage presentations.
   - Interactive header zoom toggle (`100%`, `115%`, `130%`) with preference saved in `localStorage`.

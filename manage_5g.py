@@ -38,7 +38,7 @@ def print_rich_help():
     t_inv.add_column("Command", style="bold yellow", no_wrap=True)
     t_inv.add_column("Key Options / Arguments", style="white")
     t_inv.add_column("Description", style="dim")
-    t_inv.add_row("tenants", "--env <path>", "Discover Root TSG and child tenant organizations (e.g. Transatel demo)")
+    t_inv.add_row("tenants", "--env <path>", "Discover Root TSG and child tenant organizations (e.g. Enterprise Fleet demo)")
     t_inv.add_row("list", "--tenant <name> | --tsg-id <id> [--json]", "List all registered SIM cards / Tenant UE mappings")
     t_inv.add_row("get", "<ue_id> [--json]", "Fetch full details of a specific SIM card by Identity UUID")
     t_inv.add_row("add", "--imsi <15d> --imei <15d> [--apn <apn>] [--tenant <name>] [--ip <ip>]", "Register a new SIM card & optionally activate its 5G session IP")
@@ -97,8 +97,8 @@ def print_rich_help():
             "[bold white]Quick Start Examples:[/bold white]\n"
             "  [cyan]# Discover Tenant Hierarchy[/cyan]\n"
             "  [green]python manage_5g.py tenants[/green]\n\n"
-            "  [cyan]# List SIMs in Transatel demo tenant[/cyan]\n"
-            "  [green]python manage_5g.py list --tenant \"Transatel demo\"[/green]\n\n"
+            "  [cyan]# List SIMs in child tenant organization[/cyan]\n"
+            "  [green]python manage_5g.py list --tenant \"Enterprise Fleet\"[/green]\n\n"
             "  [cyan]# Register new SIM with automatic 5G session activation[/cyan]\n"
             "  [green]python manage_5g.py add --imsi 208950123456789 --imei 860123123456789 --apn sasetest --ip 10.56.0.195[/green]\n\n"
             "  [cyan]# Switch SIM policy group to Restrictive (for live demo)[/cyan]\n"
