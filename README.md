@@ -11,21 +11,45 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
 
 ---
 
+## 📸 Visual Tour & Key Modules
+
+### 1. 🏭 Multi-Vertical Industry Fleet & SIM Inventory
+> **Multi-vertical IoT fleet management with live session status, IP indicators, group tags, and instant action triggers.**
+> Filter devices across 7 industry verticals (*⚡ EV Infra, 🤖 Industry 4.0, 💳 Retail POS, ✈️ Aviation, 🚗 Automotive, 🚌 Transit, 🏙️ Smart City*), view live session status (🟢 Active / 🔴 Inactive), and trigger 1-click Zero-Trust policy actions.
+
 <p align="center">
   <img src="static/img/sim_inventory_fleet.png" alt="Prisma SASE 5G SIM Inventory & Fleet View" width="100%">
 </p>
 
-### 📸 Visual Tour & Key Modules
+---
 
-| **5G SIM Inventory & Multi-Vertical Fleet** | **5G Session Telemetry & UPF Console** |
-| :---: | :---: |
-| <img src="static/img/sim_inventory_fleet.png" alt="Prisma SASE 5G SIM Inventory & Fleet View" width="100%"> | <img src="static/img/session_modal_attached.png" alt="5G Session Control & IP Telemetry" width="100%"> |
-| *Multi-vertical IoT fleet management with live session status, IP indicators, group tags, and instant action triggers.* | *Real-time REST UPF user plane telemetry injection with 3-node architecture flow and live streaming event console.* |
+### 2. ⚡ 5G Session Control & Live UPF Telemetry Console
+> **Real-time REST UPF user plane telemetry injection with 3-node architecture flow and live streaming event console.**
+> Attach or detach sessions on-demand with automated CIDR IP validation (`10.56.0.192/27, 10.56.0.224/27`), last-used IP memory, and live Strata Cloud Manager API correlation feedback.
 
-| **1-Click IoT Fleet & eSIM Presets** | **Live API Inspector & Debug Console** |
-| :---: | :---: |
-| <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%"> | <img src="static/img/api_inspector_console.png" alt="Live API Inspector & Debug Console" width="100%"> |
-| *Instant 1-click industry vertical presets with automated CIDR pool validation & 3GPP IMEI generation.* | *Real-time SCM 5G REST API transactions, request/response JSON payloads, latencies, and 1-click copy cURL commands.* |
+<p align="center">
+  <img src="static/img/session_modal_attached.png" alt="5G Session Control & IP Telemetry" width="100%">
+</p>
+
+---
+
+### 3. 🎯 1-Click IoT Fleet Generator & eSIM Registration
+> **Instant 1-click industry vertical presets with automated CIDR pool validation & 3GPP IMEI generation.**
+> Select a preset (*EVSE Charger, Factory Robot, Retail POS, Avionics iPad, Connected Bus*) to automatically generate Transatel NTT IMSIs (`20895...`), Luhn-compliant IMEIs, and dynamic security group assignments.
+
+<p align="center">
+  <img src="static/img/sim_register_retail.png" alt="1-Click Industry Presets Modal" width="100%">
+</p>
+
+---
+
+### 4. 🔍 Live API Inspector & Real-Time Debug Console
+> **Real-time SCM 5G REST API transactions, request/response JSON payloads, latencies, and 1-click copy cURL commands.**
+> Inspect every outbound API call to Palo Alto Networks Strata Cloud Manager, view precise response latencies (`233ms`), and export cURL commands for instant command-line replication.
+
+<p align="center">
+  <img src="static/img/api_inspector_console.png" alt="Live API Inspector & Debug Console" width="100%">
+</p>
 
 ---
 
