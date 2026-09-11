@@ -97,8 +97,17 @@ def get_current_client(custom_config: Optional[Config] = None) -> Prisma5GClient
     return Prisma5GClient(cfg)
 
 
+from src.cidr import (
+    DEFAULT_UE_CIDR_BLOCKS,
+    parse_cidr_blocks,
+    is_ip_in_cidr,
+    get_allocatable_ips,
+    get_next_available_ip,
+)
+
+
 # -----------------------------------------------------------------------------
-# Pydantic Schemas
+# Pydantic Request & Response Models
 # -----------------------------------------------------------------------------
 
 class ConfigUpdateModel(BaseModel):
@@ -108,6 +117,7 @@ class ConfigUpdateModel(BaseModel):
     api_base_url: Optional[str] = "https://api.sase.paloaltonetworks.com"
     default_apn: Optional[str] = "sasetest"
     default_ip_type: Optional[str] = "IPv4"
+    ue_cidr_blocks: Optional[str] = "10.56.0.192/27,10.56.0.224/27"
 
 
 class ConfigTestModel(BaseModel):
@@ -296,6 +306,7 @@ def get_app_config():
             "api_base_url": cfg.api_base_url,
             "default_apn": cfg.default_apn,
             "default_ip_type": cfg.default_ip_type,
+            "ue_cidr_blocks": cfg.ue_cidr_blocks or DEFAULT_UE_CIDR_BLOCKS,
             "config_dir": str(CONFIG_DIR),
             "config_file_exists": config_exists,
             "json_exists": json_file.exists(),
@@ -318,6 +329,7 @@ def update_app_config(payload: ConfigUpdateModel):
         new_api_base = payload.api_base_url or "https://api.sase.paloaltonetworks.com"
         new_apn = payload.default_apn or "sasetest"
         new_ip_type = payload.default_ip_type or "IPv4"
+        new_cidr = payload.ue_cidr_blocks.strip() if payload.ue_cidr_blocks else current_cfg.ue_cidr_blocks
 
         save_result = save_config(
             Config(
@@ -327,6 +339,7 @@ def update_app_config(payload: ConfigUpdateModel):
                 api_base_url=new_api_base,
                 default_apn=new_apn,
                 default_ip_type=new_ip_type,
+                ue_cidr_blocks=new_cidr,
             ),
             target_dir=CONFIG_DIR,
             save_env_backup=True,
@@ -339,6 +352,44 @@ def update_app_config(payload: ConfigUpdateModel):
         }
     except Exception as exc:
         raise HTTPException(status_code=500, detail=f"Failed to update config: {exc}")
+
+
+@app.get("/api/cidr/info")
+def get_cidr_info():
+    """Get active UE CIDR blocks, allocatable IPs, and next suggested IP."""
+    try:
+        cfg = load_config()
+        used_ips = {s.get("ipv4_addr") for s in ACTIVE_5G_SESSIONS.values() if s.get("ipv4_addr")}
+        allocatable = get_allocatable_ips(cfg.ue_cidr_blocks, limit=100)
+        next_ip = get_next_available_ip(cfg.ue_cidr_blocks, used_ips)
+        return {
+            "success": True,
+            "configured_cidrs": cfg.ue_cidr_blocks,
+            "ue_cidr_blocks": cfg.ue_cidr_blocks,
+            "total_allocatable": len(allocatable),
+            "allocatable_count": len(allocatable),
+            "allocatable_ips": allocatable,
+            "next_available_ip": next_ip,
+            "used_ips": list(used_ips),
+        }
+    except Exception as exc:
+        return {"success": False, "error": str(exc)}
+
+
+@app.get("/api/cidr/validate")
+def validate_ip_cidr(ip: str):
+    """Validate if an IP is within the configured UE CIDR blocks."""
+    cfg = load_config()
+    valid = is_ip_in_cidr(ip, cfg.ue_cidr_blocks)
+    return {
+        "success": True,
+        "ip": ip,
+        "valid": valid,
+        "is_valid": valid,
+        "configured_cidrs": cfg.ue_cidr_blocks,
+        "ue_cidr_blocks": cfg.ue_cidr_blocks,
+        "message": f"IP {ip} is {'valid within' if valid else 'OUTSIDE'} configured CIDR block(s) ({cfg.ue_cidr_blocks})"
+    }
 
 
 @app.post("/api/config/test")
@@ -879,6 +930,13 @@ def delete_group(group_id: str):
 def register_session(payload: RegisterSessionModel):
     """Register real-time 5G session telemetry (IP allocation)."""
     try:
+        cfg = load_config()
+        if payload.ipv4_addr and not is_ip_in_cidr(payload.ipv4_addr, cfg.ue_cidr_blocks):
+            raise HTTPException(
+                status_code=400,
+                detail=f"IP {payload.ipv4_addr} is not within any configured UE CIDR block ({cfg.ue_cidr_blocks}). Please allocate an IP inside the configured CIDR range."
+            )
+
         client = get_current_client()
         session = UESession(
             imsi=payload.imsi,
@@ -903,6 +961,8 @@ def register_session(payload: RegisterSessionModel):
             "data": resp.get("data"),
             "message": f"5G Session registered for IMSI {payload.imsi} with IP {payload.ipv4_addr}",
         }
+    except HTTPException:
+        raise
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 

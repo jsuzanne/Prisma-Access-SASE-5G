@@ -58,6 +58,7 @@ class Config:
     auth_url: str = "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token"
     default_apn: str = "sasetest"
     default_ip_type: str = "IPv4"
+    ue_cidr_blocks: str = "10.56.0.192/27,10.56.0.224/27"
 
     def validate(self) -> None:
         """Validate that either a static token or OAuth2 credentials (client_id, client_secret, tsg_id) are provided."""
@@ -98,6 +99,7 @@ class Config:
             auth_url=data.get("auth_url") or data.get("PANW_AUTH_URL") or data.get("authUrl") or "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token",
             default_apn=data.get("default_apn") or data.get("DEFAULT_APN") or data.get("defaultApn") or "sasetest",
             default_ip_type=data.get("default_ip_type") or data.get("DEFAULT_IP_TYPE") or data.get("defaultIpType") or "IPv4",
+            ue_cidr_blocks=data.get("ue_cidr_blocks") or data.get("PANW_UE_CIDR_BLOCKS") or data.get("UE_CIDR_BLOCKS") or data.get("ueCidrBlocks") or "10.56.0.192/27,10.56.0.224/27",
         )
 
 
@@ -166,6 +168,7 @@ def load_config(config_source: Optional[Union[str, Path]] = None) -> Config:
     auth_url = json_data.get("auth_url") or json_data.get("PANW_AUTH_URL") or os.getenv("PANW_AUTH_URL") or "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token"
     default_apn = json_data.get("default_apn") or json_data.get("DEFAULT_APN") or os.getenv("DEFAULT_APN") or "sasetest"
     default_ip_type = json_data.get("default_ip_type") or json_data.get("DEFAULT_IP_TYPE") or os.getenv("DEFAULT_IP_TYPE") or "IPv4"
+    ue_cidr_blocks = json_data.get("ue_cidr_blocks") or json_data.get("UE_CIDR_BLOCKS") or os.getenv("PANW_UE_CIDR_BLOCKS") or os.getenv("UE_CIDR_BLOCKS") or "10.56.0.192/27,10.56.0.224/27"
 
     config = Config(
         client_id=client_id,
@@ -176,6 +179,7 @@ def load_config(config_source: Optional[Union[str, Path]] = None) -> Config:
         auth_url=auth_url,
         default_apn=default_apn,
         default_ip_type=default_ip_type,
+        ue_cidr_blocks=ue_cidr_blocks,
     )
     return config
 
@@ -209,6 +213,7 @@ def save_config(
         "auth_url": cfg_dict.get("auth_url") or "https://auth.apps.paloaltonetworks.com/am/oauth2/access_token",
         "default_apn": cfg_dict.get("default_apn") or "sasetest",
         "default_ip_type": cfg_dict.get("default_ip_type") or "IPv4",
+        "ue_cidr_blocks": cfg_dict.get("ue_cidr_blocks") or "10.56.0.192/27,10.56.0.224/27",
     }
     json_path.write_text(json.dumps(cleaned_json, indent=2), encoding="utf-8")
 
@@ -223,6 +228,7 @@ def save_config(
         f"PANW_AUTH_URL={cleaned_json['auth_url']}",
         f"DEFAULT_APN={cleaned_json['default_apn']}",
         f"DEFAULT_IP_TYPE={cleaned_json['default_ip_type']}",
+        f"UE_CIDR_BLOCKS={cleaned_json['ue_cidr_blocks']}",
         "",
     ]
     env_content = "\n".join(lines)
@@ -246,6 +252,7 @@ def save_config(
             "PANW_AUTH_URL": cleaned_json["auth_url"],
             "DEFAULT_APN": cleaned_json["default_apn"],
             "DEFAULT_IP_TYPE": cleaned_json["default_ip_type"],
+            "UE_CIDR_BLOCKS": cleaned_json["ue_cidr_blocks"],
         }.items():
             if v:
                 os.environ[k] = str(v)

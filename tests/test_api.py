@@ -264,6 +264,28 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertIn("content", data)
         self.assertIn("# Changelog", data["content"])
 
+    def test_cidr_info_endpoint(self):
+        response = client.get("/api/cidr/info")
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        self.assertIn("configured_cidrs", data)
+        self.assertIn("next_available_ip", data)
+        self.assertTrue(len(data["allocatable_ips"]) > 0)
+        self.assertTrue(data["total_allocatable"] > 0)
+
+    def test_cidr_validate_endpoint(self):
+        # Valid IP in default 10.56.0.192/27
+        resp_valid = client.get("/api/cidr/validate?ip=10.56.0.195")
+        self.assertEqual(resp_valid.status_code, 200)
+        self.assertTrue(resp_valid.json()["is_valid"])
+
+        # Out-of-range IP (e.g. 10.58.0.195)
+        resp_invalid = client.get("/api/cidr/validate?ip=10.58.0.195")
+        self.assertEqual(resp_invalid.status_code, 200)
+        self.assertFalse(resp_invalid.json()["is_valid"])
+
+
 
 if __name__ == "__main__":
     unittest.main()

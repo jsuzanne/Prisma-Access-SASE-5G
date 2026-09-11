@@ -701,9 +701,22 @@
                                 <input type="text" id="session-apn" value="sasetest" required class="w-full px-3.5 py-2 bg-gray-900/80 border border-white/10 rounded-xl text-white font-mono focus:border-amber-400 focus:outline-none">
                             </div>
                             <div>
-                                <label class="block text-gray-300 mb-1 font-medium">Allocated IPv4 Address</label>
-                                <input type="text" id="session-ip" value="10.56.0.195" required class="w-full px-3.5 py-2 bg-gray-900/80 border border-white/10 rounded-xl text-amber-400 font-mono focus:border-amber-400 focus:outline-none">
-                                <p class="text-[10px] text-gray-500 mt-1">Europe-west9 CIDR: 10.56.0.192/27</p>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="block text-gray-300 font-medium">Allocated IPv4 Address</label>
+                                    <button type="button" onclick="autoFillNextSessionIP()" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono font-medium flex items-center gap-1 transition" title="Auto-pick next free IP in configured CIDR">
+                                        <i data-lucide="refresh-cw" class="w-3 h-3"></i> Next Available IP
+                                    </button>
+                                </div>
+                                <div class="relative">
+                                    <input type="text" id="session-ip" value="10.56.0.195" required oninput="validateSessionIPInput()" class="w-full px-3.5 py-2 bg-gray-900/80 border border-white/10 rounded-xl text-amber-400 font-mono focus:border-amber-400 focus:outline-none pr-8 transition">
+                                    <span id="session-ip-status-icon" class="absolute right-2.5 top-2.5 text-emerald-400" title="Valid CIDR IP">
+                                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                                    </span>
+                                </div>
+                                <div class="flex items-center justify-between mt-1 text-[10px]">
+                                    <span id="session-ip-cidr-badge" class="text-gray-400 font-mono truncate max-w-[200px]">CIDR: 10.56.0.192/27, 10.56.0.224/27</span>
+                                    <span id="session-ip-validation-msg" class="text-emerald-400 font-mono">In CIDR pool</span>
+                                </div>
                             </div>
                             <div class="pt-2">
                                 <button type="submit" id="btn-register-session" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-medium shadow-lg transition flex items-center justify-center gap-2">
@@ -1461,6 +1474,15 @@
                                 </div>
                             </div>
 
+                            <div>
+                                <label class="block text-gray-300 mb-1 font-semibold flex items-center justify-between">
+                                    <span>UE IPv4 CIDR Blocks <span class="text-cyan-400 font-mono text-[11px] font-normal">(Region Interconnect Subnets)</span></span>
+                                    <span class="text-[10px] text-gray-400 font-mono">Comma-separated</span>
+                                </label>
+                                <input type="text" id="tab-settings-ue-cidr" value="10.56.0.192/27,10.56.0.224/27" required placeholder="10.56.0.192/27,10.56.0.224/27" class="w-full px-3.5 py-2.5 bg-gray-900/80 border border-cyan-500/30 rounded-xl text-cyan-300 font-mono focus:border-cyan-400 focus:outline-none transition">
+                                <p class="text-[11px] text-gray-400 mt-1">Must match SCM allocated 5G SASE Connection interconnect CIDR (e.g. europe-west9: <code class="text-cyan-400">10.56.0.192/27,10.56.0.224/27</code>). All SIM session registrations will be allocated and validated against this pool.</p>
+                            </div>
+
                             <!-- Test Result Status Banner -->
                             <div id="tab-settings-test-result" class="hidden p-3.5 rounded-xl text-xs font-mono"></div>
 
@@ -1711,11 +1733,25 @@
                     </select>
                 </div>
 
-                <div class="pt-1.5 border-t border-white/10">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" id="add-sim-auto-session" checked class="rounded border-gray-700 text-cyan-500 focus:ring-0">
-                        <span class="text-gray-300 text-[11px]">Immediately register active 5G session IP (<span class="font-mono text-cyan-400">10.56.0.195</span>)</span>
-                    </label>
+                <div class="pt-1.5 border-t border-white/10 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" id="add-sim-auto-session" checked onchange="toggleAddSimSessionIP()" class="rounded border-gray-700 text-cyan-500 focus:ring-0">
+                            <span class="text-gray-300 text-[11px]">Immediately register active 5G session IP</span>
+                        </label>
+                        <button type="button" onclick="autoFillNextAddSimIP()" class="text-[10px] text-cyan-400 hover:text-cyan-300 font-mono flex items-center gap-1 transition" title="Auto-select next free IP in configured CIDR">
+                            <i data-lucide="refresh-cw" class="w-3 h-3"></i> Next Available IP
+                        </button>
+                    </div>
+                    <div id="add-sim-ip-container" class="space-y-1">
+                        <div class="relative">
+                            <input type="text" id="add-sim-session-ip" value="10.56.0.195" oninput="validateAddSimIPInput()" class="w-full px-3.5 py-1.5 bg-gray-900 border border-cyan-500/30 rounded-xl text-cyan-300 font-mono text-xs focus:border-cyan-400 focus:outline-none pr-7">
+                            <span id="add-sim-ip-status-icon" class="absolute right-2.5 top-2 text-emerald-400" title="Valid CIDR IP">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                            </span>
+                        </div>
+                        <p id="add-sim-ip-help" class="text-[10px] text-gray-400 font-mono">Allocated from UE CIDR block pool</p>
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-end gap-3 pt-2">
@@ -1826,6 +1862,13 @@
                 <div>
                     <label class="block text-gray-300 mb-1 font-medium">API Base URL</label>
                     <input type="text" id="settings-api-base" value="https://api.sase.paloaltonetworks.com" required class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-gray-300 font-mono focus:border-purple-400 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-gray-300 mb-1 font-medium flex items-center justify-between">
+                        <span>UE IPv4 CIDR Blocks</span>
+                        <span class="text-[10px] text-gray-400 font-mono">europe-west9</span>
+                    </label>
+                    <input type="text" id="settings-ue-cidr" value="10.56.0.192/27,10.56.0.224/27" required placeholder="10.56.0.192/27,10.56.0.224/27" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-300 font-mono focus:border-purple-400 focus:outline-none">
                 </div>
 
                 <!-- Test Connection Status Box -->
@@ -2096,6 +2139,8 @@
             } else if (tabId === 'tab-summary') {
                 loadSummaryMetrics();
                 loadThroughputChart();
+            } else if (tabId === 'tab-sessions') {
+                validateSessionIPInput();
             }
 
             lucide.createIcons();
@@ -3321,12 +3366,143 @@
             }
         }
 
+        // CIDR Management & IP Validation
+        let cachedCidrInfo = null;
+
+        async function fetchCIDRInfo() {
+            try {
+                const res = await fetch('/api/cidr/info');
+                if (res.ok) {
+                    cachedCidrInfo = await res.json();
+                    updateCIDRBadges();
+                    return cachedCidrInfo;
+                }
+            } catch (e) {
+                console.error("Failed to fetch CIDR info", e);
+            }
+            return null;
+        }
+
+        function updateCIDRBadges() {
+            if (!cachedCidrInfo) return;
+            const cidrs = cachedCidrInfo.configured_cidrs || '10.56.0.192/27, 10.56.0.224/27';
+            const sessionBadge = document.getElementById('session-ip-cidr-badge');
+            if (sessionBadge) sessionBadge.innerText = `CIDR: ${cidrs}`;
+            const addSimHelp = document.getElementById('add-sim-ip-help');
+            if (addSimHelp) addSimHelp.innerText = `Allocated from UE CIDR block: ${cidrs}`;
+        }
+
+        async function autoFillNextSessionIP() {
+            const data = await fetchCIDRInfo();
+            if (data && data.next_available_ip) {
+                const ipInput = document.getElementById('session-ip');
+                if (ipInput) {
+                    ipInput.value = data.next_available_ip;
+                    validateSessionIPInput();
+                }
+            }
+        }
+
+        let sessionIpTimeout = null;
+        async function validateSessionIPInput() {
+            clearTimeout(sessionIpTimeout);
+            sessionIpTimeout = setTimeout(async () => {
+                const ipInput = document.getElementById('session-ip');
+                const statusIcon = document.getElementById('session-ip-status-icon');
+                const msgEl = document.getElementById('session-ip-validation-msg');
+                if (!ipInput || !statusIcon || !msgEl) return;
+                
+                const ip = ipInput.value.trim();
+                if (!ip) {
+                    statusIcon.innerHTML = '';
+                    msgEl.innerText = '';
+                    return;
+                }
+
+                try {
+                    const res = await fetch(`/api/cidr/validate?ip=${encodeURIComponent(ip)}`);
+                    const data = await res.json();
+                    if (data.is_valid) {
+                        statusIcon.className = "absolute right-2.5 top-2.5 text-emerald-400";
+                        statusIcon.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4"></i>';
+                        msgEl.className = "text-emerald-400 font-mono";
+                        msgEl.innerText = "✓ Valid in UE CIDR block";
+                    } else {
+                        statusIcon.className = "absolute right-2.5 top-2.5 text-rose-400";
+                        statusIcon.innerHTML = '<i data-lucide="alert-triangle" class="w-4 h-4"></i>';
+                        msgEl.className = "text-rose-400 font-mono";
+                        msgEl.innerText = `⚠ Not in UE CIDR block (${data.configured_cidrs || 'europe-west9'})`;
+                    }
+                    lucide.createIcons();
+                } catch (e) {
+                    console.error("CIDR validation error", e);
+                }
+            }, 250);
+        }
+
+        function toggleAddSimSessionIP() {
+            const chk = document.getElementById('add-sim-auto-session');
+            const container = document.getElementById('add-sim-ip-container');
+            if (chk && container) {
+                if (chk.checked) {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            }
+        }
+
+        async function autoFillNextAddSimIP() {
+            const data = await fetchCIDRInfo();
+            if (data && data.next_available_ip) {
+                const ipInput = document.getElementById('add-sim-session-ip');
+                if (ipInput) {
+                    ipInput.value = data.next_available_ip;
+                    validateAddSimIPInput();
+                }
+            }
+        }
+
+        let addSimIpTimeout = null;
+        async function validateAddSimIPInput() {
+            clearTimeout(addSimIpTimeout);
+            addSimIpTimeout = setTimeout(async () => {
+                const ipInput = document.getElementById('add-sim-session-ip');
+                const statusIcon = document.getElementById('add-sim-ip-status-icon');
+                const helpEl = document.getElementById('add-sim-ip-help');
+                if (!ipInput || !statusIcon || !helpEl) return;
+
+                const ip = ipInput.value.trim();
+                if (!ip) return;
+
+                try {
+                    const res = await fetch(`/api/cidr/validate?ip=${encodeURIComponent(ip)}`);
+                    const data = await res.json();
+                    if (data.is_valid) {
+                        statusIcon.className = "absolute right-2.5 top-2 text-emerald-400";
+                        statusIcon.innerHTML = '<i data-lucide="check-circle" class="w-3.5 h-3.5"></i>';
+                        helpEl.className = "text-[10px] text-emerald-400 font-mono";
+                        helpEl.innerText = "✓ Valid IP in configured UE CIDR block";
+                    } else {
+                        statusIcon.className = "absolute right-2.5 top-2 text-rose-400";
+                        statusIcon.innerHTML = '<i data-lucide="alert-triangle" class="w-3.5 h-3.5"></i>';
+                        helpEl.className = "text-[10px] text-rose-400 font-mono";
+                        helpEl.innerText = `⚠ Warning: ${ip} is not in UE CIDR block (${data.configured_cidrs})`;
+                    }
+                    lucide.createIcons();
+                } catch (e) {
+                    console.error("Add SIM CIDR validation error", e);
+                }
+            }, 250);
+        }
+
         // Add SIM Modal Functions
-        function openAddSimModal() {
+        async function openAddSimModal() {
             generateRandomIMSI();
             updateSimModalsGroupDropdowns();
             const v = document.getElementById('add-sim-vertical').value;
             updateDeviceTypeSelect('add-sim-device-type', v);
+            await autoFillNextAddSimIP();
             document.getElementById('modal-add-sim').classList.remove('hidden');
             lucide.createIcons();
         }
@@ -3382,6 +3558,7 @@
             const apn = document.getElementById('add-sim-apn').value.trim();
             const tsg_id = document.getElementById('add-sim-tsg').value;
             const autoSession = document.getElementById('add-sim-auto-session').checked;
+            const sessionIp = autoSession ? document.getElementById('add-sim-session-ip').value.trim() : null;
             const vertical = document.getElementById('add-sim-vertical').value;
             const device_type = document.getElementById('add-sim-device-type').value.trim();
             const custom_label = document.getElementById('add-sim-memo').value.trim();
@@ -3412,7 +3589,7 @@
                         imei,
                         apn,
                         tsg_id,
-                        session_ip: autoSession ? "10.56.0.195" : null,
+                        session_ip: sessionIp,
                         vertical,
                         device_type,
                         custom_label,
@@ -3597,6 +3774,7 @@
                 const tabApn = document.getElementById('tab-settings-apn');
                 const tabBase = document.getElementById('tab-settings-api-base');
                 const tabIp = document.getElementById('tab-settings-ip-type');
+                const tabCidr = document.getElementById('tab-settings-ue-cidr');
                 const tabSecretStatus = document.getElementById('tab-settings-secret-status');
 
                 if (tabClient) tabClient.value = cfg.client_id || '';
@@ -3604,6 +3782,7 @@
                 if (tabApn) tabApn.value = cfg.default_apn || 'sasetest';
                 if (tabBase) tabBase.value = cfg.api_base_url || 'https://api.sase.paloaltonetworks.com';
                 if (tabIp) tabIp.value = cfg.default_ip_type || 'IPv4';
+                if (tabCidr) tabCidr.value = cfg.ue_cidr_blocks || '10.56.0.192/27,10.56.0.224/27';
 
                 if (tabSecretStatus) {
                     if (cfg.has_secret) {
@@ -3620,12 +3799,14 @@
                 const mTsg = document.getElementById('settings-tsg-id');
                 const mApn = document.getElementById('settings-apn');
                 const mBase = document.getElementById('settings-api-base');
+                const mCidr = document.getElementById('settings-ue-cidr');
                 const mSecretStatus = document.getElementById('settings-secret-status');
 
                 if (mClient) mClient.value = cfg.client_id || '';
                 if (mTsg) mTsg.value = cfg.tsg_id || '';
                 if (mApn) mApn.value = cfg.default_apn || 'sasetest';
                 if (mBase) mBase.value = cfg.api_base_url || 'https://api.sase.paloaltonetworks.com';
+                if (mCidr) mCidr.value = cfg.ue_cidr_blocks || '10.56.0.192/27,10.56.0.224/27';
 
                 if (mSecretStatus) {
                     if (cfg.has_secret) {
@@ -3665,6 +3846,7 @@
             const default_apn = document.getElementById('tab-settings-apn').value;
             const api_base_url = document.getElementById('tab-settings-api-base').value;
             const default_ip_type = document.getElementById('tab-settings-ip-type').value;
+            const ue_cidr_blocks = document.getElementById('tab-settings-ue-cidr').value.trim();
 
             try {
                 const res = await fetch('/api/config', {
@@ -3676,13 +3858,15 @@
                         tsg_id,
                         default_apn,
                         api_base_url,
-                        default_ip_type
+                        default_ip_type,
+                        ue_cidr_blocks
                     })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
                     showToast("Configuration Saved", "Persisted to config/config.json & .env successfully");
                     document.getElementById('tab-settings-client-secret').value = '';
+                    await fetchCIDRInfo();
                     await refreshAll();
                 } else {
                     showToast("Save Error", data.detail || "Error saving config", true);
@@ -3741,6 +3925,7 @@
             const tsg_id = document.getElementById('settings-tsg-id').value;
             const default_apn = document.getElementById('settings-apn').value;
             const api_base_url = document.getElementById('settings-api-base').value;
+            const ue_cidr_blocks = document.getElementById('settings-ue-cidr').value.trim();
 
             try {
                 const res = await fetch('/api/config', {
@@ -3751,13 +3936,15 @@
                         client_secret: client_secret ? client_secret : null,
                         tsg_id,
                         default_apn,
-                        api_base_url
+                        api_base_url,
+                        ue_cidr_blocks
                     })
                 });
                 const data = await res.json();
                 if (res.ok && data.success) {
                     showToast("Settings Saved", "Persisted to config/config.json & .env");
                     closeSettingsModal();
+                    await fetchCIDRInfo();
                     await refreshAll();
                 } else {
                     showToast("Save Error", data.detail || "Error saving config", true);
@@ -4537,6 +4724,7 @@
                     fetchTenants(),
                     fetchSIMs(),
                     fetchGroups(),
+                    fetchCIDRInfo(),
                     loadSettingsData(),
                     loadSummaryMetrics(),
                     loadThroughputChart(),
