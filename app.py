@@ -537,12 +537,19 @@ def list_ues(tsg_id: Optional[str] = None):
 def create_ue(payload: CreateUEModel):
     """Register a new SIM card (UE mapping) with optional 5G session attach and business metadata."""
     try:
+        clean_imsi = str(payload.imsi).strip()
+        clean_imei = str(payload.imei).strip()
+        if len(clean_imsi) != 15 or not clean_imsi.isdigit():
+            raise HTTPException(status_code=400, detail=f"IMSI must be exactly 15 digits (received {len(clean_imsi)} digits: '{clean_imsi}')")
+        if len(clean_imei) != 15 or not clean_imei.isdigit():
+            raise HTTPException(status_code=400, detail=f"IMEI must be exactly 15 digits (received {len(clean_imei)} digits: '{clean_imei}')")
+
         client = get_current_client()
         
         # 1. Register SIM mapping in SCM
         create_resp = client.create_tenant_ue(
-            imsi=payload.imsi,
-            imei=payload.imei,
+            imsi=clean_imsi,
+            imei=clean_imei,
             apn=payload.apn,
             tsg_id=payload.tsg_id,
         )

@@ -89,6 +89,17 @@ class TestAppEndpoints(unittest.TestCase):
         self.assertTrue(data["success"])
         self.assertEqual(data["identity_id"], "new-sim-id-99")
 
+    def test_create_ue_invalid_imei_length(self):
+        # 14-digit IMEI should be rejected with HTTP 400
+        payload = {
+            "imsi": "208950999999999",
+            "imei": "86012395225221",  # 14 digits
+            "apn": "sasetest",
+        }
+        response = client.post("/api/ues", json=payload)
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("15 digits", response.json()["detail"])
+
     @patch("app.Prisma5GClient.delete_tenant_ue")
     def test_delete_ue_endpoint(self, mock_del):
         mock_del.return_value = {"status": "deleted"}
