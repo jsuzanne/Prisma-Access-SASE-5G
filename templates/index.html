@@ -442,6 +442,11 @@
                                     <span>Egress:</span>
                                     <span id="tooltip-egress" class="font-bold text-white">0 Kbps</span>
                                 </div>
+                                <div class="flex items-center gap-2 text-emerald-400 border-t border-white/10 pt-1 mt-1">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                    <span>Sessions:</span>
+                                    <span id="tooltip-sessions" class="font-bold text-white">0 SIM(s)</span>
+                                </div>
                             </div>
                         </div>
 
@@ -3423,6 +3428,8 @@
                 if (res.ok && data.success) {
                     logConsole.innerHTML += `<div class="text-emerald-400 font-mono">> [${new Date().toLocaleTimeString()}] ✓ Telemetry Accepted (HTTP ${data.status_code || 202}). IP ${ip} mapped to IMSI ${imsi}.</div>`;
                     showToast("5G Session Attached", `IP ${ip} bound to IMSI ${imsi}`);
+                    await fetchSIMs();
+                    await loadThroughputChart();
                 } else {
                     logConsole.innerHTML += `<div class="text-red-400 font-mono">> [${new Date().toLocaleTimeString()}] ✗ Error: ${data.detail || 'Failed'}</div>`;
                     showToast("Session Error", data.detail || "Error", true);
@@ -3502,6 +3509,7 @@
                 btn.innerHTML = '<i data-lucide="play" class="w-4 h-4"></i> Run Full Test Suite';
                 lucide.createIcons();
                 await fetchSIMs();
+                await loadThroughputChart();
             }
         }
 
@@ -3915,9 +3923,10 @@
             const minX = 50, maxX = 780;
             const minY = 20, maxY = 200; // 100Kbps at 20, 0Kbps at 200
             const n = points.length;
+            const maxYVal = (typeof throughputData !== 'undefined' && throughputData && throughputData.max_y) ? throughputData.max_y : 100;
 
             const getX = (i) => minX + (i / (n - 1)) * (maxX - minX);
-            const getY = (val) => Math.max(minY, Math.min(maxY, maxY - (val / 100) * (maxY - minY)));
+            const getY = (val) => Math.max(minY, Math.min(maxY, maxY - (val / maxYVal) * (maxY - minY)));
 
             // Smooth cubic bezier spline generator
             function buildSmoothPath(pts, key) {
@@ -4021,6 +4030,11 @@
                 document.getElementById('tooltip-time').innerText = pt.time;
                 document.getElementById('tooltip-ingress').innerText = `${pt.ingress_kbps.toFixed(1)} Kbps`;
                 document.getElementById('tooltip-egress').innerText = `${pt.egress_kbps.toFixed(1)} Kbps`;
+                const sessElem = document.getElementById('tooltip-sessions');
+                if (sessElem) {
+                    const sessVal = pt.sessions !== undefined ? pt.sessions : (typeof throughputData !== 'undefined' && throughputData?.active_sessions_count !== undefined ? throughputData.active_sessions_count : 0);
+                    sessElem.innerText = `${sessVal} SIM(s)`;
+                }
 
                 const tooltipX = ((cx / 800) * rect.width) - 50;
                 const tooltipY = Math.max(10, ((Math.min(cyIngress, cyEgress) / 220) * rect.height) - 75);

@@ -721,6 +721,7 @@ def delete_ue(identity_id: str, imsi: Optional[str] = None):
         resp = client.delete_tenant_ue(identity_id)
         if imsi:
             delete_single_sim_metadata(str(imsi))
+            ACTIVE_5G_SESSIONS.pop(str(imsi), None)
             
         return {
             "success": True,
@@ -1117,54 +1118,91 @@ def get_throughput_metrics(
     time_range: str = "24h",
     region: str = "europe-west9"
 ):
-    """Get Ingress and Egress throughput time-series points matching Strata Cloud Manager Throughput Trend."""
+    """Get Ingress and Egress throughput time-series points dynamically scaled by active 5G sessions."""
     try:
-        # Realistic SCM Throughput curve for 24h/1h/7d
+        # Live active session count
+        active_count = len(ACTIVE_5G_SESSIONS)
+        
+        # Scaling model:
+        # When active_count == 0: idle baseline keepalives (~0.0 - 0.2 Kbps)
+        # When active_count > 0: dynamic throughput proportional to active IoT endpoints
+        if active_count == 0:
+            scale = 0.0
+            min_floor_in = 0.0
+            min_floor_eg = 0.0
+        else:
+            # Baseline reference: 5 sessions ~ 24.5 / 86.2 Kbps peak
+            scale = active_count / 5.0
+            min_floor_in = 0.2
+            min_floor_eg = 0.4
+
         if time_range == "1h":
-            points = [
-                {"time": "00:00", "ingress_kbps": 2.1, "egress_kbps": 3.4, "sessions": 1},
-                {"time": "00:10", "ingress_kbps": 4.5, "egress_kbps": 12.8, "sessions": 2},
-                {"time": "00:20", "ingress_kbps": 18.2, "egress_kbps": 64.0, "sessions": 4},
-                {"time": "00:30", "ingress_kbps": 24.5, "egress_kbps": 86.2, "sessions": 5},
-                {"time": "00:40", "ingress_kbps": 12.0, "egress_kbps": 38.5, "sessions": 3},
-                {"time": "00:50", "ingress_kbps": 6.2, "egress_kbps": 18.0, "sessions": 2},
-                {"time": "01:00", "ingress_kbps": 3.1, "egress_kbps": 5.2, "sessions": 1},
+            base_points = [
+                {"time": "00:00", "in": 2.1, "eg": 3.4, "sess_ratio": 0.2},
+                {"time": "00:10", "in": 4.5, "eg": 12.8, "sess_ratio": 0.4},
+                {"time": "00:20", "in": 18.2, "eg": 64.0, "sess_ratio": 0.8},
+                {"time": "00:30", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
+                {"time": "00:40", "in": 12.0, "eg": 38.5, "sess_ratio": 0.6},
+                {"time": "00:50", "in": 6.2, "eg": 18.0, "sess_ratio": 0.4},
+                {"time": "01:00", "in": 3.1, "eg": 5.2, "sess_ratio": 0.2},
             ]
         elif time_range == "7d":
-            points = [
-                {"time": "Sep 04", "ingress_kbps": 5.0, "egress_kbps": 18.0, "sessions": 2},
-                {"time": "Sep 05", "ingress_kbps": 8.2, "egress_kbps": 29.4, "sessions": 3},
-                {"time": "Sep 06", "ingress_kbps": 14.1, "egress_kbps": 48.2, "sessions": 4},
-                {"time": "Sep 07", "ingress_kbps": 6.3, "egress_kbps": 22.1, "sessions": 2},
-                {"time": "Sep 08", "ingress_kbps": 11.5, "egress_kbps": 39.8, "sessions": 3},
-                {"time": "Sep 09", "ingress_kbps": 24.5, "egress_kbps": 86.2, "sessions": 5},
-                {"time": "Sep 10", "ingress_kbps": 12.8, "egress_kbps": 42.0, "sessions": 3},
+            base_points = [
+                {"time": "Sep 04", "in": 5.0, "eg": 18.0, "sess_ratio": 0.4},
+                {"time": "Sep 05", "in": 8.2, "eg": 29.4, "sess_ratio": 0.6},
+                {"time": "Sep 06", "in": 14.1, "eg": 48.2, "sess_ratio": 0.8},
+                {"time": "Sep 07", "in": 6.3, "eg": 22.1, "sess_ratio": 0.4},
+                {"time": "Sep 08", "in": 11.5, "eg": 39.8, "sess_ratio": 0.6},
+                {"time": "Sep 09", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
+                {"time": "Sep 10", "in": 12.8, "eg": 42.0, "sess_ratio": 0.6},
             ]
-        else:  # default 24h matching SCM screenshot exactly
-            points = [
-                {"time": "00:00", "ingress_kbps": 0.0, "egress_kbps": 0.0, "sessions": 0},
-                {"time": "03:00", "ingress_kbps": 0.0, "egress_kbps": 0.0, "sessions": 0},
-                {"time": "06:00", "ingress_kbps": 0.0, "egress_kbps": 0.0, "sessions": 0},
-                {"time": "09:00", "ingress_kbps": 0.0, "egress_kbps": 0.0, "sessions": 0},
-                {"time": "12:00", "ingress_kbps": 1.2, "egress_kbps": 2.4, "sessions": 1},
-                {"time": "13:30", "ingress_kbps": 24.5, "egress_kbps": 86.2, "sessions": 5},
-                {"time": "15:00", "ingress_kbps": 3.8, "egress_kbps": 11.2, "sessions": 2},
-                {"time": "16:30", "ingress_kbps": 4.2, "egress_kbps": 25.0, "sessions": 3},
-                {"time": "18:00", "ingress_kbps": 1.0, "egress_kbps": 2.0, "sessions": 1},
-                {"time": "19:30", "ingress_kbps": 3.5, "egress_kbps": 7.8, "sessions": 2},
-                {"time": "21:00", "ingress_kbps": 14.2, "egress_kbps": 23.5, "sessions": 4},
-                {"time": "22:30", "ingress_kbps": 8.0, "egress_kbps": 16.2, "sessions": 2},
-                {"time": "Sep 10", "ingress_kbps": 1.5, "egress_kbps": 2.8, "sessions": 1},
+        else:  # default 24h
+            base_points = [
+                {"time": "00:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": "03:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": "06:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": "09:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": "12:00", "in": 1.2, "eg": 2.4, "sess_ratio": 0.2},
+                {"time": "13:30", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
+                {"time": "15:00", "in": 3.8, "eg": 11.2, "sess_ratio": 0.4},
+                {"time": "16:30", "in": 4.2, "eg": 25.0, "sess_ratio": 0.6},
+                {"time": "18:00", "in": 1.0, "eg": 2.0, "sess_ratio": 0.2},
+                {"time": "19:30", "in": 3.5, "eg": 7.8, "sess_ratio": 0.4},
+                {"time": "21:00", "in": 14.2, "eg": 23.5, "sess_ratio": 0.8},
+                {"time": "22:30", "in": 8.0, "eg": 16.2, "sess_ratio": 0.4},
+                {"time": "Sep 10", "in": 1.5, "eg": 2.8, "sess_ratio": 0.2},
             ]
+
+        points = []
+        for p in base_points:
+            if active_count == 0:
+                in_val = 0.0
+                eg_val = 0.0
+                pt_sess = 0
+            else:
+                in_val = round(max(min_floor_in, p["in"] * scale), 1) if p["in"] > 0 else 0.0
+                eg_val = round(max(min_floor_eg, p["eg"] * scale), 1) if p["eg"] > 0 else 0.0
+                pt_sess = max(1, int(round(active_count * p["sess_ratio"]))) if p["sess_ratio"] > 0 else 0
+            points.append({
+                "time": p["time"],
+                "ingress_kbps": in_val,
+                "egress_kbps": eg_val,
+                "sessions": pt_sess,
+            })
+
+        peak_in = max((p["ingress_kbps"] for p in points), default=0.0)
+        peak_eg = max((p["egress_kbps"] for p in points), default=0.0)
+        max_y = max(100, int(peak_eg * 1.2)) if peak_eg > 80 else 100
 
         return {
             "success": True,
             "time_range": time_range,
             "region": region,
+            "active_sessions_count": active_count,
             "unit": "Kbps",
-            "max_y": 100,
-            "peak_ingress": max(p["ingress_kbps"] for p in points),
-            "peak_egress": max(p["egress_kbps"] for p in points),
+            "max_y": max_y,
+            "peak_ingress": peak_in,
+            "peak_egress": peak_eg,
             "points": points,
         }
     except Exception as exc:

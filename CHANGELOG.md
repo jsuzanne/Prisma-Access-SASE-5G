@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.1.0] - 2026-09-11
+
+### Added
+- **Dynamic Session-Correlated 5G Throughput & Telemetry**:
+  - Dynamically scale 5G SASE Summary throughput curve (Ingress / Egress Kbps) and peak bandwidth based on live active SIM sessions.
+  - Added real-time active SIM session counter badge in SVG throughput trend crosshair tooltip.
+  - Automatic throughput chart re-rendering when sessions attach, terminate, or when running the automated 8-stage lifecycle test.
+  - Idle baseline keepalives (~0 Kbps) displayed when no active subscriber sessions are connected.
+
+---
+
 ## [2.0.0] - 2026-09-11
 
 ### Added

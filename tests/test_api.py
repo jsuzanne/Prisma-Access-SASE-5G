@@ -232,7 +232,11 @@ class TestAppEndpoints(unittest.TestCase):
         data = response.json()
         self.assertTrue(data["success"])
         self.assertEqual(data["region"], "europe-west9")
+        self.assertIn("active_sessions_count", data)
         self.assertTrue(len(data["points"]) > 0)
+        self.assertIn("ingress_kbps", data["points"][0])
+        self.assertIn("egress_kbps", data["points"][0])
+        self.assertIn("sessions", data["points"][0])
 
     def test_version_endpoint(self):
         response = client.get("/api/version")
