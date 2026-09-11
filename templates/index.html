@@ -718,9 +718,12 @@
                                     <span id="session-ip-validation-msg" class="text-emerald-400 font-mono">In CIDR pool</span>
                                 </div>
                             </div>
-                            <div class="pt-2">
+                            <div class="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <button type="submit" id="btn-register-session" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white font-medium shadow-lg transition flex items-center justify-center gap-2">
-                                    <i data-lucide="zap" class="w-4 h-4"></i> Attach 5G Session (Register)
+                                    <i data-lucide="zap" class="w-4 h-4"></i> Attach Session
+                                </button>
+                                <button type="button" onclick="handleDeregisterSessionSubmit()" id="btn-deregister-session" class="w-full py-2.5 rounded-xl bg-gray-800/90 hover:bg-rose-950/80 border border-rose-500/30 text-rose-300 font-medium transition flex items-center justify-center gap-2" title="Terminate active 5G session & remove IP connection">
+                                    <i data-lucide="power-off" class="w-4 h-4"></i> Detach Session
                                 </button>
                             </div>
                         </form>
@@ -2983,13 +2986,19 @@
                             <td class="px-5 py-3.5 font-sans">
                                 ${groupBadges}
                             </td>
-                            <td class="px-5 py-3.5 text-right space-x-1.5 font-sans">
+                            <td class="px-5 py-3.5 text-right space-x-1.5 font-sans whitespace-nowrap">
                                 <button onclick="openEditSimModal('${identityId}')" class="px-2.5 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs transition" title="Edit 5G Identity & Metadata">
                                     <i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit
                                 </button>
-                                <button onclick="prefillSession('${sim.imsi}', '${sim.imei}', '${sim.apn}')" class="px-2 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs transition" title="Connect 5G Session">
-                                    <i data-lucide="zap" class="w-3.5 h-3.5 inline"></i>
-                                </button>
+                                ${isActive ? `
+                                    <button onclick="handleQuickDeregisterSession('${sim.imsi}', '${sim.imei || ''}', '${sim.apn || 'sasetest'}', '${sim.ipv4_addr || ''}')" class="px-2.5 py-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs transition" title="Detach / Terminate 5G Session (Release IP)">
+                                        <i data-lucide="power-off" class="w-3.5 h-3.5 inline"></i> Detach
+                                    </button>
+                                ` : `
+                                    <button onclick="prefillSession('${sim.imsi}', '${sim.imei}', '${sim.apn}')" class="px-2.5 py-1 rounded-lg bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 text-xs transition" title="Connect / Attach 5G Session">
+                                        <i data-lucide="zap" class="w-3.5 h-3.5 inline"></i> Attach
+                                    </button>
+                                `}
                                 <button onclick="handleDeleteSIM('${identityId}', '${sim.imsi}')" class="px-2 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete SIM">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i>
                                 </button>
@@ -3840,8 +3849,83 @@
             } finally {
                 logConsole.scrollTop = logConsole.scrollHeight;
                 btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> Attach 5G Session (Register)';
+                btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4"></i> Attach Session';
                 lucide.createIcons();
+            }
+        }
+
+        async function handleDeregisterSessionSubmit() {
+            const btn = document.getElementById('btn-deregister-session');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Detaching...';
+            lucide.createIcons();
+
+            const imsi = document.getElementById('session-imsi').value.trim();
+            const imei = document.getElementById('session-imei').value.trim();
+            const apn = document.getElementById('session-apn').value.trim();
+            const ip = document.getElementById('session-ip').value.trim();
+
+            const logConsole = document.getElementById('session-log-console');
+            logConsole.innerHTML += `<div class="text-rose-400 font-mono">> [${new Date().toLocaleTimeString()}] Sending 5G Session Termination (Deregister): IMSI=${imsi}, IP=${ip}, APN=${apn}...</div>`;
+            logConsole.scrollTop = logConsole.scrollHeight;
+
+            try {
+                const res = await fetch('/api/sessions/deregister', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imsi, imei, apn,
+                        ip_type: "IPv4",
+                        ipv4_addr: ip
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    logConsole.innerHTML += `<div class="text-emerald-400 font-mono">> [${new Date().toLocaleTimeString()}] ✓ 5G Session Terminated cleanly (HTTP ${data.status_code || 202}). IP ${ip} released.</div>`;
+                    showToast("5G Session Detached", `IP ${ip} released for IMSI ${imsi}`);
+                    await fetchSIMs();
+                    await loadThroughputChart();
+                } else {
+                    logConsole.innerHTML += `<div class="text-red-400 font-mono">> [${new Date().toLocaleTimeString()}] ✗ Deregister Error: ${data.detail || 'Failed'}</div>`;
+                    showToast("Deregister Error", data.detail || "Error", true);
+                }
+            } catch (err) {
+                logConsole.innerHTML += `<div class="text-red-400 font-mono">> [${new Date().toLocaleTimeString()}] ✗ Network Error: ${err.message}</div>`;
+                showToast("Network Error", err.message, true);
+            } finally {
+                logConsole.scrollTop = logConsole.scrollHeight;
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="power-off" class="w-4 h-4"></i> Detach Session';
+                lucide.createIcons();
+            }
+        }
+
+        async function handleQuickDeregisterSession(imsi, imei, apn, ip) {
+            if (!confirm(`Do you want to detach / deregister the active 5G session for SIM ${imsi} (IP ${ip || 'N/A'})?`)) {
+                return;
+            }
+            try {
+                const res = await fetch('/api/sessions/deregister', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        imsi,
+                        imei: imei || '860123000000000',
+                        apn: apn || 'sasetest',
+                        ip_type: 'IPv4',
+                        ipv4_addr: ip || '10.56.0.195'
+                    })
+                });
+                const data = await res.json();
+                if (res.ok && data.success) {
+                    showToast("5G Session Detached", `Released active session IP for SIM ${imsi}`);
+                    await fetchSIMs();
+                    await loadThroughputChart();
+                } else {
+                    showToast("Detach Failed", data.detail || "Error deregistering session", true);
+                }
+            } catch (err) {
+                showToast("Network Error", err.message, true);
             }
         }
 
