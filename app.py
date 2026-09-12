@@ -1043,38 +1043,37 @@ def sync_policies_fastpath(payload: FastPathSyncModel = FastPathSyncModel()):
     try:
         client = get_current_client()
         active_sess = load_active_sessions()
+        all_meta = load_sim_metadata()
+        
+        # Query registered UEs from SCM to get exact APN, IMEI, and TSG
+        scm_ues = {}
+        try:
+            target_tsg = payload.tsg_id if payload.tsg_id and payload.tsg_id != "all" else None
+            ues_resp = client.list_tenant_ues(tsg_id=target_tsg)
+            if isinstance(ues_resp, dict):
+                scm_ues = {str(u.get("imsi")): u for u in ues_resp.get("data", []) if u.get("imsi")}
+        except Exception:
+            pass
         
         # Determine target sessions to sync
         target_imsis = []
         if payload.imsi:
             target_imsis = [str(payload.imsi).strip()]
         else:
-            target_imsis = list(active_sess.keys())
-        
-        # If no active session found locally for target IMSI or if session list is empty,
-        # fallback to querying registered UEs from SCM
-        if not target_imsis:
-            ues_resp = client.list_ues()
-            ues_data = ues_resp.get("data", [])
-            for ue in ues_data:
-                imsi_val = str(ue.get("imsi", "")).strip()
-                if imsi_val:
-                    target_imsis.append(imsi_val)
-                    if imsi_val not in active_sess:
-                        active_sess[imsi_val] = {
-                            "imei": ue.get("imei") or "350000000000001",
-                            "apn": ue.get("apn") or "sasetest",
-                            "ipv4_addr": "10.56.0.195",
-                        }
+            # Include all SCM UEs or all active sessions
+            target_imsis = list(scm_ues.keys()) if scm_ues else list(active_sess.keys())
         
         results = []
         synced_count = 0
         
         for imsi in target_imsis:
-            s_info = active_sess.get(imsi, {})
-            imei = s_info.get("imei") or "350000000000001"
-            apn = s_info.get("apn") or "sasetest"
-            ip = s_info.get("ipv4_addr") or "10.56.0.195"
+            scm_info = scm_ues.get(imsi, {})
+            sess_info = active_sess.get(imsi, {})
+            meta_info = all_meta.get(imsi, {})
+            
+            imei = scm_info.get("imei") or sess_info.get("imei") or "350000000000001"
+            apn = scm_info.get("apn") or sess_info.get("apn") or "sase"
+            ip = sess_info.get("ipv4_addr") or meta_info.get("last_ip") or "10.56.0.195"
             
             t_start = time.time()
             session = UESession(
