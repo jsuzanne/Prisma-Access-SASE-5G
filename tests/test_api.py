@@ -307,19 +307,7 @@ class TestAppEndpoints(unittest.TestCase):
         # Out-of-range IP (e.g. 10.58.0.195)
         resp_invalid = client.get("/api/cidr/validate?ip=10.58.0.195")
         self.assertEqual(resp_invalid.status_code, 200)
-    @patch("app.Prisma5GClient.list_tenant_ues")
-    @patch("app.Prisma5GClient.register_ue_session")
-    def test_sync_policies_fastpath(self, mock_reg, mock_ues):
-        mock_ues.return_value = {"data": [{"imsi": "208950999999999", "imei": "860123999999999", "apn": "sasetest"}]}
-        mock_reg.return_value = {"status_code": 202, "status": "Accepted"}
-        resp = client.post("/api/policies/sync-fastpath", json={"force_all": True})
-        self.assertEqual(resp.status_code, 200)
-        data = resp.json()
-        self.assertTrue(data["success"])
-        self.assertIn("synced_count", data)
-        self.assertIn("total_ms", data)
-        self.assertIn("results", data)
-        self.assertIn("message", data)
+
 
 
 if __name__ == "__main__":

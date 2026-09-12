@@ -216,10 +216,7 @@ class EnrichFleetModel(BaseModel):
     tsg_id: Optional[str] = None
 
 
-class FastPathSyncModel(BaseModel):
-    tsg_id: Optional[str] = None
-    imsi: Optional[str] = None
-    force_all: Optional[bool] = False
+
 
 
 
@@ -1030,96 +1027,7 @@ def delete_group(group_id: str):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
-@app.post("/api/policies/sync-fastpath")
-def sync_policies_fastpath(payload: FastPathSyncModel = FastPathSyncModel()):
-    """
-    Emergency Fast-Path 5G Policy Dataplane Synchronization.
-    
-    Bypasses standard 30-45min Cloud Identity Engine (CIE) polling latency by explicitly
-    re-anchoring 5G UE session bindings (IMSI, IMEI, APN, IP) on the Palo Alto SASE Dataplane.
-    This forces instant (< 2s) firewall policy re-evaluation for critical group shifts (e.g. Quarantine).
-    """
-    start_time = time.time()
-    try:
-        client = get_current_client()
-        active_sess = load_active_sessions()
-        all_meta = load_sim_metadata()
-        
-        # Query registered UEs from SCM to get exact APN, IMEI, and TSG
-        scm_ues = {}
-        try:
-            target_tsg = payload.tsg_id if payload.tsg_id and payload.tsg_id != "all" else None
-            ues_resp = client.list_tenant_ues(tsg_id=target_tsg)
-            if isinstance(ues_resp, dict):
-                scm_ues = {str(u.get("imsi")): u for u in ues_resp.get("data", []) if u.get("imsi")}
-        except Exception:
-            pass
-        
-        # Determine target sessions to sync
-        target_imsis = []
-        if payload.imsi:
-            target_imsis = [str(payload.imsi).strip()]
-        else:
-            # Include all SCM UEs or all active sessions
-            target_imsis = list(scm_ues.keys()) if scm_ues else list(active_sess.keys())
-        
-        results = []
-        synced_count = 0
-        
-        for imsi in target_imsis:
-            scm_info = scm_ues.get(imsi, {})
-            sess_info = active_sess.get(imsi, {})
-            meta_info = all_meta.get(imsi, {})
-            
-            imei = scm_info.get("imei") or sess_info.get("imei") or "350000000000001"
-            apn = scm_info.get("apn") or sess_info.get("apn") or "sase"
-            ip = sess_info.get("ipv4_addr") or meta_info.get("last_ip") or "10.56.0.195"
-            
-            t_start = time.time()
-            session = UESession(
-                imsi=imsi,
-                imei=imei,
-                apn=apn,
-                ip_type="IPv4",
-                ipv4_addr=ip,
-            )
-            try:
-                resp = client.register_ue_session(session)
-                lat_ms = int((time.time() - t_start) * 1000)
-                status_code = resp.get("status_code", 200)
-                results.append({
-                    "imsi": imsi,
-                    "imei": imei,
-                    "apn": apn,
-                    "ipv4_addr": ip,
-                    "status_code": status_code,
-                    "latency_ms": max(lat_ms, 12),
-                    "success": True,
-                })
-                synced_count += 1
-            except Exception as e:
-                lat_ms = int((time.time() - t_start) * 1000)
-                results.append({
-                    "imsi": imsi,
-                    "imei": imei,
-                    "apn": apn,
-                    "ipv4_addr": ip,
-                    "status_code": 500,
-                    "latency_ms": max(lat_ms, 12),
-                    "success": False,
-                    "error": str(e),
-                })
 
-        total_ms = int((time.time() - start_time) * 1000)
-        return {
-            "success": True,
-            "synced_count": synced_count,
-            "total_ms": total_ms,
-            "results": results,
-            "message": f"Fast-Path Dataplane Policy Sync completed successfully for {synced_count} subscriber session(s) in {total_ms}ms.",
-        }
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
 
 
 # -----------------------------------------------------------------------------

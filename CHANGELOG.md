@@ -9,13 +9,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.3.0] - 2026-09-12
 
-### Added
-- **Emergency Fast-Path 5G Policy Dataplane Sync**:
-  - Added dedicated `⚡ Fast-Path Sync` action button in the **SIM Inventory** toolbar (adjacent to `+ Add New SIM`) and the **Groups & Policies** toolbar (adjacent to `+ Add Group`).
-  - Added interactive confirmation & safety modal (`#modal-fastpath-sync`) explaining the critical difference between normal CIE directory polling (~30–45 min) and Fast-Path on-demand enforcement (< 2s).
-  - Supports flexible sync scopes: fleet-wide session flush across all active subscriber sessions, or targeted single IMSI re-anchoring.
-  - Added live 3-step execution pipeline indicator and real-time per-session response latency breakdown (status code, IP, APN, ms).
-  - Added backend endpoint `POST /api/policies/sync-fastpath` utilizing 5G Management session re-anchoring to force instant SASE Dataplane policy invalidation and re-evaluation.
+### Changed & Streamlined
+- **5G Session Lifecycle & Dataplane Telemetry Alignment**:
+  - Streamlined UI by focusing real-time operations on the native 5G Session Telemetry lifecycle (`[⚡ Attach]` and `[⏻ Detach]`).
+  - Removed redundant Fast-Path Sync modal and button to avoid operator confusion with Cloud Identity Engine (CIE) directory group recalculation.
+  - Reinforced sub-2-second emergency threat containment and quarantine via instant 5G session detachment / lease invalidation on the SASE enforcement dataplane.
 
 ---
 

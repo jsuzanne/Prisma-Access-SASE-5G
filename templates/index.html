@@ -354,24 +354,6 @@
             color: #1e40af !important;
         }
 
-        /* Fast-Path Sync Modal Light Mode */
-        html.light #modal-fastpath-sync .bg-amber-950\/40 {
-            background-color: rgba(254, 243, 199, 0.9) !important;
-            border-color: rgba(245, 158, 11, 0.5) !important;
-            color: #78350f !important;
-        }
-        html.light #modal-fastpath-sync .bg-amber-950\/40 p {
-            color: #92400e !important;
-        }
-        html.light #modal-fastpath-sync .bg-gray-900\/80 {
-            background-color: rgba(255, 255, 255, 0.95) !important;
-            border-color: rgba(226, 232, 240, 0.9) !important;
-        }
-        html.light #modal-fastpath-sync .bg-gray-950\/80,
-        html.light #modal-fastpath-sync .bg-gray-950\/60 {
-            background-color: rgba(248, 250, 252, 0.95) !important;
-            border-color: rgba(226, 232, 240, 0.9) !important;
-        }
 
         /* View mode toggle button active state in Light Mode */
         html.light #btn-mode-enriched.bg-cyan-500\/20 {
@@ -901,9 +883,6 @@
                         <button onclick="openAutoPopulateModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer" title="Enrich existing SIMs with realistic IoT equipment names and verticals">
                             <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Auto-Enrich Fleet
                         </button>
-                        <button onclick="openFastPathSyncModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 via-amber-500/20 to-orange-500/20 hover:from-rose-500/30 hover:via-amber-500/30 hover:to-orange-500/30 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer" title="Emergency Fast-Path 5G Policy Dataplane Sync (Instant SASE Firewall Policy Enforcement)">
-                            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> Fast-Path Sync
-                        </button>
                         <button onclick="openAddSimModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add New SIM
                         </button>
@@ -971,9 +950,6 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-2.5 w-full sm:w-auto justify-between sm:justify-end text-xs">
-                        <button onclick="openFastPathSyncModal()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-rose-500/20 via-amber-500/20 to-orange-500/20 hover:from-rose-500/30 hover:via-amber-500/30 hover:to-orange-500/30 text-amber-300 hover:text-white border border-amber-500/40 text-xs font-semibold flex items-center gap-1.5 shadow transition cursor-pointer" title="Emergency Fast-Path 5G Policy Dataplane Sync (Instant SASE Firewall Policy Enforcement)">
-                            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-400"></i> Fast-Path Sync
-                        </button>
                         <button onclick="openAddGroupModal()" class="px-4 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow transition">
                             <i data-lucide="plus" class="w-3.5 h-3.5"></i> Add Group
                         </button>
@@ -2487,136 +2463,6 @@
         </div>
     </div>
 
-    <!-- MODAL 7: Emergency Fast-Path 5G Policy Dataplane Sync -->
-    <div id="modal-fastpath-sync" class="fixed inset-0 z-50 bg-black/75 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="glass-panel rounded-2xl max-w-xl w-full p-6 space-y-4 border border-amber-500/40 glow-amber max-h-[92vh] overflow-y-auto custom-scrollbar shadow-2xl">
-            <!-- Header -->
-            <div class="flex items-center justify-between pb-3 border-b border-white/10">
-                <div class="flex items-center space-x-3">
-                    <div class="w-9 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
-                        <i data-lucide="zap" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h3 class="text-sm font-bold text-white">⚡ Fast-Path 5G Policy Dataplane Sync</h3>
-                            <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono border border-amber-500/30">&lt; 2s Dataplane</span>
-                        </div>
-                        <p class="text-[11px] text-gray-400">Instant on-demand SASE security policy push &amp; session re-anchoring</p>
-                    </div>
-                </div>
-                <button onclick="closeFastPathSyncModal()" class="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-gray-400 hover:text-white flex items-center justify-center transition">
-                    <i data-lucide="x" class="w-4 h-4"></i>
-                </button>
-            </div>
-
-            <!-- Emergency Alert Callout -->
-            <div class="p-3.5 rounded-xl bg-amber-950/40 border border-amber-500/40 text-xs space-y-2">
-                <div class="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wide">
-                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400 shrink-0"></i>
-                    Emergency Fast-Path vs Standard CIE Sync
-                </div>
-                <p class="text-[11px] text-gray-300 leading-relaxed">
-                    Under normal operations, Cloud Identity Engine (CIE) polls and reconciles subscriber security groups in standard background cycles (~30–45 min).
-                    <strong class="text-amber-200">Do NOT use this button on every routine SIM addition.</strong>
-                </p>
-                <p class="text-[11px] text-gray-300 leading-relaxed">
-                    Use this <strong class="text-white">Fast-Path Trigger</strong> during <span class="text-amber-300 font-semibold">urgent threat containment</span> (e.g., immediate <strong>Quarantine</strong> isolation of compromised IoT devices) to force instant session context re-evaluation directly on Palo Alto Networks SASE Dataplane nodes.
-                </p>
-            </div>
-
-            <!-- Sync Scope Selection Form -->
-            <div class="space-y-3 text-xs">
-                <label class="block text-gray-300 font-semibold text-[11px] uppercase tracking-wider">Synchronization Scope</label>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <label class="flex items-start gap-2.5 p-3 rounded-xl bg-gray-900/80 border border-white/10 hover:border-amber-500/30 cursor-pointer transition">
-                        <input type="radio" name="fastpath-scope" id="fastpath-scope-all" value="all" checked onchange="toggleFastPathSyncScope()" class="mt-0.5 text-amber-500 focus:ring-0">
-                        <div>
-                            <div class="font-semibold text-white flex items-center gap-1.5">
-                                <i data-lucide="radio" class="w-3.5 h-3.5 text-amber-400"></i> All Active 5G Sessions
-                            </div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">Fleet-wide session flush &amp; security policy refresh</div>
-                        </div>
-                    </label>
-
-                    <label class="flex items-start gap-2.5 p-3 rounded-xl bg-gray-900/80 border border-white/10 hover:border-amber-500/30 cursor-pointer transition">
-                        <input type="radio" name="fastpath-scope" id="fastpath-scope-single" value="single" onchange="toggleFastPathSyncScope()" class="mt-0.5 text-amber-500 focus:ring-0">
-                        <div>
-                            <div class="font-semibold text-white flex items-center gap-1.5">
-                                <i data-lucide="smartphone" class="w-3.5 h-3.5 text-cyan-400"></i> Single Targeted SIM
-                            </div>
-                            <div class="text-[11px] text-gray-400 mt-0.5">Isolate or re-anchor a specific IMSI identity</div>
-                        </div>
-                    </label>
-                </div>
-
-                <!-- Single SIM selector (Conditional) -->
-                <div id="fastpath-single-sim-container" class="hidden space-y-1.5 pt-1">
-                    <label class="block text-gray-300 font-medium">Select Target SIM / Device</label>
-                    <select id="fastpath-sync-sim-select" class="w-full px-3 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-mono text-xs focus:border-amber-400 focus:outline-none">
-                        <!-- Populated dynamically via openFastPathSyncModal() -->
-                    </select>
-                </div>
-            </div>
-
-            <!-- Execution Pipeline Progress (Hidden until triggered) -->
-            <div id="fastpath-sync-progress" class="hidden p-3.5 rounded-xl bg-gray-950/80 border border-white/10 space-y-2 text-xs">
-                <div class="font-semibold text-gray-300 text-[11px] uppercase tracking-wider flex items-center gap-1.5">
-                    <i data-lucide="activity" class="w-3.5 h-3.5 text-cyan-400 animate-pulse"></i> Real-time Execution Pipeline
-                </div>
-                <div class="space-y-1.5 text-[11px]">
-                    <div id="fastpath-step-1" class="flex items-center gap-2 text-gray-500">
-                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        1. Querying active 5G subscriber telemetry &amp; IP bindings...
-                    </div>
-                    <div id="fastpath-step-2" class="flex items-center gap-2 text-gray-500">
-                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        2. Pushing Fast-Path telemetry via <code class="font-mono text-cyan-300">POST /ueSession/register</code> to SASE nodes...
-                    </div>
-                    <div id="fastpath-step-3" class="flex items-center gap-2 text-gray-500">
-                        <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-                        3. SASE Firewall Dataplane Policy Cache Invalidated &amp; Re-anchored (&lt; 2s)!
-                    </div>
-                </div>
-            </div>
-
-            <!-- Execution Results Breakdown (Hidden until completion) -->
-            <div id="fastpath-sync-results" class="hidden space-y-2">
-                <div class="flex items-center justify-between">
-                    <span id="fastpath-sync-summary-text" class="text-xs font-bold text-emerald-400 font-mono">
-                        <!-- Filled on completion -->
-                    </span>
-                    <span class="text-[10px] text-gray-400 font-mono">Fast-Path Dataplane Flush</span>
-                </div>
-                <div class="max-h-40 overflow-y-auto custom-scrollbar rounded-xl border border-white/10 bg-gray-950/60">
-                    <table class="w-full text-left text-xs">
-                        <thead class="bg-gray-900/90 text-gray-400 text-[10px] uppercase font-semibold border-b border-white/10">
-                            <tr>
-                                <th class="px-3 py-2">IMSI</th>
-                                <th class="px-3 py-2">Assigned IP</th>
-                                <th class="px-3 py-2">APN</th>
-                                <th class="px-3 py-2">Status</th>
-                                <th class="px-3 py-2 text-right">Latency</th>
-                            </tr>
-                        </thead>
-                        <tbody id="fastpath-results-table-body" class="divide-y divide-white/5 text-[11px]">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Footer Actions -->
-            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-white/10">
-                <button type="button" onclick="closeFastPathSyncModal()" class="px-4 py-2 rounded-xl glass-panel hover:bg-white/10 text-gray-300 hover:text-white text-xs font-medium transition">
-                    Close
-                </button>
-                <button type="button" id="btn-execute-fastpath-sync" onclick="executeFastPathSync()" class="px-5 py-2 rounded-xl bg-gradient-to-r from-amber-600 via-orange-600 to-rose-600 hover:from-amber-500 hover:via-orange-500 hover:to-rose-500 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-amber-900/30 transition cursor-pointer">
-                    <i data-lucide="zap" class="w-4 h-4 text-amber-200"></i> Execute Fast-Path Sync Now
-                </button>
-            </div>
-        </div>
-    </div>
-
     <!-- Toast Notification -->
     <div id="toast" class="fixed bottom-6 right-6 z-50 max-w-sm glass-panel rounded-2xl p-4 border border-cyan-500/30 text-xs text-white shadow-2xl hidden flex items-start gap-3 transition-all duration-300">
         <div id="toast-icon" class="text-cyan-400 mt-0.5"><i data-lucide="info" class="w-4 h-4"></i></div>
@@ -3401,166 +3247,6 @@
             }
         }
 
-        // Fast-Path Dataplane Policy Sync Handlers
-        function openFastPathSyncModal(targetImsi = null) {
-            const modal = document.getElementById('modal-fastpath-sync');
-            const selectEl = document.getElementById('fastpath-sync-sim-select');
-            const resultsBox = document.getElementById('fastpath-sync-results');
-            const progressBox = document.getElementById('fastpath-sync-progress');
-            const btn = document.getElementById('btn-execute-fastpath-sync');
-            
-            // Reset UI state
-            if (resultsBox) resultsBox.classList.add('hidden');
-            if (progressBox) progressBox.classList.add('hidden');
-            if (btn) {
-                btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4 text-amber-200"></i> Execute Fast-Path Sync Now';
-            }
-
-            // Populate SIM select dropdown
-            if (selectEl) {
-                selectEl.innerHTML = '<option value="">-- Select a registered SIM / Device --</option>';
-                if (allSIMs && allSIMs.length > 0) {
-                    allSIMs.forEach(sim => {
-                        const name = sim.custom_name ? `${sim.custom_name} (${sim.imsi})` : `SIM ${sim.imsi}`;
-                        const opt = document.createElement('option');
-                        opt.value = sim.imsi;
-                        opt.textContent = name;
-                        if (targetImsi && String(sim.imsi) === String(targetImsi)) {
-                            opt.selected = true;
-                        }
-                        selectEl.appendChild(opt);
-                    });
-                }
-            }
-
-            // Set radio scope
-            if (targetImsi) {
-                const radioSingle = document.getElementById('fastpath-scope-single');
-                if (radioSingle) radioSingle.checked = true;
-            } else {
-                const radioAll = document.getElementById('fastpath-scope-all');
-                if (radioAll) radioAll.checked = true;
-            }
-            toggleFastPathSyncScope();
-
-            modal.classList.remove('hidden');
-            lucide.createIcons();
-        }
-
-        function closeFastPathSyncModal() {
-            document.getElementById('modal-fastpath-sync').classList.add('hidden');
-        }
-
-        function toggleFastPathSyncScope() {
-            const isSingle = document.getElementById('fastpath-scope-single')?.checked;
-            const singleContainer = document.getElementById('fastpath-single-sim-container');
-            if (singleContainer) {
-                if (isSingle) {
-                    singleContainer.classList.remove('hidden');
-                } else {
-                    singleContainer.classList.add('hidden');
-                }
-            }
-        }
-
-        async function executeFastPathSync() {
-            const btn = document.getElementById('btn-execute-fastpath-sync');
-            const progressBox = document.getElementById('fastpath-sync-progress');
-            const resultsBox = document.getElementById('fastpath-sync-results');
-            const isSingle = document.getElementById('fastpath-scope-single')?.checked;
-            const simSelect = document.getElementById('fastpath-sync-sim-select');
-            
-            let selectedImsi = null;
-            if (isSingle) {
-                selectedImsi = simSelect ? simSelect.value : null;
-                if (!selectedImsi) {
-                    showToast("Selection Required", "Please select a specific SIM to synchronize.", true);
-                    return;
-                }
-            }
-
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin text-amber-200"></i> Synchronizing Dataplane...';
-            
-            if (progressBox) {
-                progressBox.classList.remove('hidden');
-                document.getElementById('fastpath-step-1').className = 'flex items-center gap-2 text-cyan-400 font-medium';
-                document.getElementById('fastpath-step-2').className = 'flex items-center gap-2 text-gray-500';
-                document.getElementById('fastpath-step-3').className = 'flex items-center gap-2 text-gray-500';
-            }
-            if (resultsBox) resultsBox.classList.add('hidden');
-
-            try {
-                // Step 1 animation
-                await new Promise(r => setTimeout(r, 250));
-                if (progressBox) {
-                    document.getElementById('fastpath-step-1').className = 'flex items-center gap-2 text-emerald-400 font-medium';
-                    document.getElementById('fastpath-step-2').className = 'flex items-center gap-2 text-cyan-400 font-medium';
-                }
-
-                const payload = {
-                    tsg_id: currentSelectedTenantId !== 'all' ? currentSelectedTenantId : null,
-                    imsi: selectedImsi || null,
-                    force_all: !isSingle
-                };
-
-                const res = await fetch('/api/policies/sync-fastpath', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await res.json();
-
-                if (progressBox) {
-                    document.getElementById('fastpath-step-2').className = 'flex items-center gap-2 text-emerald-400 font-medium';
-                    document.getElementById('fastpath-step-3').className = 'flex items-center gap-2 text-emerald-400 font-bold';
-                }
-
-                if (res.ok && data.success) {
-                    showToast("⚡ Dataplane Synced", data.message || `Fast-Path Sync completed in ${data.total_ms}ms.`);
-                    
-                    // Render results
-                    if (resultsBox) {
-                        resultsBox.classList.remove('hidden');
-                        document.getElementById('fastpath-sync-summary-text').innerText = 
-                            `⚡ ${data.synced_count} 5G Session(s) Synchronized in ${data.total_ms}ms (Dataplane Re-anchored)`;
-                        
-                        const tbody = document.getElementById('fastpath-results-table-body');
-                        if (tbody) {
-                            tbody.innerHTML = '';
-                            (data.results || []).forEach(r => {
-                                const tr = document.createElement('tr');
-                                tr.className = 'border-b border-white/5 hover:bg-white/5 transition';
-                                tr.innerHTML = `
-                                    <td class="px-3 py-2 font-mono text-cyan-300 font-medium">${r.imsi}</td>
-                                    <td class="px-3 py-2 font-mono text-emerald-400">${r.ipv4_addr}</td>
-                                    <td class="px-3 py-2 font-mono text-gray-400">${r.apn}</td>
-                                    <td class="px-3 py-2">
-                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${r.success ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-red-500/20 text-red-300 border border-red-500/30'}">
-                                            ${r.status_code || 200} OK
-                                        </span>
-                                    </td>
-                                    <td class="px-3 py-2 font-mono text-amber-300 text-right">${r.latency_ms} ms</td>
-                                `;
-                                tbody.appendChild(tr);
-                            });
-                        }
-                    }
-                    // Refresh SIMs to reflect any status
-                    fetchSIMs();
-                } else {
-                    showToast("Sync Failed", data.detail || data.message || "Fast-Path Sync error", true);
-                }
-            } catch (err) {
-                showToast("Network Error", err.message, true);
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i data-lucide="zap" class="w-4 h-4 text-amber-200"></i> Re-execute Fast-Path Sync';
-                lucide.createIcons();
-            }
-        }
 
         // View Mode Switcher (Enriched vs Raw SCM)
         function setInventoryViewMode(mode) {

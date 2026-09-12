@@ -35,7 +35,7 @@
    ↓
 [02:30] STEP 3: The Industrial IoT Persona (On iPad)
    ↓
-[03:30] STEP 4: The Live Climax — Anomaly Detection & Fast-Path Quarantine (< 2s)
+[03:30] STEP 4: The Live Climax — Anomaly Detection & Instant 5G Isolation (< 2s)
    ↓
 [04:30] Executive Conclusion & ROI Takeaways for the CIO
 ```
@@ -93,21 +93,21 @@
 
 ---
 
-### ⚡ [03:30 - 04:30] STEP 4: The Live Climax — Threat Containment & Fast-Path Quarantine (< 2s)
+### ⚡ [03:30 - 04:30] STEP 4: The Live Climax — Threat Containment & Instant 5G Isolation (< 2s)
 
 * **Devices**: Your **Laptop (Prisma SASE 5G App)** then the **iPad**.
 * **What you say before triggering:**  
   > *"Now, let's look at a critical zero-day scenario: your SOC detects suspicious network scanning from this IoT device. You need to isolate it immediately without sending a technician to the field and without waiting for background directory sync cycles."*
 
 * **What you do:**
-  1. **On your Laptop**: In SIM Inventory, click `Edit SIM` for the iPad, change its security group to **`Restrictive` / `Quarantine`**, and click **Save**.
-  2. Click the **`⚡ Fast-Path Sync`** button in the top toolbar.
-  3. In the confirmation modal, click **`[⚡ Execute Fast-Path Sync Now]`** ➔ Point out the real-time execution latency on screen: **`~250ms (Dataplane Re-anchored)`**.
-  4. **Pick up the iPad immediately**: Refresh the Web IoT App page (which was working 5 seconds ago) ➔ **Instantly Blocked!**
-  5. **On SCM (Laptop)**: Show the live red Deny security event tagged with the quarantined IMSI identity.
+  1. **On your Laptop**: In SIM Inventory, locate the iPad SIM (`10.56.0.201`).
+  2. Click the **`[⏻ Detach Session]`** action button (or revoke the 5G session in 1 click).
+  3. Point out the real-time telemetry confirmation on screen: **`Deregistered in < 200ms`** (the IP-to-User lease is wiped from the SASE Dataplane immediately).
+  4. **Pick up the iPad immediately**: Refresh the Web IoT App page (which was working 5 seconds ago) ➔ **Instantly Blocked / No packets flow!**
+  5. **On SCM (Laptop)**: Show the session cutoff and immediate isolation in Prisma SASE traffic logs.
 
 * **What you say:**  
-  > *"In under 2 seconds, without touching the iPad, without rebooting the 5G modem, and bypassing the 45-minute directory polling delay, the security policy was flushed directly into the SASE Dataplane. The compromised asset is neutralized."*
+  > *"In under 2 seconds, without touching the iPad, without rebooting the 5G modem, and with zero propagation latency, Prisma SASE Dataplane invalidated network connectivity. The compromised asset is neutralized instantly."*
 
 ---
 

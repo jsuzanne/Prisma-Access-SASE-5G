@@ -35,7 +35,7 @@
    ↓
 [02:30] STEP 3 : Démonstration du profil IoT (Sur l'iPad)
    ↓
-[03:30] STEP 4 : Le Coup d'Éclat — Alerte & Quarantaine Fast-Path (< 2s)
+[03:30] STEP 4 : Le Coup d'Éclat — Alerte & Isolation 5G Instantanée (< 2s)
    ↓
 [04:30] Conclusion & ROI pour le DSI
 ```
@@ -93,21 +93,21 @@
 
 ---
 
-### ⚡ [03:30 - 04:30] STEP 4 : Le Coup d'Éclat — Incident & Quarantaine Fast-Path (< 2s)
+### ⚡ [03:30 - 04:30] STEP 4 : Le Coup d'Éclat — Incident & Isolation 5G Instantanée (< 2s)
 
 * **Support** : Votre **Laptop (App 5G)** puis l'**iPad**.
 * **Ce que vous dites avant d'agir :**  
   > *"Maintenant, scénario catastrophe : votre SOC détecte qu'un automate IoT est compromis ou présente un comportement suspect. Vous devez l'isoler immédiatement sans attendre et sans envoyer un technicien sur site."*
 
 * **Ce que vous faites :**
-  1. **Sur votre App (Laptop)** : Allez sur l'inventaire SIM, cliquez sur l'eSIM de l'iPad (`Edit SIM`), changez son groupe vers **`Restrictive` / `Quarantine`**, et cliquez sur **Save**.
-  2. Cliquez sur le bouton **`⚡ Fast-Path Sync`** en haut à droite.
-  3. Dans le modal, cliquez sur **`[⚡ Execute Fast-Path Sync Now]`** ➔ Montrez le temps de réponse à l'écran : **`~250ms (Dataplane Re-anchored)`**.
-  4. **Reprenez l'iPad immédiatement** : Actualisez la page de l'App Web IoT (qui fonctionnait il y a 5 secondes) ➔ **Blocage instantané !**
-  5. **Sur le Laptop (SCM)** : Montrez le log rouge en direct avec la règle de sécurité Quarantine appliquée à l'IMSI de l'iPad.
+  1. **Sur votre App (Laptop)** : Allez sur l'inventaire SIM, repérez la carte SIM de l'iPad (`10.56.0.201`).
+  2. Cliquez sur le bouton d'action **`[⏻ Detach Session]`** (ou révoquez la session 5G en 1 clic).
+  3. Montrez la confirmation télémétrique immédiate à l'écran : **`Deregistered in < 200ms`** (le bail IP-to-User est instantanément purgé du Dataplane SASE).
+  4. **Reprenez l'iPad immédiatement** : Actualisez la page de l'App Web IoT (qui fonctionnait il y a 5 secondes) ➔ **Plus aucun paquet ne passe, coupure nette et immédiate !**
+  5. **Sur le Laptop (SCM)** : Montrez la coupure de flux et l'isolation effective dans les logs de session Prisma SASE.
 
 * **Ce que vous dites :**  
-  > *"En moins de 2 secondes, sans toucher à l'iPad, sans redémarrer le modem 5G et sans attendre les 45 minutes habituelles de synchronisation d'annuaire, la politique de sécurité a été poussée directement dans le Dataplane SASE. L'équipement est neutralisé."*
+  > *"En moins de 2 secondes, sans toucher à l'iPad, sans redémarrer le modem 5G et sans délai de propagation, le Dataplane Prisma SASE a révoqué l'identité réseau. L'équipement est neutralisé immédiatement."*
 
 ---
 

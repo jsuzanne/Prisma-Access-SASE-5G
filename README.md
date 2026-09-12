@@ -82,10 +82,6 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - Real-time request/response payload viewer with timestamped transaction logs.
   - **1-Click Copy cURL Command** and **Copy JSON Response** buttons for instant API troubleshooting.
   - Filter by HTTP method (`GET`, `POST`, `PUT`, `DELETE`), search by endpoint path/status, and export full JSON debug logs.
-- **⚡ Emergency Fast-Path 5G Policy Dataplane Sync**:
-  - Direct on-demand security policy push bypassing standard 30–45 min Cloud Identity Engine (CIE) directory sync polling cycles.
-  - Re-anchors active 5G UE session bindings (`POST /mt/manage/5g/ueSession/register`) straight to the Palo Alto Networks SASE Dataplane in **< 2 seconds**.
-  - Interactive safety confirmation modal with dynamic 3-step execution pipeline animation and per-session latency breakdown.
 - **☀️ Light & 🌙 Dark Mode Support**:
   - High-contrast enterprise-grade Light Mode and refined Dark Mode accessible via 1-click toggle in top navigation bar.
 - **🎨 Universal Carrier & Private 5G Co-Branding Customizer**:
@@ -104,7 +100,7 @@ Enables full programmatic lifecycle management of User Equipment (UE / SIM Cards
   - Manage service account credentials (`PANW_CLIENT_ID`, `PANW_CLIENT_SECRET`, `PANW_TSG_ID`, `DEFAULT_APN`) directly from the Web UI with security masking and a live connection test button.
 - **🧪 Automated Lifecycle Runner & Test Suite**:
   - Interactive 8-step pipeline with live terminal output.
-  - 54 automated unit tests with 100% passing rate on GitHub Actions CI.
+  - 53 automated unit tests with 100% passing rate on GitHub Actions CI.
 
 ---
 

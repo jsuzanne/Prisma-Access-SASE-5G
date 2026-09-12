@@ -98,8 +98,8 @@ In Strata Cloud Manager / CSP, when the Service Account is assigned:
 ### 4.2 Permission Capabilities Matrix
 * ✅ **Multi-Tenant Hierarchy Traversal**: Allows the portal to dynamically discover and switch between all child enterprise tenants (`/tenancy/v1/tenant_service_groups/{root_tsg}/operations/list_children`).
 * ✅ **5G Subscriber Management**: Full programmatic control to list, create, update SIM metadata, and assign security policy groups across any child tenant.
-* ✅ **Real-Time Session Telemetry & Fast-Path**: Instant UE session creation and policy flush via `/mt/manage/5g/ueSession/register`.
-* ℹ️ **CIE DSS Core Sync Scope**: The dedicated `/sse/config/v1/ciedss` directory synchronization configuration API is an SCM core infrastructure endpoint that uses folder-scoped query parameters (`?folder=Shared` or tenant folder). The 5G Fast-Path session re-anchor provides the optimal instant synchronization mechanism for multi-tenant deployments.
+* ✅ **Real-Time 5G Session Telemetry & Revocation**: Instant UE session creation and policy enforcement via `/mt/manage/5g/register/ue` and sub-second session deregistration via `/mt/manage/5g/deregister/ue`.
+* ℹ️ **CIE DSS Core Sync Scope**: The dedicated `/sse/config/v1/ciedss` directory synchronization configuration API is an SCM core infrastructure endpoint that uses folder-scoped query parameters (`?folder=Shared` or tenant folder). Direct 5G session telemetry provides the optimal instant synchronization mechanism for multi-tenant deployments.
 
 ---
 
@@ -115,8 +115,8 @@ In Strata Cloud Manager / CSP, when the Service Account is assigned:
 | 2. Deploys Pre-Packaged Security Templates       2. Detects Anomalous IoT Device  |
 |    (OT, PCI-DSS, Quarantine profiles)               in Monitoring Dashboard       |
 |                                                                                   |
-| 3. Delegates Child Tenant Access                 3. Shifts SIM to Quarantine Group|
-|    via Scoped Service Account                        in 1-Click with Fast-Path    |
+| 3. Delegates Child Tenant Access                 3. Revokes 5G Session / Isolates |
+|    via Scoped Service Account                        in 1-Click (< 200ms)         |
 |                                                                                   |
 | 4. Monitors Aggregate Global SASE Throughput     4. Threat is Neutralized in < 2s |
 |    across all Enterprise Tenants                    without carrier SIM suspension|
@@ -128,5 +128,5 @@ In Strata Cloud Manager / CSP, when the Service Account is assigned:
 ## 6. Summary & Recommendations
 
 1. **Keep the Seed SIM pattern active** for all critical quarantine and maintenance groups to ensure pre-compiled firewall readiness.
-2. **Use the 5G Fast-Path mechanism** to provide sub-2-second policy shifts during live demonstrations and incident response workflows.
+2. **Use 5G Session Lifecycle Telemetry** to provide sub-2-second policy shifts and emergency containment during live demonstrations and incident response workflows.
 3. **Leverage the `Multitenant Superuser` delegation** to maintain seamless multi-tenant isolation across all enterprise customer service groups.
