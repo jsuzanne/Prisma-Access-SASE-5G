@@ -381,6 +381,222 @@
             color: #475569 !important;
         }
 
+        /* ==========================================================================
+           HIGH-CONTRAST BADGES, CHIPS & ACTIONS IN LIGHT MODE
+           ========================================================================== */
+        
+        /* 1. Industry Vertical Badges (e.g. Retail & POS, Industry 4.0, EV Infra) */
+        html.light td span[class*="text-cyan-300"][class*="bg-cyan-500"],
+        html.light td span.text-cyan-300 {
+            color: #0e7490 !important; /* Rich deep cyan/teal */
+            background-color: rgba(6, 182, 212, 0.15) !important;
+            border-color: rgba(6, 182, 212, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Hardware SIM icon wrapper in table */
+        html.light td .w-9.h-9.bg-cyan-500\/10 {
+            background-color: rgba(6, 182, 212, 0.12) !important;
+            border-color: rgba(6, 182, 212, 0.3) !important;
+            color: #0e7490 !important;
+        }
+        html.light td .w-9.h-9.bg-cyan-500\/10 * {
+            color: #0e7490 !important;
+        }
+
+        /* 2. APN Badges (e.g. sase, sasetest) */
+        html.light td span.font-mono[class*="bg-cyan-500"],
+        html.light td span.font-mono.text-cyan-300 {
+            color: #0369a1 !important; /* High-contrast navy/sky blue */
+            background-color: rgba(2, 132, 199, 0.12) !important;
+            border-color: rgba(2, 132, 199, 0.4) !important;
+            font-weight: 700 !important;
+        }
+
+        /* 3. Security Group Badges */
+        /* Permissive (Green) */
+        html.light span.text-emerald-400[class*="bg-emerald-500"],
+        html.light span[class*="border-emerald-500"] {
+            color: #15803d !important; /* Deep forest green */
+            background-color: rgba(22, 163, 74, 0.14) !important;
+            border-color: rgba(22, 163, 74, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Restrictive (Purple) */
+        html.light span.text-purple-300[class*="bg-purple-500"],
+        html.light span[class*="border-purple-500"] {
+            color: #6b21a8 !important; /* Deep royal purple */
+            background-color: rgba(147, 51, 234, 0.14) !important;
+            border-color: rgba(147, 51, 234, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* IoT / Smart Sensors / Kiosks (Amber) */
+        html.light span.text-amber-300[class*="bg-amber-500"],
+        html.light span[class*="border-amber-500"] {
+            color: #b45309 !important; /* Deep amber brown */
+            background-color: rgba(217, 119, 6, 0.14) !important;
+            border-color: rgba(217, 119, 6, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* VIP / Vehicle / Telematics (Blue) */
+        html.light span.text-blue-300[class*="bg-blue-500"],
+        html.light span[class*="border-blue-500"] {
+            color: #1d4ed8 !important; /* Deep cobalt blue */
+            background-color: rgba(37, 99, 235, 0.14) !important;
+            border-color: rgba(37, 99, 235, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Guest / Transit (Rose) */
+        html.light span.text-rose-300[class*="bg-rose-500"],
+        html.light span[class*="border-rose-500"] {
+            color: #be123c !important; /* Deep rose/crimson */
+            background-color: rgba(225, 29, 72, 0.14) !important;
+            border-color: rgba(225, 29, 72, 0.45) !important;
+            font-weight: 600 !important;
+        }
+
+        /* Default Group Badge */
+        html.light td span[class*="rounded-full"][class*="border"] {
+            font-weight: 600 !important;
+        }
+
+        /* "+ Assign Group" Link */
+        html.light td span[onclick*="openEditSimModal"].text-gray-500,
+        html.light td span.text-gray-500.cursor-pointer {
+            color: #475569 !important;
+            font-weight: 600 !important;
+        }
+        html.light td span[onclick*="openEditSimModal"].text-gray-500:hover,
+        html.light td span.text-gray-500.cursor-pointer:hover {
+            color: #0284c7 !important;
+        }
+
+        /* 4. Custom Label / Memo Badge */
+        html.light td span[class*="text-amber-300"][class*="bg-amber-500"] {
+            color: #92400e !important;
+            background-color: rgba(245, 158, 11, 0.18) !important;
+            border-color: rgba(245, 158, 11, 0.5) !important;
+            font-weight: 600 !important;
+        }
+
+        /* 5. Live 5G IP / Status in Light Mode */
+        html.light td .text-cyan-400.font-semibold {
+            color: #0284c7 !important;
+            font-weight: 700 !important;
+        }
+        html.light td .text-gray-500.font-sans {
+            color: #64748b !important;
+            font-weight: 500 !important;
+        }
+
+        /* 6. Device Name and Subtext */
+        html.light td .text-white.font-sans {
+            color: #0f172a !important;
+            font-weight: 700 !important;
+        }
+        html.light td .text-gray-300.font-medium {
+            color: #1e293b !important;
+            font-weight: 600 !important;
+        }
+        html.light td .text-gray-400.font-mono {
+            color: #475569 !important;
+        }
+        html.light td .text-gray-500 {
+            color: #64748b !important;
+        }
+
+        /* 7. Industry Filter Chips at the top */
+        html.light #vertical-filter-container button.glass-panel {
+            background-color: #ffffff !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        html.light #vertical-filter-container button.glass-panel:hover {
+            background-color: #f8fafc !important;
+            border-color: #94a3b8 !important;
+            color: #0f172a !important;
+        }
+        html.light #vertical-filter-container button[class*="bg-cyan-500"] {
+            background-color: rgba(6, 182, 212, 0.16) !important;
+            border-color: rgba(6, 182, 212, 0.55) !important;
+            color: #0e7490 !important;
+            font-weight: 700 !important;
+        }
+
+        /* 8. Action Buttons in SIM Inventory Table */
+        html.light td button[class*="bg-blue-500"] {
+            color: #1d4ed8 !important;
+            background-color: rgba(37, 99, 235, 0.1) !important;
+            border-color: rgba(37, 99, 235, 0.35) !important;
+            font-weight: 600 !important;
+        }
+        html.light td button[class*="bg-blue-500"]:hover {
+            background-color: rgba(37, 99, 235, 0.2) !important;
+            color: #1e40af !important;
+        }
+        html.light td button[class*="bg-amber-500"] {
+            color: #b45309 !important;
+            background-color: rgba(217, 119, 6, 0.12) !important;
+            border-color: rgba(217, 119, 6, 0.4) !important;
+            font-weight: 600 !important;
+        }
+        html.light td button[class*="bg-amber-500"]:hover {
+            background-color: rgba(217, 119, 6, 0.22) !important;
+            color: #92400e !important;
+        }
+        html.light td button[class*="bg-rose-500"] {
+            color: #be123c !important;
+            background-color: rgba(225, 29, 72, 0.12) !important;
+            border-color: rgba(225, 29, 72, 0.4) !important;
+            font-weight: 600 !important;
+        }
+        html.light td button[class*="bg-rose-500"]:hover {
+            background-color: rgba(225, 29, 72, 0.22) !important;
+            color: #9f1239 !important;
+        }
+        html.light td button[class*="bg-red-500"] {
+            color: #e11d48 !important;
+            background-color: rgba(225, 29, 72, 0.08) !important;
+            border-color: rgba(225, 29, 72, 0.3) !important;
+        }
+        html.light td button[class*="bg-red-500"]:hover {
+            background-color: rgba(225, 29, 72, 0.18) !important;
+            color: #be123c !important;
+        }
+
+        /* 9. Header & Global Badges */
+        html.light #header-default-apn,
+        html.light span.text-cyan-400.font-mono {
+            color: #0284c7 !important;
+            font-weight: 700 !important;
+        }
+        html.light #groups-table-body span[class*="bg-emerald-500"],
+        html.light #groups-table-body span.text-emerald-400 {
+            color: #15803d !important;
+            background-color: rgba(22, 163, 74, 0.14) !important;
+            border-color: rgba(22, 163, 74, 0.45) !important;
+            font-weight: 600 !important;
+        }
+        html.light #groups-table-body span[class*="bg-purple-500"],
+        html.light #groups-table-body span.text-purple-300 {
+            color: #6b21a8 !important;
+            background-color: rgba(147, 51, 234, 0.14) !important;
+            border-color: rgba(147, 51, 234, 0.45) !important;
+            font-weight: 600 !important;
+        }
+        html.light #summary-ue-table-body span[class*="bg-cyan-500"],
+        html.light #summary-ue-table-body span.text-cyan-300 {
+            color: #0369a1 !important;
+            background-color: rgba(2, 132, 199, 0.12) !important;
+            border-color: rgba(2, 132, 199, 0.4) !important;
+            font-weight: 600 !important;
+        }
+
         html.light .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.05);
         }
