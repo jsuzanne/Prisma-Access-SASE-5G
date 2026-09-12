@@ -318,25 +318,83 @@
             font-weight: 600 !important;
         }
 
-        /* Group Modals: Initial Member SIM cards list */
+        /* Modal Containers & Dynamic Checkbox Lists in Light Mode */
+        html.light #edit-sim-groups-container,
+        html.light #add-sim-groups-container,
         html.light #add-group-sims-container,
         html.light #edit-group-sims-container {
-            background-color: rgba(248, 250, 252, 0.95) !important;
-            border: 1px solid rgba(226, 232, 240, 0.95) !important;
+            background-color: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
         }
+        html.light #edit-sim-groups-container label,
+        html.light #add-sim-groups-container label,
         html.light #add-group-sims-container label,
         html.light #edit-group-sims-container label {
-            background-color: rgba(255, 255, 255, 0.95) !important;
-            border: 1px solid rgba(226, 232, 240, 0.9) !important;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+            background-color: #ffffff !important;
+            border: 1px solid #e2e8f0 !important;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            color: #0f172a !important;
         }
+        html.light #edit-sim-groups-container label:hover,
+        html.light #add-sim-groups-container label:hover,
         html.light #add-group-sims-container label:hover,
         html.light #edit-group-sims-container label:hover {
-            background-color: rgba(241, 245, 249, 0.95) !important;
-            border-color: rgba(203, 213, 225, 0.9) !important;
+            background-color: #f1f5f9 !important;
+            border-color: #94a3b8 !important;
         }
+        html.light #edit-sim-groups-container label span.font-semibold,
+        html.light #edit-sim-groups-container label span.text-white,
+        html.light #add-group-sims-container label span.font-semibold,
+        html.light #edit-group-sims-container label span.font-semibold {
+            color: #0f172a !important;
+            font-weight: 600 !important;
+        }
+        html.light #edit-sim-groups-container label span.font-mono,
         html.light #add-group-sims-container label span.font-mono,
         html.light #edit-group-sims-container label span.font-mono {
+            color: #475569 !important;
+        }
+        html.light #edit-sim-groups-container label span.text-purple-400 {
+            color: #6b21a8 !important;
+            font-weight: 600 !important;
+        }
+        html.light #edit-sim-groups-container label span.text-emerald-400 {
+            color: #15803d !important;
+            font-weight: 600 !important;
+        }
+        html.light #edit-sim-groups-container label span.text-gray-500 {
+            color: #64748b !important;
+        }
+
+        /* Modal Form Labels & Readonly Fields in Light Mode */
+        html.light form label.text-gray-300,
+        html.light form label {
+            color: #334155 !important;
+            font-weight: 600 !important;
+        }
+        html.light input[readonly] {
+            background-color: #f1f5f9 !important;
+            color: #64748b !important;
+            border-color: #e2e8f0 !important;
+        }
+        html.light #edit-sim-memo {
+            color: #0e7490 !important;
+            font-weight: 600 !important;
+        }
+        html.light #edit-sim-groups-count {
+            color: #0284c7 !important;
+            font-weight: 600 !important;
+        }
+        html.light button[onclick*="close"].glass-panel,
+        html.light form button.glass-panel {
+            background-color: #f1f5f9 !important;
+            border-color: #cbd5e1 !important;
+            color: #334155 !important;
+            font-weight: 500 !important;
+        }
+        html.light button[onclick*="close"].glass-panel:hover,
+        html.light form button.glass-panel:hover {
+            background-color: #e2e8f0 !important;
             color: #0f172a !important;
         }
 
