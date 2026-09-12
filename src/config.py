@@ -265,6 +265,23 @@ def save_config(
     }
 
 
+DEFAULT_SIM_METADATA: Dict[str, Dict[str, Any]] = {
+    "901370001420683": {"vertical": "retail", "device_type": "Ingenico Smart POS Terminal", "icon": "credit-card", "custom_label": ""},
+    "901370001420693": {"vertical": "retail", "device_type": "Interactive Self-Checkout Kiosk", "icon": "credit-card", "custom_label": None},
+    "901370007299137": {"vertical": "retail", "device_type": "Zebra Handheld Barcode Scanner", "icon": "credit-card", "custom_label": "", "last_ip": "10.56.0.201"},
+    "901370007299147": {"vertical": "retail", "device_type": "4K Digital Signage Edge Player", "icon": "credit-card", "custom_label": None, "last_ip": "10.56.0.200"},
+    "901370007299136": {"vertical": "retail", "device_type": "Store Inventory RFID Gate", "icon": "credit-card", "custom_label": None, "last_ip": "10.56.0.199"},
+    "901370001420692": {"vertical": "retail", "device_type": "Ingenico Smart POS Terminal", "icon": "credit-card", "custom_label": None},
+    "901370001420700": {"vertical": "retail", "device_type": "Interactive Self-Checkout Kiosk", "icon": "credit-card", "custom_label": None},
+    "901370001420701": {"vertical": "retail", "device_type": "Zebra Handheld Barcode Scanner", "icon": "credit-card", "custom_label": None, "last_ip": "10.56.0.195"},
+    "208950391678715": {"vertical": "retail", "device_type": "Ingenico Smart POS Terminal", "icon": "credit-card", "custom_label": "", "last_ip": "10.56.0.194"},
+    "208956167163949": {"vertical": "retail", "device_type": "4K Digital Signage Edge Player", "custom_label": "", "icon": "credit-card", "last_ip": "10.56.0.193"},
+    "901370007299138": {"vertical": "retail", "device_type": "Store Inventory RFID Gate", "custom_label": "", "icon": "credit-card", "last_ip": "10.56.0.202"},
+    "208954273357404": {"vertical": "retail", "device_type": "Interactive Self-Checkout Kiosk", "icon": "credit-card", "last_ip": "10.56.0.196", "custom_label": ""},
+    "208956993452553": {"vertical": "retail", "device_type": "Zebra Handheld Barcode Scanner", "icon": "credit-card", "last_ip": "10.56.0.197", "custom_label": ""},
+}
+
+
 def get_sim_metadata_file(target_dir: Optional[Union[str, Path]] = None) -> Path:
     """Return path to sim_metadata.json in the configuration directory."""
     cfg_dir = get_config_dir(target_dir)
@@ -395,22 +412,41 @@ def delete_single_group_metadata(group_key: str, target_dir: Optional[Union[str,
 # -----------------------------------------------------------------------------
 
 DEFAULT_ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
-    "901370007299138": {
-        "ipv4_addr": "10.56.0.202",
-        "apn": "sase",
-        "status": "Active",
-        "region": "europe-west9",
-        "tenant_status": "Yes",
-    },
     "208956167163949": {
         "ipv4_addr": "10.56.0.193",
+        "imei": "350000000000000",
         "apn": "sasetest",
         "status": "Active",
         "region": "europe-west9",
         "tenant_status": "Yes",
     },
-    "901370007299137": {
-        "ipv4_addr": "10.56.0.201",
+    "208950391678715": {
+        "ipv4_addr": "10.56.0.194",
+        "imei": "860123391678710",
+        "apn": "sasetest",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "208954273357404": {
+        "ipv4_addr": "10.56.0.196",
+        "imei": "860123498537561",
+        "apn": "sasetest",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "208956993452553": {
+        "ipv4_addr": "10.56.0.197",
+        "imei": "860123583558530",
+        "apn": "sasetest",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "901370007299136": {
+        "ipv4_addr": "10.56.0.199",
+        "imei": "350000000000000",
         "apn": "sase",
         "status": "Active",
         "region": "europe-west9",
@@ -418,13 +454,23 @@ DEFAULT_ACTIVE_5G_SESSIONS: Dict[str, Dict[str, Any]] = {
     },
     "901370007299147": {
         "ipv4_addr": "10.56.0.200",
+        "imei": "350000000000000",
         "apn": "sase",
         "status": "Active",
         "region": "europe-west9",
         "tenant_status": "Yes",
     },
-    "901370007299136": {
-        "ipv4_addr": "10.56.0.199",
+    "901370007299137": {
+        "ipv4_addr": "10.56.0.201",
+        "imei": "350000000000000",
+        "apn": "sase",
+        "status": "Active",
+        "region": "europe-west9",
+        "tenant_status": "Yes",
+    },
+    "901370007299138": {
+        "ipv4_addr": "10.56.0.202",
+        "imei": "860123176000730",
         "apn": "sase",
         "status": "Active",
         "region": "europe-west9",
