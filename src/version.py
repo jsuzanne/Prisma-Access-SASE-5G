@@ -8,10 +8,10 @@ import subprocess
 from functools import lru_cache
 from typing import Dict, Any
 
-DEFAULT_BASE_VERSION = "2.0"
-FALLBACK_BUILD_NUMBER = 39
-FALLBACK_COMMIT = "4dfff66"
-RELEASE_DATE = "2026-09-11"
+DEFAULT_BASE_VERSION = "2.3.1"
+FALLBACK_BUILD_NUMBER = 40
+FALLBACK_COMMIT = "62d3d41"
+RELEASE_DATE = "2026-09-12"
 
 
 def _get_git_commit_count(repo_dir: str) -> int:

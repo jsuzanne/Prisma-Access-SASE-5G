@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.3.1] - 2026-09-12
+
+### Added
+- **Interactive Column Sorting**:
+  - Full interactive column sorting (ascending `▲` / descending `▼`) across all 11 columns of **5G Summary ➔ UE Mappings** (Time, IMSI, IMEI, APN, IPv4 numerical octets, IPv6, Tenant, Tenant Status, Status, Region, Groups).
+  - Column sorting in **SIM Inventory** across both *Industry Fleet View* and *Raw SCM View*.
+  - Visual sort indicators and active column highlighting with graceful handling of non-sortable action buttons.
+
+### Changed & Fixed
+- **Unlocked Security Groups**:
+  - Removed hardcoded `Built-in` restrictions on system groups (`Permissive`, `Restrictive`, `Restrictive-Updated`), enabling standard editing, renaming, and deletion.
+- **Light Mode UI Polish**:
+  - Fixed high-contrast text rendering on table headers upon mouse hover (`thead th:hover`) in Light Mode, preventing white-on-light illegibility.
+- **Custom Demo Memo & Session Telemetry Safeguards**:
+  - Automatic preservation of custom demo labels (`custom_label`, e.g. `iphone`, `ipad`) and last-known IP allocations during fleet re-enrichment or vertical shifts.
+  - Synchronized default active 5G session allocations with live Strata Cloud Manager (SCM) state.
+
+---
+
 ## [2.3.0] - 2026-09-12
 
 ### Changed & Streamlined
