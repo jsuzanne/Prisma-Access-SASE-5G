@@ -946,21 +946,12 @@ def update_group(group_id: str, payload: UpdateGroupModel):
     """Update a 5G user group's name, description, and/or member identity list."""
     try:
         client = get_current_client()
-        resp = None
-        is_protected = str(group_id) in PROTECTED_SYSTEM_GROUPS or (payload.group_name and payload.group_name.lower() in PROTECTED_SYSTEM_GROUP_NAMES)
-
-        try:
-            resp = client.update_user_group(
-                group_id=group_id,
-                group_name=payload.group_name,
-                identity_ids=payload.identity_ids,
-                tsg_id=payload.tsg_id,
-            )
-        except Exception as exc:
-            if is_protected:
-                logger.warning("SCM update for protected group %s gave error, persisting metadata: %s", group_id, exc)
-            else:
-                raise exc
+        resp = client.update_user_group(
+            group_id=group_id,
+            group_name=payload.group_name,
+            identity_ids=payload.identity_ids,
+            tsg_id=payload.tsg_id,
+        )
 
         meta_updates = {}
         if payload.description is not None:
@@ -982,40 +973,13 @@ def update_group(group_id: str, payload: UpdateGroupModel):
         raise HTTPException(status_code=400, detail=str(exc))
 
 
-PROTECTED_SYSTEM_GROUPS = {
-    "6c73c05b-9977-4bed-a61c-30edc47a49f8",  # Restrictive
-    "f7edf2ca-75ba-49b6-b02f-ab76516fb1d9",  # Permissive
-}
-PROTECTED_SYSTEM_GROUP_NAMES = {"restrictive", "permissive"}
-
-
 @app.delete("/api/groups/{group_id}")
 def delete_group(group_id: str):
-    """Delete a 5G subscriber user group from Strata Cloud Manager (protected system groups cannot be deleted)."""
-    if str(group_id) in PROTECTED_SYSTEM_GROUPS:
-        raise HTTPException(
-            status_code=403,
-            detail="Operation denied: 'Restrictive' and 'Permissive' are protected system groups and cannot be deleted.",
-        )
+    """Delete a 5G subscriber user group from Strata Cloud Manager."""
     try:
         client = get_current_client()
-        # Verify group name against protected list
-        try:
-            g_info = client.get_user_group(group_id)
-            d_arr = g_info.get("data", [])
-            g_obj = d_arr[0] if d_arr and isinstance(d_arr, list) else g_info.get("data", {})
-            g_name = (g_obj.get("group_name") or g_obj.get("name") or "").lower()
-            if g_name in PROTECTED_SYSTEM_GROUP_NAMES:
-                raise HTTPException(
-                    status_code=403,
-                    detail=f"Operation denied: System group '{g_name}' is protected and cannot be deleted.",
-                )
-        except HTTPException:
-            raise
-        except Exception:
-            pass
-
         resp = client.delete_user_group(group_id)
+        delete_single_group_metadata(str(group_id))
         return {
             "success": True,
             "group_id": group_id,

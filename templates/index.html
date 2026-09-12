@@ -1105,20 +1105,8 @@
                     <!-- 11 Column SCM Table -->
                     <div class="overflow-x-auto custom-scrollbar">
                         <table class="w-full text-left text-xs whitespace-nowrap">
-                            <thead class="bg-gray-900/90 text-gray-400 uppercase tracking-wider font-semibold border-b border-white/10 text-[11px] font-sans">
-                                <tr>
-                                    <th class="px-4 py-3">Time added</th>
-                                    <th class="px-4 py-3">IMSI</th>
-                                    <th class="px-4 py-3">IMEI</th>
-                                    <th class="px-4 py-3">APN</th>
-                                    <th class="px-4 py-3"><span class="flex items-center gap-1"><i data-lucide="info" class="w-3 h-3 text-cyan-400"></i> IPv4 Address</span></th>
-                                    <th class="px-4 py-3"><span class="flex items-center gap-1"><i data-lucide="info" class="w-3 h-3 text-gray-500"></i> IPv6 Address</span></th>
-                                    <th class="px-4 py-3"><span class="flex items-center gap-1"><i data-lucide="info" class="w-3 h-3 text-gray-500"></i> Tenant</span></th>
-                                    <th class="px-4 py-3"><span class="flex items-center gap-1"><i data-lucide="info" class="w-3 h-3 text-gray-500"></i> Tenant Status</span></th>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3">Region</th>
-                                    <th class="px-4 py-3">Groups</th>
-                                </tr>
+                            <thead id="summary-ue-table-head" class="bg-gray-900/90 text-gray-400 uppercase tracking-wider font-semibold border-b border-white/10 text-[11px] font-sans select-none">
+                                <!-- Rendered dynamically by JS with interactive column sorting -->
                             </thead>
                             <tbody id="summary-ue-table-body" class="divide-y divide-white/5 text-gray-300 font-mono text-xs">
                                 <tr><td colspan="11" class="px-4 py-8 text-center text-gray-500">Loading mappings...</td></tr>
@@ -3680,40 +3668,128 @@
             } catch (e) {
                 const tbody = document.getElementById('sims-table-body');
                 if (tbody) {
-                    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-6 text-center text-red-400">Failed to load SIM inventory: ${e.message}</td></tr>`;
+                      // Table Sorting State
+        let simsSortCol = 'device_type';
+        let simsSortDir = 'asc';
+
+        function compareSIMValues(a, b, col, dir) {
+            let valA, valB;
+            if (col === 'create_time' || col === 'time') {
+                valA = a.create_time ? new Date(a.create_time).getTime() : 0;
+                valB = b.create_time ? new Date(b.create_time).getTime() : 0;
+                return dir === 'asc' ? valA - valB : valB - valA;
+            } else if (col === 'ipv4_addr' || col === 'ip') {
+                const ipA = (a.ipv4_addr || '').split('.').map(n => parseInt(n, 10));
+                const ipB = (b.ipv4_addr || '').split('.').map(n => parseInt(n, 10));
+                const validA = ipA.length === 4 && ipA.every(n => !isNaN(n));
+                const validB = ipB.length === 4 && ipB.every(n => !isNaN(n));
+                if (!validA && !validB) return 0;
+                if (!validA) return 1;
+                if (!validB) return -1;
+                for (let i = 0; i < 4; i++) {
+                    if (ipA[i] !== ipB[i]) {
+                        return dir === 'asc' ? ipA[i] - ipB[i] : ipB[i] - ipA[i];
+                    }
                 }
+                return 0;
+            } else if (col === 'status') {
+                const activeA = (a.status === 'Active' || Boolean(a.ipv4_addr)) ? 1 : 0;
+                const activeB = (b.status === 'Active' || Boolean(b.ipv4_addr)) ? 1 : 0;
+                return dir === 'asc' ? activeA - activeB : activeB - activeA;
+            } else if (col === 'tenant_status') {
+                const statA = (a.tenant_status || ((a.status === 'Active' || a.ipv4_addr) ? 'Yes' : 'No')).toLowerCase();
+                const statB = (b.tenant_status || ((b.status === 'Active' || b.ipv4_addr) ? 'Yes' : 'No')).toLowerCase();
+                return dir === 'asc' ? statA.localeCompare(statB) : statB.localeCompare(statA);
+            } else if (col === 'groups') {
+                valA = (a.groups && a.groups.length > 0) ? (a.groups[0].name || a.groups[0].group_name || '') : '';
+                valB = (b.groups && b.groups.length > 0) ? (b.groups[0].name || b.groups[0].group_name || '') : '';
+            } else if (col === 'device_type') {
+                valA = a.device_type || a.custom_label || a.imsi || '';
+                valB = b.device_type || b.custom_label || b.imsi || '';
+            } else if (col === 'region') {
+                valA = a.region || ((a.status === 'Active' || a.ipv4_addr) ? 'europe-west9' : '');
+                valB = b.region || ((b.status === 'Active' || b.ipv4_addr) ? 'europe-west9' : '');
+            } else {
+                valA = a[col] || '';
+                valB = b[col] || '';
             }
+
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return dir === 'asc' 
+                    ? valA.localeCompare(valB, undefined, { numeric: true, sensitivity: 'base' }) 
+                    : valB.localeCompare(valA, undefined, { numeric: true, sensitivity: 'base' });
+            }
+            if (valA < valB) return dir === 'asc' ? -1 : 1;
+            if (valA > valB) return dir === 'asc' ? 1 : -1;
+            return 0;
+        }
+
+        function handleSIMsSort(col) {
+            if (simsSortCol === col) {
+                simsSortDir = (simsSortDir === 'asc' ? 'desc' : 'asc');
+            } else {
+                simsSortCol = col;
+                simsSortDir = 'asc';
+            }
+            filterSIMs();
         }
 
         function renderSIMsTable(sims) {
             const tbody = document.getElementById('sims-table-body');
             const thead = document.getElementById('sims-table-head');
             const countBadge = document.getElementById('sim-count-badge');
-            if (countBadge) countBadge.innerText = `Total: ${sims.length} SIM card(s)`;
+            if (countBadge) countBadge.innerText = `Total: ${sims ? sims.length : 0} SIM card(s)`;
 
-            // Render Head based on active view mode
+            const getSimSortIcon = (key) => {
+                if (simsSortCol !== key) return '<span class="text-gray-500 opacity-40 ml-1 font-mono">⇅</span>';
+                return simsSortDir === 'asc' ? '<span class="text-cyan-400 font-bold ml-1">▲</span>' : '<span class="text-cyan-400 font-bold ml-1">▼</span>';
+            };
+
+            // Render Head based on active view mode with interactive column sorting
             if (thead) {
                 if (inventoryViewMode === 'enriched') {
                     thead.innerHTML = `
                         <tr>
-                            <th class="px-5 py-3.5">Device & Industry Vertical</th>
-                            <th class="px-5 py-3.5">Live 5G IP / Status</th>
-                            <th class="px-5 py-3.5">Tenant</th>
-                            <th class="px-5 py-3.5">APN</th>
-                            <th class="px-5 py-3.5">Security Group</th>
-                            <th class="px-5 py-3.5 text-right">Actions</th>
+                            <th onclick="handleSIMsSort('device_type')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'device_type' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Device & Industry Vertical">
+                                <span class="inline-flex items-center gap-1">Device & Industry Vertical ${getSimSortIcon('device_type')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('ipv4_addr')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'ipv4_addr' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by 5G IP / Status">
+                                <span class="inline-flex items-center gap-1">Live 5G IP / Status ${getSimSortIcon('ipv4_addr')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('tenant_name')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'tenant_name' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Tenant">
+                                <span class="inline-flex items-center gap-1">Tenant ${getSimSortIcon('tenant_name')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('apn')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'apn' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by APN">
+                                <span class="inline-flex items-center gap-1">APN ${getSimSortIcon('apn')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('groups')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'groups' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Security Group">
+                                <span class="inline-flex items-center gap-1">Security Group ${getSimSortIcon('groups')}</span>
+                            </th>
+                            <th class="px-5 py-3.5 text-right text-gray-400 cursor-default" title="Actions are not sortable">Actions</th>
                         </tr>
                     `;
                 } else {
                     thead.innerHTML = `
                         <tr>
-                            <th class="px-5 py-3.5">IMSI</th>
-                            <th class="px-5 py-3.5">IMEI</th>
-                            <th class="px-5 py-3.5">APN</th>
-                            <th class="px-5 py-3.5">Live IP / Status</th>
-                            <th class="px-5 py-3.5">Tenant</th>
-                            <th class="px-5 py-3.5">Subscriber Group</th>
-                            <th class="px-5 py-3.5 text-right">Actions</th>
+                            <th onclick="handleSIMsSort('imsi')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'imsi' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by IMSI">
+                                <span class="inline-flex items-center gap-1">IMSI ${getSimSortIcon('imsi')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('imei')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'imei' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by IMEI">
+                                <span class="inline-flex items-center gap-1">IMEI ${getSimSortIcon('imei')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('apn')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'apn' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by APN">
+                                <span class="inline-flex items-center gap-1">APN ${getSimSortIcon('apn')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('ipv4_addr')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'ipv4_addr' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Live IP / Status">
+                                <span class="inline-flex items-center gap-1">Live IP / Status ${getSimSortIcon('ipv4_addr')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('tenant_name')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'tenant_name' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Tenant">
+                                <span class="inline-flex items-center gap-1">Tenant ${getSimSortIcon('tenant_name')}</span>
+                            </th>
+                            <th onclick="handleSIMsSort('groups')" class="px-5 py-3.5 cursor-pointer select-none transition ${simsSortCol === 'groups' ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5'}" title="Sort by Subscriber Group">
+                                <span class="inline-flex items-center gap-1">Subscriber Group ${getSimSortIcon('groups')}</span>
+                            </th>
+                            <th class="px-5 py-3.5 text-right text-gray-400 cursor-default" title="Actions are not sortable">Actions</th>
                         </tr>
                     `;
                 }
@@ -3726,7 +3802,9 @@
                 return;
             }
 
-            tbody.innerHTML = sims.map(sim => {
+            const sortedSims = [...sims].sort((a, b) => compareSIMValues(a, b, simsSortCol, simsSortDir));
+
+            tbody.innerHTML = sortedSims.map(sim => {
                 const identityId = sim.identity_id || '';
                 const groups = sim.groups || [];
                 const groupBadges = getDynamicGroupBadges(groups, identityId);
@@ -3910,16 +3988,12 @@
             if (tbody) {
                 tbody.innerHTML = groups.map(g => {
                     const isPermissive = (g.name || '').toLowerCase().includes('permissive');
-                    const isProtected = ['restrictive', 'permissive'].includes((g.raw_name || g.name || '').toLowerCase()) || 
-                                        ['6c73c05b-9977-4bed-a61c-30edc47a49f8', 'f7edf2ca-75ba-49b6-b02f-ab76516fb1d9'].includes(g.group_id);
                     const badgeColor = isPermissive ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30' : 'bg-purple-500/10 text-purple-300 border-purple-500/30';
                     const count = g.user_count !== undefined && g.user_count !== null ? g.user_count : (g.identity_ids ? g.identity_ids.length : 0);
 
-                    const deleteBtn = isProtected
-                        ? `<span class="px-2 py-1 rounded bg-white/5 text-[10px] font-mono text-gray-400 border border-white/10 inline-flex items-center gap-1" title="Protected System Group"><i data-lucide="lock" class="w-3 h-3 text-cyan-400"></i> Built-in</span>`
-                        : `<button onclick="handleDeleteGroup('${g.group_id}', '${escapeJsString(g.name)}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete Group">
-                               <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i> Delete
-                           </button>`;
+                    const deleteBtn = `<button onclick="handleDeleteGroup('${g.group_id}', '${escapeJsString(g.name)}')" class="px-2.5 py-1 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs transition" title="Delete Group">
+                                           <i data-lucide="trash-2" class="w-3.5 h-3.5 inline"></i> Delete
+                                       </button>`;
 
                     const editBtn = `<button onclick="openEditGroupModal('${g.group_id}')" class="px-2.5 py-1 rounded-lg bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs transition" title="Edit Group Name, Description & SIMs">
                                          <i data-lucide="edit-3" class="w-3.5 h-3.5 inline"></i> Edit
@@ -3935,7 +4009,6 @@
                                     <div class="space-y-1">
                                         <div class="font-bold text-white font-sans flex items-center gap-1.5 text-sm">
                                             ${g.name}
-                                            ${isProtected ? '<span class="px-1.5 py-0.2 rounded text-[9px] bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-mono">Built-in</span>' : ''}
                                         </div>
                                         <p class="text-xs text-gray-300 font-sans leading-relaxed max-w-xl">
                                             ${g.description || (isPermissive ? 'Permissive access profile allowing standard business productivity tools.' : 'Restrictive lockdown profile blocking unauthorized web streaming and malicious traffic.')}
@@ -3961,7 +4034,6 @@
                     `;
                 }).join('');
             }
-
 
             lucide.createIcons();
         }
@@ -5167,6 +5239,54 @@
         let filteredSummarySIMs = [];
         let summaryUEMappingsPage = 1;
         let summaryUEMappingsPageSize = 100;
+        let summarySortCol = 'create_time';
+        let summarySortDir = 'desc';
+
+        function renderSummaryUEHeader() {
+            const thead = document.getElementById('summary-ue-table-head');
+            if (!thead) return;
+
+            const cols = [
+                { key: 'create_time', label: 'Time added' },
+                { key: 'imsi', label: 'IMSI' },
+                { key: 'imei', label: 'IMEI' },
+                { key: 'apn', label: 'APN' },
+                { key: 'ipv4_addr', label: 'IPv4 Address', infoIcon: true, infoColor: 'text-cyan-400' },
+                { key: 'ipv6_addr', label: 'IPv6 Address', infoIcon: true, infoColor: 'text-gray-500' },
+                { key: 'tenant_name', label: 'Tenant', infoIcon: true, infoColor: 'text-gray-500' },
+                { key: 'tenant_status', label: 'Tenant Status', infoIcon: true, infoColor: 'text-gray-500' },
+                { key: 'status', label: 'Status' },
+                { key: 'region', label: 'Region' },
+                { key: 'groups', label: 'Groups' }
+            ];
+
+            thead.innerHTML = `<tr>` + cols.map(c => {
+                const isSorted = summarySortCol === c.key;
+                const icon = isSorted 
+                    ? (summarySortDir === 'asc' ? '<span class="text-cyan-400 font-bold ml-1">▲</span>' : '<span class="text-cyan-400 font-bold ml-1">▼</span>') 
+                    : '<span class="text-gray-500 opacity-40 ml-1 font-mono">⇅</span>';
+                const info = c.infoIcon ? `<i data-lucide="info" class="w-3 h-3 ${c.infoColor} shrink-0"></i> ` : '';
+                const activeClass = isSorted ? 'text-cyan-400 bg-white/5' : 'hover:text-white hover:bg-white/5';
+                return `<th onclick="handleSummarySort('${c.key}')" class="px-4 py-3 cursor-pointer transition select-none ${activeClass}" title="Click to sort by ${c.label}">
+                            <div class="inline-flex items-center gap-1">
+                                ${info}${c.label} ${icon}
+                            </div>
+                        </th>`;
+            }).join('') + `</tr>`;
+
+            lucide.createIcons();
+        }
+
+        function handleSummarySort(col) {
+            if (summarySortCol === col) {
+                summarySortDir = (summarySortDir === 'asc' ? 'desc' : 'asc');
+            } else {
+                summarySortCol = col;
+                summarySortDir = (col === 'create_time') ? 'desc' : 'asc';
+            }
+            renderSummaryUEHeader();
+            filterSummaryUEMappings();
+        }
 
         function onSummaryPageSizeChange() {
             const select = document.getElementById('summary-ue-page-size');
@@ -5200,6 +5320,8 @@
 
                 return matchQuery && matchTenant && matchRegion;
             });
+
+            filteredSummarySIMs.sort((a, b) => compareSIMValues(a, b, summarySortCol, summarySortDir));
 
             summaryUEMappingsPage = 1;
             renderPaginatedSummaryUEMappings();
@@ -5240,6 +5362,7 @@
 
         function renderSummaryUEMappings(sims) {
             allSummarySIMs = sims || [];
+            renderSummaryUEHeader();
             filterSummaryUEMappings();
         }
 

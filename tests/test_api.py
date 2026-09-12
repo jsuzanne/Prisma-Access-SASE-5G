@@ -220,13 +220,13 @@ class TestAppEndpoints(unittest.TestCase):
         data = response.json()
         self.assertTrue(data["success"])
 
-    def test_delete_protected_group_endpoint(self):
-        # Restrictive
+    @patch("app.Prisma5GClient.delete_user_group")
+    def test_delete_any_group_endpoint(self, mock_del_grp):
+        mock_del_grp.return_value = {"status": "success"}
+        # Permissive or Restrictive can now be deleted
         response = client.delete("/api/groups/6c73c05b-9977-4bed-a61c-30edc47a49f8")
-        self.assertEqual(response.status_code, 403)
-        # Permissive
-        response_perm = client.delete("/api/groups/f7edf2ca-75ba-49b6-b02f-ab76516fb1d9")
-        self.assertEqual(response_perm.status_code, 403)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.json()["success"])
 
     def test_serve_index_html(self):
         response = client.get("/")
