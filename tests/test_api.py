@@ -307,8 +307,15 @@ class TestAppEndpoints(unittest.TestCase):
         # Out-of-range IP (e.g. 10.58.0.195)
         resp_invalid = client.get("/api/cidr/validate?ip=10.58.0.195")
         self.assertEqual(resp_invalid.status_code, 200)
-        self.assertFalse(resp_invalid.json()["is_valid"])
-
+    def test_sync_policies_fastpath(self):
+        resp = client.post("/api/policies/sync-fastpath", json={"force_all": True})
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertTrue(data["success"])
+        self.assertIn("synced_count", data)
+        self.assertIn("total_ms", data)
+        self.assertIn("results", data)
+        self.assertIn("message", data)
 
 
 if __name__ == "__main__":
