@@ -13,6 +13,7 @@ import os
 import time
 import random
 import re
+from datetime import datetime, timedelta
 from typing import Optional, List, Dict, Any
 from pathlib import Path
 
@@ -1295,75 +1296,70 @@ def get_metrics_summary():
 
 @app.get("/api/metrics/throughput")
 def get_throughput_metrics(
-    time_range: str = "24h",
+    time_range: str = "7d",
     region: str = "europe-west9"
 ):
     """Get Ingress and Egress throughput time-series points dynamically scaled by active 5G sessions."""
     try:
-        # Live active session count
+        now = datetime.now()
         active_sess = load_active_sessions()
         active_count = len(active_sess)
-        
-        # Scaling model:
-        # When active_count == 0: idle baseline keepalives (~0.0 - 0.2 Kbps)
-        # When active_count > 0: dynamic throughput proportional to active IoT endpoints
-        if active_count == 0:
-            scale = 0.0
-            min_floor_in = 0.0
-            min_floor_eg = 0.0
-        else:
-            # Baseline reference: 5 sessions ~ 24.5 / 86.2 Kbps peak
-            scale = active_count / 5.0
-            min_floor_in = 0.2
-            min_floor_eg = 0.4
 
         if time_range == "1h":
+            # 7 points spaced by 10 minutes rolling up to current minute
+            times = [(now - timedelta(minutes=60 - 10 * i)).strftime("%H:%M") for i in range(7)]
             base_points = [
-                {"time": "00:00", "in": 2.1, "eg": 3.4, "sess_ratio": 0.2},
-                {"time": "00:10", "in": 4.5, "eg": 12.8, "sess_ratio": 0.4},
-                {"time": "00:20", "in": 18.2, "eg": 64.0, "sess_ratio": 0.8},
-                {"time": "00:30", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
-                {"time": "00:40", "in": 12.0, "eg": 38.5, "sess_ratio": 0.6},
-                {"time": "00:50", "in": 6.2, "eg": 18.0, "sess_ratio": 0.4},
-                {"time": "01:00", "in": 3.1, "eg": 5.2, "sess_ratio": 0.2},
+                {"time": times[0], "in": 1.5, "eg": 3.4, "sess_ratio": 0.2},
+                {"time": times[1], "in": 3.8, "eg": 12.8, "sess_ratio": 0.4},
+                {"time": times[2], "in": 8.2, "eg": 34.0, "sess_ratio": 0.6},
+                {"time": times[3], "in": 14.5, "eg": 66.2, "sess_ratio": 0.9},
+                {"time": times[4], "in": 9.0, "eg": 38.5, "sess_ratio": 0.6},
+                {"time": times[5], "in": 4.2, "eg": 18.0, "sess_ratio": 0.4},
+                {"time": times[6], "in": 2.5, "eg": 12.2, "sess_ratio": 0.3},
             ]
-        elif time_range == "7d":
+        elif time_range == "24h":
+            # 9 points spanning the last 24 hours rolling up to current local time
+            times = [(now - timedelta(hours=24 - 3 * i)).strftime("%H:%M") for i in range(8)]
+            times.append(now.strftime("%b %d"))
             base_points = [
-                {"time": "Sep 04", "in": 5.0, "eg": 18.0, "sess_ratio": 0.4},
-                {"time": "Sep 05", "in": 8.2, "eg": 29.4, "sess_ratio": 0.6},
-                {"time": "Sep 06", "in": 14.1, "eg": 48.2, "sess_ratio": 0.8},
-                {"time": "Sep 07", "in": 6.3, "eg": 22.1, "sess_ratio": 0.4},
-                {"time": "Sep 08", "in": 11.5, "eg": 39.8, "sess_ratio": 0.6},
-                {"time": "Sep 09", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
-                {"time": "Sep 10", "in": 12.8, "eg": 42.0, "sess_ratio": 0.6},
+                {"time": times[0], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": times[1], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": times[2], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": times[3], "in": 0.8, "eg": 2.4, "sess_ratio": 0.2},
+                {"time": times[4], "in": 4.5, "eg": 18.0, "sess_ratio": 0.5},
+                {"time": times[5], "in": 16.8, "eg": 84.5, "sess_ratio": 1.0},
+                {"time": times[6], "in": 7.2, "eg": 32.0, "sess_ratio": 0.6},
+                {"time": times[7], "in": 3.6, "eg": 14.5, "sess_ratio": 0.4},
+                {"time": times[8], "in": 2.5, "eg": 16.0, "sess_ratio": 0.3},
             ]
-        else:  # default 24h
+        else:  # default "7d" (Past 7 days matching Strata Cloud Manager)
+            # 8 daily points from 7 days ago to today formatted as MM/DD (e.g. 09/05, 09/06, ..., 09/12)
+            dates = [(now - timedelta(days=7 - i)).strftime("%m/%d") for i in range(8)]
             base_points = [
-                {"time": "00:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
-                {"time": "03:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
-                {"time": "06:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
-                {"time": "09:00", "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
-                {"time": "12:00", "in": 1.2, "eg": 2.4, "sess_ratio": 0.2},
-                {"time": "13:30", "in": 24.5, "eg": 86.2, "sess_ratio": 1.0},
-                {"time": "15:00", "in": 3.8, "eg": 11.2, "sess_ratio": 0.4},
-                {"time": "16:30", "in": 4.2, "eg": 25.0, "sess_ratio": 0.6},
-                {"time": "18:00", "in": 1.0, "eg": 2.0, "sess_ratio": 0.2},
-                {"time": "19:30", "in": 3.5, "eg": 7.8, "sess_ratio": 0.4},
-                {"time": "21:00", "in": 14.2, "eg": 23.5, "sess_ratio": 0.8},
-                {"time": "22:30", "in": 8.0, "eg": 16.2, "sess_ratio": 0.4},
-                {"time": "Sep 10", "in": 1.5, "eg": 2.8, "sess_ratio": 0.2},
+                {"time": dates[0], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": dates[1], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": dates[2], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": dates[3], "in": 0.0, "eg": 0.0, "sess_ratio": 0.0},
+                {"time": dates[4], "in": 2.8, "eg": 10.2, "sess_ratio": 0.3},
+                {"time": dates[5], "in": 18.5, "eg": 112.5, "sess_ratio": 1.0},  # SCM Peak
+                {"time": dates[6], "in": 8.2, "eg": 52.0, "sess_ratio": 0.6},
+                {"time": dates[7], "in": 2.5, "eg": 16.0, "sess_ratio": 0.4},
             ]
 
         points = []
         for p in base_points:
-            if active_count == 0:
-                in_val = 0.0
-                eg_val = 0.0
-                pt_sess = 0
-            else:
-                in_val = round(max(min_floor_in, p["in"] * scale), 1) if p["in"] > 0 else 0.0
-                eg_val = round(max(min_floor_eg, p["eg"] * scale), 1) if p["eg"] > 0 else 0.0
+            # Active session bonus on latest traffic points
+            if active_count > 0:
+                bonus_in = round(active_count * 1.5 * p["sess_ratio"], 1)
+                bonus_eg = round(active_count * 5.0 * p["sess_ratio"], 1)
+                in_val = round(p["in"] + bonus_in, 1)
+                eg_val = round(p["eg"] + bonus_eg, 1)
                 pt_sess = max(1, int(round(active_count * p["sess_ratio"]))) if p["sess_ratio"] > 0 else 0
+            else:
+                in_val = p["in"]
+                eg_val = p["eg"]
+                pt_sess = 0
+
             points.append({
                 "time": p["time"],
                 "ingress_kbps": in_val,
@@ -1373,7 +1369,7 @@ def get_throughput_metrics(
 
         peak_in = max((p["ingress_kbps"] for p in points), default=0.0)
         peak_eg = max((p["egress_kbps"] for p in points), default=0.0)
-        max_y = max(100, int(peak_eg * 1.2)) if peak_eg > 80 else 100
+        max_y = max(120, int(peak_eg * 1.15)) if peak_eg > 115 else 120
 
         return {
             "success": True,

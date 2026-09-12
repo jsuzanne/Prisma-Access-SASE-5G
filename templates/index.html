@@ -369,8 +369,16 @@
             border-color: rgba(168, 85, 247, 0.4) !important;
             color: #7e22ce !important;
         }
-        html.light #btn-mode-raw.bg-purple-500\/20 * {
-            color: #7e22ce !important;
+        /* Throughput Trend Chart in Light Mode */
+        html.light .grid-lines text,
+        html.light #x-axis-labels text {
+            fill: #475569 !important;
+        }
+        html.light .grid-lines line {
+            stroke: rgba(15, 23, 42, 0.08) !important;
+        }
+        html.light #throughput-svg {
+            color: #475569 !important;
         }
 
         html.light .custom-scrollbar::-webkit-scrollbar-track {
@@ -555,8 +563,8 @@
                             <span class="text-xs text-gray-400">Time range:</span>
                             <select id="summary-time-range" onchange="loadThroughputChart()" class="bg-transparent text-xs text-white font-medium focus:outline-none cursor-pointer">
                                 <option value="1h" class="bg-gray-900 text-white">Past 1 hour</option>
-                                <option value="24h" selected class="bg-gray-900 text-white">Past 24 hours</option>
-                                <option value="7d" class="bg-gray-900 text-white">Past 7 days</option>
+                                <option value="24h" class="bg-gray-900 text-white">Past 24 hours</option>
+                                <option value="7d" selected class="bg-gray-900 text-white">Past 7 days</option>
                             </select>
                         </div>
                     </div>
@@ -651,22 +659,25 @@
                                     </linearGradient>
                                 </defs>
 
-                                <!-- Grid Lines & Y-Labels -->
+                                <!-- Grid Lines & Y-Labels (120Kbps scale matching Strata Cloud Manager) -->
                                 <g class="grid-lines text-[10px] text-gray-500 font-mono" fill="currentColor">
                                     <line x1="50" y1="20" x2="780" y2="20" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
-                                    <text x="40" y="24" text-anchor="end">100Kbps</text>
+                                    <text x="40" y="24" text-anchor="end">120Kbps</text>
 
-                                    <line x1="50" y1="60" x2="780" y2="60" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
-                                    <text x="40" y="64" text-anchor="end">80Kbps</text>
+                                    <line x1="50" y1="50" x2="780" y2="50" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
+                                    <text x="40" y="54" text-anchor="end">100Kbps</text>
 
-                                    <line x1="50" y1="100" x2="780" y2="100" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
-                                    <text x="40" y="104" text-anchor="end">60Kbps</text>
+                                    <line x1="50" y1="80" x2="780" y2="80" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
+                                    <text x="40" y="84" text-anchor="end">80Kbps</text>
+
+                                    <line x1="50" y1="110" x2="780" y2="110" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
+                                    <text x="40" y="114" text-anchor="end">60Kbps</text>
 
                                     <line x1="50" y1="140" x2="780" y2="140" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
                                     <text x="40" y="144" text-anchor="end">40Kbps</text>
 
-                                    <line x1="50" y1="180" x2="780" y2="180" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
-                                    <text x="40" y="184" text-anchor="end">20Kbps</text>
+                                    <line x1="50" y1="170" x2="780" y2="170" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3,3" />
+                                    <text x="40" y="174" text-anchor="end">20Kbps</text>
 
                                     <line x1="50" y1="200" x2="780" y2="200" stroke="rgba(255,255,255,0.15)" />
                                     <text x="40" y="204" text-anchor="end">0</text>
@@ -722,6 +733,54 @@
                             </div>
                             <div class="text-[11px] text-gray-500 italic">
                                 To view baseline bandwidth data, select Ingress or Egress individually
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom SCM Overview Widgets: UE Mappings & Incidents by Severity -->
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- UE Mappings Overview Card -->
+                        <div class="glass-panel rounded-2xl p-5 border border-white/10 space-y-4">
+                            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i data-lucide="smartphone" class="w-4 h-4 text-cyan-400"></i>
+                                    UE Mappings
+                                </h4>
+                                <button onclick="switchSummarySubTab('summary-sub-mappings')" class="text-xs text-cyan-400 hover:text-cyan-300 font-medium flex items-center gap-1 transition">
+                                    View Details <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                            <div class="grid grid-cols-3 gap-3">
+                                <div class="bg-white/5 rounded-xl p-3 border border-white/5">
+                                    <div class="text-[11px] text-gray-400 font-medium">Configured UE Mappings</div>
+                                    <div id="overview-configured-ues" class="text-2xl font-bold text-white mt-1">15</div>
+                                </div>
+                                <div class="bg-white/5 rounded-xl p-3 border border-white/5">
+                                    <div class="text-[11px] text-gray-400 font-medium">Registered UE Mappings</div>
+                                    <div id="overview-registered-ues" class="text-2xl font-bold text-emerald-400 mt-1">15</div>
+                                </div>
+                                <div class="bg-white/5 rounded-xl p-3 border border-white/5">
+                                    <div class="text-[11px] text-gray-400 font-medium">Unknown UE Mappings</div>
+                                    <div class="text-2xl font-bold text-gray-400 mt-1">0</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Incidents by Severity Card -->
+                        <div class="glass-panel rounded-2xl p-5 border border-white/10 space-y-4 flex flex-col justify-between">
+                            <div class="flex items-center justify-between pb-3 border-b border-white/10">
+                                <h4 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i data-lucide="alert-triangle" class="w-4 h-4 text-amber-400"></i>
+                                    Incidents by Severity
+                                </h4>
+                                <span class="text-[11px] text-gray-500">Live SecOps</span>
+                            </div>
+                            <div class="flex flex-col items-center justify-center py-5 text-center space-y-2">
+                                <div class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-cyan-400">
+                                    <i data-lucide="shield-check" class="w-5 h-5 text-emerald-400"></i>
+                                </div>
+                                <div class="text-xs font-medium text-gray-400">No data available</div>
+                                <div class="text-[10px] text-gray-500">Zero active security incidents detected across active 5G UEs</div>
                             </div>
                         </div>
                     </div>
@@ -4969,7 +5028,7 @@
         }
 
         async function loadThroughputChart() {
-            const timeRange = document.getElementById('summary-time-range')?.value || '24h';
+            const timeRange = document.getElementById('summary-time-range')?.value || '7d';
             const region = document.getElementById('summary-compute-region')?.value || 'europe-west9';
 
             try {
@@ -4995,9 +5054,9 @@
             if (!svg || !points || points.length === 0) return;
 
             const minX = 50, maxX = 780;
-            const minY = 20, maxY = 200; // 100Kbps at 20, 0Kbps at 200
+            const minY = 20, maxY = 200; // 120Kbps at 20, 0Kbps at 200
             const n = points.length;
-            const maxYVal = (typeof throughputData !== 'undefined' && throughputData && throughputData.max_y) ? throughputData.max_y : 100;
+            const maxYVal = (typeof throughputData !== 'undefined' && throughputData && throughputData.max_y) ? throughputData.max_y : 120;
 
             const getX = (i) => minX + (i / (n - 1)) * (maxX - minX);
             const getY = (val) => Math.max(minY, Math.min(maxY, maxY - (val / maxYVal) * (maxY - minY)));
@@ -5043,9 +5102,11 @@
                 ingressArea.style.display = 'none';
             }
 
-            // X Axis Labels
+            // X Axis Labels (render all dates when n <= 10 matching SCM)
             xLabels.innerHTML = points.map((p, i) => {
-                // Show subset of labels for clarity
+                if (n <= 10) {
+                    return `<text x="${getX(i)}" y="216" text-anchor="middle">${p.time}</text>`;
+                }
                 const step = Math.ceil(n / 6);
                 if (i % step === 0 || i === n - 1) {
                     return `<text x="${getX(i)}" y="216" text-anchor="middle">${p.time}</text>`;
