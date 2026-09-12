@@ -432,10 +432,9 @@ Interactive Swagger documentation is available at **[http://localhost:8000/docs]
 
 ---
 
-## 📚 Architecture Guides & Specifications
+## 📚 Architecture Guides
 
 - [5G Zero-Trust Subscriber Security Groups & Quarantine Architecture Guide](docs/5G_ZERO_TRUST_SECURITY_GROUPS_GUIDE.md)
-- [PRD: On-Demand Cloud Identity Engine (CIE) & 5G Policy Sync Engine](PRD/PRD_CIE_DIRECTORY_SYNC_ON_DEMAND.md)
 
 ---
 
@@ -444,4 +443,3 @@ Interactive Swagger documentation is available at **[http://localhost:8000/docs]
 - [Strata Cloud Manager Portal](https://stratacloudmanager.paloaltonetworks.com)
 - [Configure Prisma SASE 5G Documentation](https://docs.paloaltonetworks.com/sase/prisma-sase-multitenant-platform/manage-sase-5g/config-sase-5g)
 - [Palo Alto Networks pan.dev SASE 5G API Reference](https://pan.dev/sase/api/manage-services-5g/post-mt-manage-5-g-register-ue/)
-- [Palo Alto Networks pan.dev SCM CIE DSS API Reference](https://pan.dev/scm/api/config/ciedss/ciedss/)
