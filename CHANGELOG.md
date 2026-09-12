@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.2.0] - 2026-09-12
+
+### Added
+- **Light & Dark Theme Switcher**:
+  - Added an interactive theme toggle button in the top navigation bar menu next to the font size selector.
+  - Introduced a clean, high-contrast, enterprise-grade **Light Mode** styling while preserving 100% of the fine-tuned Dark Mode.
+  - Implemented persistent theme storage via `localStorage` with zero-flash early initialization.
+- **Universal Carrier & MSSP Background & Color Customizer**:
+  - Added real-time **Carrier Primary Accent Color** picker with 6 quick swatches (Transatel NTT Purple, PANW Orange, Telco Orange, Cyber Cyan, Emerald Green, Telecom Crimson) and custom HTML5 color picker.
+  - Added dynamic **Background Atmosphere** engine supporting *Cyber 5G Core* (Deep Space Mesh), *Carrier Atmosphere* (accent-tinted radiant glow), *Enterprise Slate* (neutral minimal), and *Obsidian Midnight*.
+  - Updated live header co-branding preview and header partner badge with dynamic accent border, glow, and subtitle colors.
+
+---
+
 ## [2.1.0] - 2026-09-11
 
 ### Added

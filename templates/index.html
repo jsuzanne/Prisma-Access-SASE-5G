@@ -42,6 +42,20 @@
     <!-- Lucide Icons CDN -->
     <script src="https://unpkg.com/lucide@latest"></script>
     
+    <script>
+        (function() {
+            try {
+                const savedTheme = localStorage.getItem('prisma_5g_theme') || 'dark';
+                if (savedTheme === 'light') {
+                    document.documentElement.classList.remove('dark');
+                    document.documentElement.classList.add('light');
+                } else {
+                    document.documentElement.classList.remove('light');
+                    document.documentElement.classList.add('dark');
+                }
+            } catch(e) {}
+        })();
+    </script>
     <style>
         /* Root responsive typography scaling */
         html {
@@ -114,6 +128,7 @@
             color: #f3f4f6;
             overflow-x: hidden;
             width: 100%;
+            transition: background 0.3s ease, color 0.2s ease;
         }
         .glass-panel {
             background: rgba(17, 24, 39, 0.7);
@@ -121,6 +136,7 @@
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
         }
         .glass-panel-hover:hover {
             border-color: rgba(0, 229, 255, 0.3);
@@ -142,6 +158,249 @@
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.15);
             border-radius: 3px;
+        }
+
+        /* ==========================================================================
+           LIGHT MODE ENTERPRISE THEME OVERRIDES
+           ========================================================================== */
+        html.light body {
+            background: radial-gradient(circle at top right, #e0e7ff 0%, #f8fafc 50%, #e2e8f0 100%);
+            color: #1e293b;
+        }
+
+        html.light .glass-panel {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(226, 232, 240, 0.95);
+            box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+        }
+
+        html.light .glass-panel-hover:hover {
+            border-color: rgba(6, 182, 212, 0.5);
+            box-shadow: 0 8px 24px 0 rgba(6, 182, 212, 0.12);
+        }
+
+        html.light header.glass-panel {
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.95);
+            box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+        }
+
+        /* General text shades in Light Mode */
+        html.light .text-white {
+            color: #0f172a;
+        }
+        html.light .text-gray-100 {
+            color: #1e293b;
+        }
+        html.light .text-gray-200 {
+            color: #334155;
+        }
+        html.light .text-gray-300 {
+            color: #475569;
+        }
+        html.light .text-gray-400 {
+            color: #64748b;
+        }
+        html.light .text-gray-500 {
+            color: #94a3b8;
+        }
+
+        /* -------------------------------------------------------------
+           CRITICAL: Colored & Gradient Action Buttons must keep pure WHITE text
+           ------------------------------------------------------------- */
+        html.light button.bg-blue-600,
+        html.light button.bg-blue-500,
+        html.light button.bg-emerald-600,
+        html.light button.bg-emerald-500,
+        html.light button.bg-cyan-600,
+        html.light button.bg-purple-600,
+        html.light button.bg-rose-600,
+        html.light button[class*="from-blue-"],
+        html.light button[class*="from-cyan-"],
+        html.light button[class*="from-emerald-"],
+        html.light button[class*="bg-gradient-"],
+        html.light a[class*="bg-gradient-"],
+        html.light #btn-submit-add-group,
+        html.light #btn-submit-edit-group,
+        html.light #btn-tab-save-settings,
+        html.light .btn-primary {
+            color: #ffffff !important;
+        }
+        html.light button.bg-blue-600 *,
+        html.light button.bg-blue-500 *,
+        html.light button.bg-emerald-600 *,
+        html.light button.bg-emerald-500 *,
+        html.light button[class*="bg-gradient-"] *,
+        html.light #btn-submit-add-group *,
+        html.light #btn-submit-edit-group *,
+        html.light #btn-tab-save-settings * {
+            color: #ffffff !important;
+            stroke: #ffffff !important;
+        }
+
+        /* Dark container overrides in Light Mode */
+        html.light .bg-gray-900,
+        html.light .bg-gray-900\/90,
+        html.light .bg-gray-900\/95,
+        html.light .bg-gray-950,
+        html.light .bg-gray-950\/90 {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        html.light .bg-gray-900\/80,
+        html.light .bg-gray-900\/60,
+        html.light .bg-gray-950\/40,
+        html.light .bg-gray-950\/60,
+        html.light .bg-gray-950\/80 {
+            background-color: rgba(248, 250, 252, 0.92) !important;
+        }
+
+        html.light .bg-white\/5,
+        html.light .bg-white\/10 {
+            background-color: rgba(15, 23, 42, 0.05) !important;
+        }
+        html.light .bg-white\/20 {
+            background-color: rgba(15, 23, 42, 0.08) !important;
+        }
+
+        html.light .border-white\/10,
+        html.light .border-white\/5,
+        html.light .border-white\/20 {
+            border-color: rgba(226, 232, 240, 0.95) !important;
+        }
+
+        html.light .bg-clip-text.from-white {
+            background: linear-gradient(to right, #0f172a, #334155, #475569) !important;
+            -webkit-background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+        }
+
+        /* Form Inputs, Selects & Tables */
+        html.light input[type="text"],
+        html.light input[type="password"],
+        html.light input[type="number"],
+        html.light select,
+        html.light textarea {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border-color: rgba(203, 213, 225, 0.9) !important;
+            color: #0f172a !important;
+        }
+
+        html.light select option {
+            background-color: #ffffff !important;
+            color: #0f172a !important;
+        }
+
+        html.light input::placeholder,
+        html.light textarea::placeholder {
+            color: #94a3b8 !important;
+        }
+
+        html.light table thead {
+            background-color: rgba(241, 245, 249, 0.95) !important;
+            color: #475569 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+
+        html.light table tbody tr {
+            border-bottom-color: rgba(226, 232, 240, 0.8) !important;
+        }
+
+        html.light table tbody tr:hover {
+            background-color: rgba(241, 245, 249, 0.75) !important;
+        }
+
+        html.light .tab-btn.bg-white\/10 {
+            background-color: rgba(15, 23, 42, 0.08) !important;
+            color: #0f172a !important;
+            font-weight: 600 !important;
+        }
+
+        /* Group Modals: Initial Member SIM cards list */
+        html.light #add-group-sims-container,
+        html.light #edit-group-sims-container {
+            background-color: rgba(248, 250, 252, 0.95) !important;
+            border: 1px solid rgba(226, 232, 240, 0.95) !important;
+        }
+        html.light #add-group-sims-container label,
+        html.light #edit-group-sims-container label {
+            background-color: rgba(255, 255, 255, 0.95) !important;
+            border: 1px solid rgba(226, 232, 240, 0.9) !important;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+        }
+        html.light #add-group-sims-container label:hover,
+        html.light #edit-group-sims-container label:hover {
+            background-color: rgba(241, 245, 249, 0.95) !important;
+            border-color: rgba(203, 213, 225, 0.9) !important;
+        }
+        html.light #add-group-sims-container label span.font-mono,
+        html.light #edit-group-sims-container label span.font-mono {
+            color: #0f172a !important;
+        }
+
+        /* Settings Sidebar Info Boxes */
+        html.light .p-3.bg-gray-950.rounded-xl {
+            background-color: rgba(241, 245, 249, 0.9) !important;
+            border: 1px solid rgba(226, 232, 240, 0.95) !important;
+        }
+        html.light .p-3.bg-blue-950\/40.rounded-xl {
+            background-color: rgba(239, 246, 255, 0.95) !important;
+            border: 1px solid rgba(191, 219, 254, 0.9) !important;
+        }
+        html.light .p-3.bg-blue-950\/40.rounded-xl code {
+            background-color: rgba(219, 234, 254, 0.8) !important;
+            color: #1e40af !important;
+        }
+
+        /* View mode toggle button active state in Light Mode */
+        html.light #btn-mode-enriched.bg-cyan-500\/20 {
+            background-color: rgba(6, 182, 212, 0.15) !important;
+            border-color: rgba(6, 182, 212, 0.4) !important;
+            color: #0e7490 !important;
+        }
+        html.light #btn-mode-enriched.bg-cyan-500\/20 * {
+            color: #0e7490 !important;
+        }
+        html.light #btn-mode-raw.bg-purple-500\/20 {
+            background-color: rgba(168, 85, 247, 0.15) !important;
+            border-color: rgba(168, 85, 247, 0.4) !important;
+            color: #7e22ce !important;
+        }
+        html.light #btn-mode-raw.bg-purple-500\/20 * {
+            color: #7e22ce !important;
+        }
+
+        html.light .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.05);
+        }
+        html.light .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.18);
+            border-radius: 3px;
+        }
+
+        /* Preserve sleek dark terminal background for API Log Stream / Debugger */
+        html.light #log-stream-container,
+        html.light #api-log-stream,
+        html.light .terminal-pane {
+            background-color: #0f172a !important;
+            color: #e2e8f0 !important;
+        }
+        html.light #log-stream-container .text-white,
+        html.light #api-log-stream .text-white,
+        html.light .terminal-pane .text-white {
+            color: #f8fafc !important;
+        }
+        html.light #log-stream-container .text-gray-300,
+        html.light #api-log-stream .text-gray-300,
+        html.light .terminal-pane .text-gray-300 {
+            color: #cbd5e1 !important;
+        }
+        html.light #log-stream-container .text-gray-400,
+        html.light #api-log-stream .text-gray-400,
+        html.light .terminal-pane .text-gray-400 {
+            color: #94a3b8 !important;
         }
     </style>
 </head>
@@ -215,6 +474,12 @@
                     <button onclick="toggleHeaderFontSize()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel hover:border-cyan-500/40 text-gray-300 hover:text-cyan-300 text-xs sm:text-sm font-semibold transition" title="Toggle Font Size Scaling">
                         <i data-lucide="type" class="w-3.5 h-3.5 text-cyan-400"></i>
                         <span id="header-font-scale-label" class="font-mono text-xs">115%</span>
+                    </button>
+
+                    <!-- Theme Mode Toggle Button (Dark / Light) -->
+                    <button id="theme-toggle-btn" onclick="toggleTheme()" class="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl glass-panel hover:border-amber-400/40 text-gray-300 hover:text-amber-300 text-xs sm:text-sm font-semibold transition cursor-pointer" title="Toggle Light / Dark Mode">
+                        <i id="theme-toggle-icon" data-lucide="sun" class="w-3.5 h-3.5 text-amber-400"></i>
+                        <span id="theme-toggle-label" class="hidden md:inline font-mono text-xs">Light</span>
                     </button>
 
                     <!-- Clean SCM Online Pill -->
@@ -1290,6 +1555,34 @@
                                 </div>
                             </div>
 
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold text-xs">Carrier Accent Color</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" id="brand-color-picker" onchange="setBrandAccentColor(this.value)" value="#8A2BE2" class="w-9 h-9 p-0.5 rounded-lg border border-white/20 bg-gray-900 cursor-pointer shrink-0">
+                                        <input type="text" id="brand-color-input" oninput="setBrandAccentColor(this.value)" value="#8A2BE2" placeholder="#8A2BE2" class="w-24 px-2.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-cyan-300 font-mono text-xs focus:border-cyan-400 focus:outline-none">
+                                        <!-- Quick Color Swatches -->
+                                        <div class="flex items-center gap-1.5 ml-auto">
+                                            <button type="button" onclick="setBrandAccentColor('#8A2BE2')" title="NTT Purple" class="w-5 h-5 rounded-full bg-[#8A2BE2] hover:scale-110 transition border border-white/30"></button>
+                                            <button type="button" onclick="setBrandAccentColor('#FA582D')" title="PANW Orange" class="w-5 h-5 rounded-full bg-[#FA582D] hover:scale-110 transition border border-white/30"></button>
+                                            <button type="button" onclick="setBrandAccentColor('#FF7900')" title="Telco Orange" class="w-5 h-5 rounded-full bg-[#FF7900] hover:scale-110 transition border border-white/30"></button>
+                                            <button type="button" onclick="setBrandAccentColor('#00E5FF')" title="Cyber Cyan" class="w-5 h-5 rounded-full bg-[#00E5FF] hover:scale-110 transition border border-white/30"></button>
+                                            <button type="button" onclick="setBrandAccentColor('#10B981')" title="Emerald Green" class="w-5 h-5 rounded-full bg-[#10B981] hover:scale-110 transition border border-white/30"></button>
+                                            <button type="button" onclick="setBrandAccentColor('#E11D48')" title="Telecom Crimson" class="w-5 h-5 rounded-full bg-[#E11D48] hover:scale-110 transition border border-white/30"></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-gray-300 mb-1 font-semibold text-xs">Background Atmosphere</label>
+                                    <select id="brand-bg-atmosphere" onchange="updateBrandPreview(); applyBackgroundTheme();" class="w-full px-3.5 py-2 bg-gray-900 border border-white/10 rounded-xl text-white font-sans text-xs focus:border-cyan-400 focus:outline-none cursor-pointer">
+                                        <option value="cyber">Cyber 5G Core (Default Space Mesh)</option>
+                                        <option value="carrier">Carrier Atmosphere (Tinted Ambient Glow)</option>
+                                        <option value="slate">Enterprise Slate (Neutral Minimal)</option>
+                                        <option value="midnight">Obsidian Midnight (Deep Contrast)</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div>
                                 <label class="block text-gray-300 mb-1 font-semibold text-xs">Logo Image (URL or uploaded PNG)</label>
                                 <div class="flex gap-2">
@@ -1305,13 +1598,13 @@
                             <div class="pt-3 border-t border-white/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                                 <div>
                                     <div class="text-[11px] text-gray-400 font-semibold mb-1">Header Co-Branding Live Preview</div>
-                                    <div class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 border border-cyan-500/30">
+                                    <div id="preview-partner-badge" class="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white/5 border border-purple-500/30 transition shadow-sm">
                                         <div id="preview-logo-box" class="h-6 px-1.5 bg-white rounded flex items-center justify-center shadow-sm">
                                             <img id="preview-logo-img" src="/static/img/transatel_logo.png" alt="Logo" class="h-4 w-auto object-contain">
                                         </div>
                                         <div class="text-left leading-tight">
                                             <div id="preview-name" class="text-[11px] font-bold text-white font-sans">Transatel (NTT)</div>
-                                            <div id="preview-subtitle" class="text-[9px] text-cyan-400 font-mono">5G Connectivity Partner</div>
+                                            <div id="preview-subtitle" class="text-[9px] text-[#8A2BE2] font-mono font-medium">5G Connectivity Partner</div>
                                         </div>
                                     </div>
                                 </div>
@@ -2334,50 +2627,163 @@
             }
         }
 
-        // Carrier & MSSP Co-Branding State & Logic
+        // ==========================================================================
+        // THEME & DISPLAY MANAGER (Dark / Light Mode)
+        // ==========================================================================
+        let currentTheme = localStorage.getItem('prisma_5g_theme') || 'dark';
+
+        function applyTheme(theme) {
+            currentTheme = theme;
+            localStorage.setItem('prisma_5g_theme', theme);
+
+            if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+            }
+
+            // Update top bar toggle button icon and text
+            const icon = document.getElementById('theme-toggle-icon');
+            const label = document.getElementById('theme-toggle-label');
+            const btn = document.getElementById('theme-toggle-btn');
+            if (icon) {
+                if (theme === 'light') {
+                    icon.setAttribute('data-lucide', 'moon');
+                    icon.className = 'w-3.5 h-3.5 text-indigo-500';
+                    if (label) label.innerText = 'Dark';
+                    if (btn) btn.title = 'Switch to Dark Mode';
+                } else {
+                    icon.setAttribute('data-lucide', 'sun');
+                    icon.className = 'w-3.5 h-3.5 text-amber-400';
+                    if (label) label.innerText = 'Light';
+                    if (btn) btn.title = 'Switch to Light Mode';
+                }
+                lucide.createIcons();
+            }
+
+            applyBackgroundTheme();
+        }
+
+        function toggleTheme() {
+            const targetTheme = (currentTheme === 'dark' ? 'light' : 'dark');
+            applyTheme(targetTheme);
+            showToast("Theme Updated", `Switched to ${targetTheme === 'dark' ? 'Dark Mode' : 'Light Mode'}`);
+        }
+
+        // Helper: Convert HEX to RGBA string
+        function hexToRgba(hex, alpha = 1) {
+            if (!hex || typeof hex !== 'string') return `rgba(0, 229, 255, ${alpha})`;
+            let c = hex.replace('#', '');
+            if (c.length === 3) c = c.split('').map(x => x + x).join('');
+            if (c.length !== 6) return `rgba(0, 229, 255, ${alpha})`;
+            const num = parseInt(c, 16);
+            return `rgba(${(num >> 16) & 255}, ${(num >> 8) & 255}, ${num & 255}, ${alpha})`;
+        }
+
+        // ==========================================================================
+        // CARRIER & MSSP CO-BRANDING STATE & ATMOSPHERE LOGIC
+        // ==========================================================================
         const BRAND_PRESETS = {
             universal: {
                 id: 'universal',
                 name: 'Telecom 5G Core',
                 subtitle: 'Universal 3GPP Partner',
-                logo: ''
+                logo: '',
+                color: '#00E5FF',
+                bgAtmosphere: 'cyber'
             },
             transatel: {
                 id: 'transatel',
                 name: 'Transatel (NTT)',
                 subtitle: '5G Connectivity Partner',
-                logo: '/static/img/transatel_logo.png'
+                logo: '/static/img/transatel_logo.png',
+                color: '#8A2BE2',
+                bgAtmosphere: 'carrier'
             },
             orange: {
                 id: 'orange',
                 name: 'Tier-1 Telecom MNO',
                 subtitle: '5G Core Network Partner',
-                logo: ''
+                logo: '',
+                color: '#FF7900',
+                bgAtmosphere: 'carrier'
             },
             private5g: {
                 id: 'private5g',
                 name: 'Enterprise Private 5G',
                 subtitle: 'On-Premises UPF SASE',
-                logo: ''
+                logo: '',
+                color: '#10B981',
+                bgAtmosphere: 'slate'
             },
             custom: {
                 id: 'custom',
                 name: 'Custom Carrier',
                 subtitle: '5G Core Network Partner',
-                logo: ''
+                logo: '',
+                color: '#00E5FF',
+                bgAtmosphere: 'cyber'
             }
         };
 
         let currentBrand = JSON.parse(localStorage.getItem('prisma_5g_brand')) || BRAND_PRESETS.universal;
 
+        function applyBackgroundTheme() {
+            const brand = currentBrand || BRAND_PRESETS.universal;
+            const mood = brand.bgAtmosphere || 'cyber';
+            const color = brand.color || '#00E5FF';
+            const isDark = currentTheme !== 'light';
+
+            let bgStyle = '';
+            if (mood === 'carrier') {
+                if (isDark) {
+                    bgStyle = `radial-gradient(circle at top right, ${hexToRgba(color, 0.22)} 0%, #0b0f19 55%, #060911 100%)`;
+                } else {
+                    bgStyle = `radial-gradient(circle at top right, ${hexToRgba(color, 0.16)} 0%, #f8fafc 55%, #e2e8f0 100%)`;
+                }
+            } else if (mood === 'slate') {
+                if (isDark) {
+                    bgStyle = `radial-gradient(circle at top right, #1e293b 0%, #0f172a 60%, #020617 100%)`;
+                } else {
+                    bgStyle = `radial-gradient(circle at top right, #cbd5e1 0%, #f1f5f9 60%, #e2e8f0 100%)`;
+                }
+            } else if (mood === 'midnight') {
+                if (isDark) {
+                    bgStyle = `radial-gradient(circle at top right, #0d1322 0%, #050811 60%, #000000 100%)`;
+                } else {
+                    bgStyle = `radial-gradient(circle at top right, #dbeafe 0%, #eff6ff 60%, #e0e7ff 100%)`;
+                }
+            } else { // default 'cyber'
+                if (isDark) {
+                    bgStyle = `radial-gradient(circle at top right, #131d38 0%, #0b0f19 50%, #060911 100%)`;
+                } else {
+                    bgStyle = `radial-gradient(circle at top right, #e0e7ff 0%, #f8fafc 50%, #e2e8f0 100%)`;
+                }
+            }
+
+            document.body.style.background = bgStyle;
+        }
+
         function applyBrandToUI(brand) {
+            if (!brand) brand = BRAND_PRESETS.universal;
+            currentBrand = brand;
+
             const hName = document.getElementById('header-partner-name');
             const hSub = document.getElementById('header-partner-subtitle');
             const hImg = document.getElementById('header-partner-logo-img');
             const hBox = document.getElementById('header-partner-logo-box');
+            const hBadge = document.getElementById('header-partner-badge');
 
             if (hName) hName.innerText = brand.name || 'Carrier Partner';
-            if (hSub) hSub.innerText = brand.subtitle || '5G Connectivity Partner';
+            if (hSub) {
+                hSub.innerText = brand.subtitle || '5G Connectivity Partner';
+                if (brand.color) hSub.style.color = brand.color;
+            }
+            if (hBadge && brand.color) {
+                hBadge.style.borderColor = hexToRgba(brand.color, 0.35);
+            }
 
             if (brand.logo) {
                 if (hImg) {
@@ -2390,6 +2796,22 @@
                 if (hBox) hBox.style.display = 'none';
             }
 
+            // Sync settings inputs if they exist
+            const nameInput = document.getElementById('brand-name-input');
+            const subInput = document.getElementById('brand-subtitle-input');
+            const logoInput = document.getElementById('brand-logo-input');
+            const colorInput = document.getElementById('brand-color-input');
+            const colorPicker = document.getElementById('brand-color-picker');
+            const bgAtmosphere = document.getElementById('brand-bg-atmosphere');
+
+            if (nameInput && !nameInput.matches(':focus')) nameInput.value = brand.name || '';
+            if (subInput && !subInput.matches(':focus')) subInput.value = brand.subtitle || '';
+            if (logoInput && !logoInput.matches(':focus')) logoInput.value = brand.logo || '';
+            if (colorInput) colorInput.value = brand.color || '#00E5FF';
+            if (colorPicker) colorPicker.value = brand.color || '#00E5FF';
+            if (bgAtmosphere) bgAtmosphere.value = brand.bgAtmosphere || 'cyber';
+
+            applyBackgroundTheme();
             updateBrandPreview();
         }
 
@@ -2398,10 +2820,16 @@
             const nameInput = document.getElementById('brand-name-input');
             const subInput = document.getElementById('brand-subtitle-input');
             const logoInput = document.getElementById('brand-logo-input');
+            const colorInput = document.getElementById('brand-color-input');
+            const colorPicker = document.getElementById('brand-color-picker');
+            const bgAtmosphere = document.getElementById('brand-bg-atmosphere');
 
             if (nameInput) nameInput.value = preset.name;
             if (subInput) subInput.value = preset.subtitle;
             if (logoInput) logoInput.value = preset.logo;
+            if (colorInput) colorInput.value = preset.color || '#00E5FF';
+            if (colorPicker) colorPicker.value = preset.color || '#00E5FF';
+            if (bgAtmosphere) bgAtmosphere.value = preset.bgAtmosphere || 'cyber';
 
             ['universal', 'transatel', 'orange', 'private5g', 'custom'].forEach(k => {
                 const btn = document.getElementById('preset-btn-' + k);
@@ -2427,18 +2855,35 @@
             lucide.createIcons();
         }
 
+        function setBrandAccentColor(colorHex) {
+            const colorInput = document.getElementById('brand-color-input');
+            const colorPicker = document.getElementById('brand-color-picker');
+            if (colorInput) colorInput.value = colorHex;
+            if (colorPicker) colorPicker.value = colorHex;
+            updateBrandPreview();
+            applyBackgroundTheme();
+        }
+
         function updateBrandPreview() {
             const name = document.getElementById('brand-name-input')?.value || 'Telecom 5G Core';
             const sub = document.getElementById('brand-subtitle-input')?.value || 'Universal 3GPP Partner';
             const logo = document.getElementById('brand-logo-input')?.value || '';
+            const color = document.getElementById('brand-color-input')?.value || '#00E5FF';
 
             const pName = document.getElementById('preview-name');
             const pSub = document.getElementById('preview-subtitle');
             const pImg = document.getElementById('preview-logo-img');
             const pBox = document.getElementById('preview-logo-box');
+            const pBadge = document.getElementById('preview-partner-badge');
 
             if (pName) pName.innerText = name;
-            if (pSub) pSub.innerText = sub;
+            if (pSub) {
+                pSub.innerText = sub;
+                pSub.style.color = color;
+            }
+            if (pBadge) {
+                pBadge.style.borderColor = hexToRgba(color, 0.4);
+            }
             if (logo) {
                 if (pImg) {
                     pImg.src = logo;
@@ -2452,11 +2897,13 @@
         }
 
         function saveBrandCustomization() {
-            const name = document.getElementById('brand-name-input').value;
-            const subtitle = document.getElementById('brand-subtitle-input').value;
-            const logo = document.getElementById('brand-logo-input').value;
+            const name = document.getElementById('brand-name-input')?.value || 'Telecom 5G Core';
+            const subtitle = document.getElementById('brand-subtitle-input')?.value || 'Universal 3GPP Partner';
+            const logo = document.getElementById('brand-logo-input')?.value || '';
+            const color = document.getElementById('brand-color-input')?.value || '#00E5FF';
+            const bgAtmosphere = document.getElementById('brand-bg-atmosphere')?.value || 'cyber';
 
-            currentBrand = { name, subtitle, logo };
+            currentBrand = { name, subtitle, logo, color, bgAtmosphere };
             localStorage.setItem('prisma_5g_brand', JSON.stringify(currentBrand));
             applyBrandToUI(currentBrand);
             showToast("Branding Applied", `Active carrier set to: ${name}`);
@@ -5136,6 +5583,7 @@
 
         // Initialize on load
         window.addEventListener('DOMContentLoaded', () => {
+            applyTheme(currentTheme);
             applyFontSize(currentFontSize);
             applyBrandToUI(currentBrand);
             fetchVerticalPresets();
