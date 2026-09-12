@@ -655,6 +655,40 @@
             font-weight: 600 !important;
         }
 
+        /* 10. Table Headers & Interactive Column Sort Hover in Light Mode */
+        html.light thead {
+            background-color: #f1f5f9 !important;
+            border-bottom: 1px solid #cbd5e1 !important;
+        }
+        html.light thead th {
+            color: #475569 !important;
+            font-weight: 700 !important;
+        }
+        html.light thead th:hover,
+        html.light thead th:hover span,
+        html.light thead th:hover div {
+            color: #0f172a !important;
+            background-color: #e2e8f0 !important;
+        }
+        html.light thead th[class*="text-cyan-400"],
+        html.light thead th.text-cyan-400 {
+            color: #0284c7 !important;
+            background-color: rgba(2, 132, 199, 0.1) !important;
+        }
+        html.light thead th[class*="text-cyan-400"]:hover,
+        html.light thead th.text-cyan-400:hover {
+            color: #0369a1 !important;
+            background-color: rgba(2, 132, 199, 0.18) !important;
+        }
+        html.light thead th span[class*="text-cyan-400"],
+        html.light thead th span.text-cyan-400 {
+            color: #0284c7 !important;
+        }
+        html.light thead th span[class*="text-gray-500"],
+        html.light thead th span[class*="text-gray-600"] {
+            color: #94a3b8 !important;
+        }
+
         html.light .custom-scrollbar::-webkit-scrollbar-track {
             background: rgba(0, 0, 0, 0.05);
         }
