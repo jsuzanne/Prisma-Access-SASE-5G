@@ -508,6 +508,12 @@ def auto_enrich_existing_fleet(payload: EnrichFleetModel):
         enrichment_map = enrich_existing_imsis(imsis_to_enrich, vertical_id=payload.vertical)
         
         for imsi, meta_dict in enrichment_map.items():
+            existing_meta = local_meta.get(imsi, {})
+            # Preserve existing custom_label (Demo Memo / Device tag) and last_ip
+            if existing_meta.get("custom_label"):
+                meta_dict["custom_label"] = existing_meta["custom_label"]
+            if existing_meta.get("last_ip"):
+                meta_dict["last_ip"] = existing_meta["last_ip"]
             update_single_sim_metadata(imsi, meta_dict)
 
         return {
