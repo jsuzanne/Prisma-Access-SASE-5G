@@ -3668,7 +3668,12 @@
             } catch (e) {
                 const tbody = document.getElementById('sims-table-body');
                 if (tbody) {
-                      // Table Sorting State
+                    tbody.innerHTML = `<tr><td colspan="7" class="px-6 py-6 text-center text-red-400">Failed to load SIM inventory: ${e.message}</td></tr>`;
+                }
+            }
+        }
+
+        // Table Sorting State
         let simsSortCol = 'device_type';
         let simsSortDir = 'asc';
 
